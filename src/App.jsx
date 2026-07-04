@@ -110,7 +110,6 @@ export default function App() {
   const [toolsExpanded, setToolsExpanded] = useState(false);
   const [altBarOpen, setAltBarOpen] = useState(true);
   const [headerOpen, setHeaderOpen] = useState(false);
-  const [userChatOpen, setUserChatOpen] = useState(false);
 
   // States for collapsible & resizable docked game chat
   const [dockedChatWidth, setDockedChatWidth] = useState(288); // 288px default (w-72)
@@ -2694,7 +2693,7 @@ export default function App() {
                 <ChatWorkspace onClose={() => setFilter('all')} />
               </div>
             ) : filter === 'lobbychat' ? (
-              <div className={`flex flex-col w-full max-w-4xl mx-auto min-h-[500px] rounded-2xl border border-[var(--card-border)]/40 overflow-hidden shadow-2xl animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-150px)] md:h-[calc(100vh-130px)]' : 'h-[calc(100vh-110px)] md:h-[calc(100vh-90px)]'}`}>
+              <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
                 <UserChat onClose={() => setFilter('all')} />
               </div>
             ) : filter === 'info' ? (
@@ -3085,46 +3084,7 @@ export default function App() {
         </main>
       </div>
 
-      {/* Floating User Chat Overlay for Games Section / Inside Games */}
-      {viewMode === 'games' && !selectedGame && filter !== 'chat' && filter !== 'info' && filter !== 'movies' && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 font-sans">
-          {/* Floating Chat Panel */}
-          {userChatOpen && (
-            <div 
-              id="user-chat-overlay"
-              className="w-[380px] h-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100vh-100px)] rounded-2xl border border-[var(--card-border)] bg-[#0a0d16] shadow-2xl overflow-hidden flex flex-col animate-fade-in"
-            >
-              <div className="flex-1 min-h-0">
-                <UserChat onClose={() => setUserChatOpen(false)} />
-              </div>
-            </div>
-          )}
 
-          {/* Floating Button */}
-          <button
-            onClick={() => setUserChatOpen(!userChatOpen)}
-            className={`flex items-center justify-center w-12 h-12 rounded-full text-white shadow-lg cursor-pointer transition-all duration-300 transform active:scale-90 select-none ${
-              userChatOpen 
-                ? 'bg-rose-500 hover:bg-rose-600 rotate-90' 
-                : 'bg-[var(--accent-color)] hover:bg-[var(--accent-color)]/95 hover:scale-105 hover:shadow-[0_4px_15px_var(--accent-shadow)]'
-            }`}
-            title={userChatOpen ? "Close Lobby Chat" : "Open Live Lobby Chat"}
-          >
-            {userChatOpen ? (
-              <X className="w-5 h-5 text-white" />
-            ) : (
-              <div className="relative">
-                <MessageSquare className="w-5 h-5 text-[#0d1222] fill-current" />
-                {/* Small indicator badge */}
-                <span className="absolute -top-1 -right-1 flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-              </div>
-            )}
-          </button>
-        </div>
-      )}
 
     </div>
   );
