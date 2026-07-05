@@ -16,13 +16,43 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-      - run: npm install        # 1. installs dependencies
-      - run: npm run build      # 2. compiles JSX → dist/
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Ensure dev.html exists
+        run: |
+          # If index.html exists but dev.html does not, create dev.html as a copy.
+          if [ -d dist ]; then
+            if [ -f dist/index.html ] && [ ! -f dist/dev.html ]; then
+              cp dist/index.html dist/dev.html
+              echo "Created dist/dev.html from dist/index.html"
+            fi
+          fi
+
+      - name: Verify dist output
+        run: |
+          echo "Listing dist:"
+          ls -la dist || true
+          if [ ! -d dist ]; then
+            echo "Error: dist folder not found" && exit 1
+          fi
+          if [ ! -f dist/index.html ] && [ ! -f dist/dev.html ]; then
+            echo "Error: neither dist/index.html nor dist/dev.html found" && exit 1
+          fi
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist            # 3. grabs the dist folder
+          path: dist
+          name: github-pages
+          overwrite: true
+
       - uses: actions/deploy-pages@v4
-        id: deployment          # 4. puts it on GitHub Pages
+        id: deployment
