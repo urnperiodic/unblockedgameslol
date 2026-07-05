@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { initializeApp, getApps } from 'firebase/app';
-import { getDatabase, ref, push, onChildAdded, query, limitToLast, onValue, set, get } from 'firebase/database';
+import { getDatabase, ref, push, onChildAdded, query, limitToLast, onValue, set } from 'firebase/database';
 import { 
   Send, 
   User, 
@@ -72,13 +72,8 @@ const isImageUrl = (url) => {
 export default function UserChat({ onClose, isMini = false }) {
   const [activeChannel, setActiveChannel] = useState(CHANNELS[0]);
   const [messages, setMessages] = useState([]);
-  const [chatName, setChatName] = useState('');
+  const [chatName, setChatName] = useState(() => localStorage.getItem('chat_name') || '');
   const [textInput, setTextInput] = useState('');
-  
-  // Account authentication states
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [tempNickname, setTempNickname] = useState('');
-  const [useLocalFallback, setUseLocalFallback] = useState(false);
   
   // Interface animations & indicators
   const [shakeCompose, setShakeCompose] = useState(false);
@@ -144,12 +139,6 @@ export default function UserChat({ onClose, isMini = false }) {
 
   // Synchronize custom channels from real-time database
   useEffect(() => {
-    if (useLocalFallback) {
-      const localChans = JSON.parse(localStorage.getItem('fallback_custom_channels') || '[]');
-      setCustomChannels(localChans);
-      return;
-    }
-
     const customRef = ref(db, 'custom_channels');
     const unsubscribe = onValue(customRef, (snapshot) => {
       const val = snapshot.val();
@@ -166,17 +155,10 @@ export default function UserChat({ onClose, isMini = false }) {
       } else {
         setCustomChannels([]);
       }
-    }, (err) => {
-      console.warn("Firebase custom channels read failed, falling back to local database.", err);
-      setUseLocalFallback(true);
-      const localChans = JSON.parse(localStorage.getItem('fallback_custom_channels') || '[]');
-      setCustomChannels(localChans);
     });
 
-    return () => {
-      if (typeof unsubscribe === 'function') unsubscribe();
-    };
-  }, [useLocalFallback]);
+    return () => unsubscribe();
+  }, []);
 
   // Synchronize dynamic messages when changing channels
   useEffect(() => {
@@ -186,12 +168,6 @@ export default function UserChat({ onClose, isMini = false }) {
     // Check if channel is locked
     const isLocked = currentActiveChannel.isPasswordProtected && !unlockedChannelIds[currentActiveChannel.id];
     if (isLocked) {
-      return;
-    }
-
-    if (useLocalFallback) {
-      const localMsgs = JSON.parse(localStorage.getItem(`fallback_msgs_${currentActiveChannel.id}`) || '[]');
-      setMessages(localMsgs);
       return;
     }
 
@@ -209,11 +185,6 @@ export default function UserChat({ onClose, isMini = false }) {
           return [...prev, { ...data, key: snapshot.key }];
         });
       }
-    }, (err) => {
-      console.warn("Firebase messages sync failed, falling back to local database.", err);
-      setUseLocalFallback(true);
-      const localMsgs = JSON.parse(localStorage.getItem(`fallback_msgs_${currentActiveChannel.id}`) || '[]');
-      setMessages(localMsgs);
     });
 
     return () => {
@@ -222,12 +193,19 @@ export default function UserChat({ onClose, isMini = false }) {
         listenerRef.current();
       }
     };
-  }, [currentActiveChannel.id, unlockedChannelIds[currentActiveChannel.id], useLocalFallback]);
+  }, [currentActiveChannel.id, unlockedChannelIds[currentActiveChannel.id]]);
 
   // Scroll to bottom whenever messages list grows
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Handle setting/saving the user nickname
+  const handleNameChange = (e) => {
+    const val = e.target.value;
+    setChatName(val);
+    localStorage.setItem('chat_name', val);
+  };
 
   // Flash warning/toast
   const triggerToast = (msg) => {
@@ -236,52 +214,6 @@ export default function UserChat({ onClose, isMini = false }) {
       setToastMessage(null);
     }, 3000);
   };
-
-  const handleJoinChat = (e) => {
-    if (e) e.preventDefault();
-    if (!tempNickname.trim()) {
-      triggerToast('Nickname is required!');
-      return;
-    }
-    const cleanName = tempNickname.trim().replace(/[^a-zA-Z0-9_-]/g, '');
-    if (!cleanName) {
-      triggerToast('Nickname must contain only letters, numbers, dashes, and underscores!');
-      return;
-    }
-    if (cleanName.length < 2) {
-      triggerToast('Nickname is too short! Min 2 characters.');
-      return;
-    }
-    if (cleanName.length > 16) {
-      triggerToast('Nickname is too long! Max 16 characters.');
-      return;
-    }
-
-    localStorage.setItem('chat_name', cleanName);
-    setChatName(cleanName);
-    setIsAuthenticated(true);
-    setTempNickname('');
-    triggerToast(`Welcome @${cleanName} to the Live Network!`);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('chat_name');
-    setChatName('');
-    setIsAuthenticated(false);
-    triggerToast('Logged out of chat room.');
-  };
-
-  // On mount: check for saved nickname in localStorage
-  useEffect(() => {
-    const savedName = localStorage.getItem('chat_name');
-    if (savedName) {
-      const cleanName = savedName.trim().replace(/[^a-zA-Z0-9_-]/g, '');
-      if (cleanName) {
-        setChatName(cleanName);
-        setIsAuthenticated(true);
-      }
-    }
-  }, []);
 
   // Create password protected / public custom channels
   const handleCreateChannel = (e) => {
@@ -303,49 +235,15 @@ export default function UserChat({ onClose, isMini = false }) {
       return;
     }
 
+    const newChanRef = push(ref(db, 'custom_channels'));
+    const id = newChanRef.key;
     const pass = newChanPass.trim();
+
     const channelData = {
       name: cleanName,
       description: newChanDesc.trim() || 'A custom chat room',
       password: pass || null
     };
-
-    const createLocalChannel = () => {
-      const localChans = JSON.parse(localStorage.getItem('fallback_custom_channels') || '[]');
-      const localId = 'local_' + Date.now();
-      const newChanObj = {
-        id: localId,
-        name: cleanName,
-        description: channelData.description,
-        refPath: `custom_messages_${localId}`,
-        isPasswordProtected: !!pass,
-        password: pass
-      };
-      const updatedChans = [...localChans, newChanObj];
-      localStorage.setItem('fallback_custom_channels', JSON.stringify(updatedChans));
-      setCustomChannels(updatedChans);
-
-      if (pass) {
-        const updated = { ...unlockedChannelIds, [localId]: true };
-        setUnlockedChannelIds(updated);
-        localStorage.setItem('unlocked_chat_channels', JSON.stringify(updated));
-      }
-
-      setActiveChannel(newChanObj);
-      setNewChanName('');
-      setNewChanDesc('');
-      setNewChanPass('');
-      setShowCreateModal(false);
-      triggerToast(`Channel #${cleanName} created!`);
-    };
-
-    if (useLocalFallback) {
-      createLocalChannel();
-      return;
-    }
-
-    const newChanRef = push(ref(db, 'custom_channels'));
-    const id = newChanRef.key;
 
     set(newChanRef, channelData).then(() => {
       if (pass) {
@@ -369,10 +267,8 @@ export default function UserChat({ onClose, isMini = false }) {
       setNewChanPass('');
       setShowCreateModal(false);
       triggerToast(`Channel #${cleanName} created!`);
-    }).catch((err) => {
-      console.warn("Firebase custom channel creation failed, using local fallback.", err);
-      setUseLocalFallback(true);
-      createLocalChannel();
+    }).catch(() => {
+      triggerToast('Error creating channel.');
     });
   };
 
@@ -394,10 +290,17 @@ export default function UserChat({ onClose, isMini = false }) {
   const handleSendMessage = (e) => {
     if (e) e.preventDefault();
     
-    if (!isAuthenticated || !chatName.trim()) {
+    if (!chatName.trim()) {
+      // Trigger locked feedback animations
       setShakeCompose(true);
-      triggerToast('Please log in or create an account to chat!');
-      setTimeout(() => setShakeCompose(false), 1000);
+      setPulseName(true);
+      nameInputRef.current?.focus();
+      triggerToast('Please enter a nickname above to chat!');
+      
+      setTimeout(() => {
+        setShakeCompose(false);
+        setPulseName(false);
+      }, 1000);
       return;
     }
 
@@ -409,38 +312,17 @@ export default function UserChat({ onClose, isMini = false }) {
       return;
     }
 
-    const msgData = {
+    // Push message to active reference node
+    const msgsRef = ref(db, currentActiveChannel.refPath);
+    push(msgsRef, {
       name: chatName.trim(),
       text: cleanText || "Sent a GIF/Image",
       imageUrl: mediaUrl || null,
       timestamp: Date.now()
-    };
-
-    const sendLocalMessage = () => {
-      const channelKey = `fallback_msgs_${currentActiveChannel.id}`;
-      const localMsgs = JSON.parse(localStorage.getItem(channelKey) || '[]');
-      const newMsg = { ...msgData, key: Date.now().toString() };
-      const updatedMsgs = [...localMsgs, newMsg];
-      localStorage.setItem(channelKey, JSON.stringify(updatedMsgs));
-      setMessages(updatedMsgs);
+    }).then(() => {
       setMediaUrl('');
-    };
-
-    if (useLocalFallback) {
-      sendLocalMessage();
-      setTextInput('');
-      textInputRef.current?.focus();
-      return;
-    }
-
-    // Push message to active reference node
-    const msgsRef = ref(db, currentActiveChannel.refPath);
-    push(msgsRef, msgData).then(() => {
-      setMediaUrl('');
-    }).catch((err) => {
-      console.warn("Firebase message send failed, switching to local storage fallback.", err);
-      setUseLocalFallback(true);
-      sendLocalMessage();
+    }).catch(() => {
+      triggerToast('Error sending message. Check connection.');
     });
 
     setTextInput('');
@@ -455,8 +337,11 @@ export default function UserChat({ onClose, isMini = false }) {
   };
 
   const handleQuickEmoji = (emoji) => {
-    if (!isAuthenticated || !chatName.trim()) {
-      triggerToast('Please log in or create an account to chat!');
+    if (!chatName.trim()) {
+      setPulseName(true);
+      nameInputRef.current?.focus();
+      triggerToast('Set name first!');
+      setTimeout(() => setPulseName(false), 1000);
       return;
     }
     setTextInput((prev) => prev + emoji);
@@ -472,68 +357,6 @@ export default function UserChat({ onClose, isMini = false }) {
       (m.text || '').toLowerCase().includes(query)
     );
   });
-
-  if (!isAuthenticated) {
-    return (
-      <div className="flex flex-col w-full h-full bg-[#0a0d16] text-[#e2e8f0] overflow-hidden select-none font-sans relative p-4 items-center justify-center">
-        {onClose && (
-          <button 
-            onClick={onClose}
-            className="absolute top-3 right-3 p-1 hover:bg-white/10 text-neutral-400 hover:text-white rounded transition-all cursor-pointer z-50"
-          >
-            <X className="w-3.5 h-3.5" />
-          </button>
-        )}
-        
-        <div className="w-full max-w-sm bg-[#0b0f19] border border-white/10 rounded-2xl p-6 shadow-2xl flex flex-col gap-4 relative">
-          <div className="text-center space-y-1.5 pb-2 border-b border-white/5">
-            <div className="w-12 h-12 rounded-full bg-[#00e5b0]/10 flex items-center justify-center mx-auto border border-[#00e5b0]/20 shadow-[0_0_15px_rgba(0,229,176,0.05)]">
-              <User className="w-5 h-5 text-[#00e5b0]" />
-            </div>
-            <h2 className="text-sm font-black uppercase text-white tracking-widest mt-2">Join Portal Chat</h2>
-            <p className="text-neutral-400 text-[10px] leading-relaxed">
-              Choose a clean nickname to enter the live chat rooms and chat with everyone.
-            </p>
-          </div>
-
-          <form onSubmit={handleJoinChat} className="space-y-4">
-            <div className="space-y-1 text-left">
-              <label className="text-[9px] font-black uppercase tracking-wider text-neutral-400 block">
-                Choose Nickname <span className="text-[#00e5b0]">*</span>
-              </label>
-              <div className="relative flex items-center">
-                <span className="absolute left-3 text-[#00e5b0] font-black text-xs">@</span>
-                <input 
-                  type="text"
-                  required
-                  maxLength={16}
-                  placeholder="e.g. cyber_sam"
-                  value={tempNickname}
-                  onChange={(e) => setTempNickname(e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''))}
-                  className="w-full bg-[#070a11] border border-white/5 focus:border-[#00e5b0]/60 rounded-xl py-2 pl-7 pr-3 text-xs text-white outline-none placeholder-neutral-600 font-bold"
-                  autoFocus
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full bg-[#00e5b0] hover:bg-[#00e5b0]/90 text-[#070a11] text-[10px] font-black uppercase py-2.5 rounded-xl transition-all active:scale-95 cursor-pointer shadow-[0_0_15px_rgba(0,229,176,0.15)]"
-            >
-              Join Live Chat Rooms
-            </button>
-          </form>
-        </div>
-
-        {toastMessage && (
-          <div className="absolute bottom-4 bg-rose-950/90 border border-rose-500/50 px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-xl animate-bounce z-50">
-            <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-            <span className="text-[10px] font-bold text-rose-200 tracking-tight">{toastMessage}</span>
-          </div>
-        )}
-      </div>
-    );
-  }
 
   return (
     <div className="flex w-full h-full bg-[#0a0d16] text-[#e2e8f0] overflow-hidden select-none font-sans relative">
@@ -619,19 +442,19 @@ export default function UserChat({ onClose, isMini = false }) {
 
           {/* Desktop embedded Nickname and Filter */}
           <div className="hidden sm:flex items-center gap-1.5 shrink-0">
-            {/* Nickname badge */}
-            <div className="flex items-center gap-1 bg-[#00e5b0]/10 border border-[#00e5b0]/20 rounded-xl px-2 py-0.5 select-none text-[9px] font-extrabold text-[#00e5b0] tracking-wider uppercase">
-              <User className="w-2.5 h-2.5 text-[#00e5b0] shrink-0" />
-              <span>{chatName}</span>
+            {/* Nickname input */}
+            <div className={`flex items-center gap-1 bg-[#0d1222]/80 border rounded px-1.5 py-0.5 transition-all ${pulseName ? 'border-rose-500' : 'border-white/5'}`}>
+              <User className="w-2.5 h-2.5 text-neutral-500 shrink-0" />
+              <input 
+                ref={nameInputRef}
+                type="text"
+                placeholder="Set Nickname"
+                value={chatName}
+                onChange={handleNameChange}
+                maxLength={16}
+                className="bg-transparent text-[10px] font-extrabold text-white outline-none w-16 md:w-20 placeholder-neutral-500"
+              />
             </div>
-
-            <button
-              onClick={handleLogout}
-              className="px-1.5 py-0.5 rounded-lg border border-rose-500/20 hover:border-rose-500/50 text-rose-400 hover:text-white bg-rose-500/5 hover:bg-rose-500/10 text-[8px] font-black uppercase transition-all cursor-pointer"
-              title="Logout Account"
-            >
-              Sign Out
-            </button>
 
             {/* Filter messages search box */}
             <input 
@@ -684,17 +507,20 @@ export default function UserChat({ onClose, isMini = false }) {
 
         {/* NICKNAME ROW FOR MINI OR MOBILE VIEWS */}
         {(isMini || window.innerWidth < 768) && (
-          <div className="flex md:hidden items-center justify-between p-1.5 px-2.5 border-b border-white/5 bg-[#0e1627] shrink-0">
-            <div className="flex items-center gap-1 select-none">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[9px] font-bold text-[#00e5b0] tracking-wider uppercase">@{chatName}</span>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-[8px] text-rose-400 hover:text-white font-extrabold tracking-wider uppercase border border-rose-500/20 hover:border-rose-500 bg-rose-500/5 px-2 py-0.5 rounded-md cursor-pointer transition-all active:scale-95"
-            >
-              Log Out
-            </button>
+          <div className="flex md:hidden items-center justify-between p-1 px-2 border-b border-white/5 bg-[#0e1627] shrink-0">
+            <span className="text-[9px] uppercase font-black text-neutral-400 tracking-wider">
+              Nick:
+            </span>
+            <input 
+              type="text"
+              placeholder="anonymous"
+              value={chatName}
+              onChange={handleNameChange}
+              maxLength={16}
+              className={`bg-[#070a11] text-[10px] px-1.5 py-0.5 rounded outline-none border focus:border-[#00e5b0] text-right max-w-[90px] font-extrabold ${
+                pulseName ? 'border-rose-500' : 'border-white/5'
+              }`}
+            />
           </div>
         )}
 
@@ -920,7 +746,7 @@ export default function UserChat({ onClose, isMini = false }) {
                 className={`flex items-center gap-1.5 bg-[#0d1222] border rounded-xl p-1 transition-all focus-within:ring-1 focus-within:ring-[#00e5b0]/5 ${
                   shakeCompose 
                     ? 'animate-shake border-rose-500/50' 
-                    : !isAuthenticated
+                    : !chatName.trim()
                     ? 'opacity-40 border-white/5 cursor-not-allowed'
                     : 'border-white/5 focus-within:border-[#00e5b0]/60'
                 }`}
@@ -928,9 +754,9 @@ export default function UserChat({ onClose, isMini = false }) {
                 <input 
                   ref={textInputRef}
                   type="text"
-                  placeholder={isAuthenticated ? "Write message..." : "⚠️ Please login first"}
+                  placeholder={chatName.trim() ? "Write message..." : "⚠️ Set nickname"}
                   value={textInput}
-                  disabled={!isAuthenticated}
+                  disabled={!chatName.trim()}
                   onChange={(e) => setTextInput(e.target.value)}
                   onKeyDown={handleComposeKeyPress}
                   maxLength={300}
@@ -938,9 +764,9 @@ export default function UserChat({ onClose, isMini = false }) {
                 />
                 <button
                   type="submit"
-                  disabled={!isAuthenticated || (!textInput.trim() && !mediaUrl)}
+                  disabled={!chatName.trim() || (!textInput.trim() && !mediaUrl)}
                   className={`p-1.5 rounded-lg transition-all flex items-center justify-center shrink-0 ${
-                    isAuthenticated && (textInput.trim() || mediaUrl)
+                    chatName.trim() && (textInput.trim() || mediaUrl)
                       ? 'bg-[#00e5b0] text-[#070a11] hover:scale-105 active:scale-95 cursor-pointer font-bold'
                       : 'bg-neutral-800 text-neutral-500'
                   }`}
