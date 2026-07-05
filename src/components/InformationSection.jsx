@@ -4,7 +4,9 @@ import {
   ShieldCheck, 
   Globe, 
   HelpCircle, 
-  FormInput
+  FormInput,
+  Sparkles,
+  Play
 } from 'lucide-react';
 
 // ============================================================================
@@ -31,8 +33,10 @@ const FAQ_ITEMS = [
   }
 ];
 
-const InformationSection = ({ onClose }) => {
+const InformationSection = ({ onClose, games = [], onPlayGame, onGoToFeatured }) => {
   const formUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfBl2zv9a0QLxSC9K_reAhdy0wfM61ecYeE8yqQhF7Cwh8CDA/viewform";
+
+  const featuredGames = games.filter(g => g.featured);
 
   return (
     <div className="flex flex-col w-full h-full animate-fade-in bg-[var(--bg-secondary)] overflow-y-auto p-6 md:p-10">
@@ -45,10 +49,6 @@ const InformationSection = ({ onClose }) => {
             <div>
               <h1 className="text-2xl font-black uppercase tracking-tighter text-[var(--text-primary)]">Information Hub</h1>
               <p className="text-sm text-[var(--text-muted)] font-medium">Learn more about our platform and resources</p>
-              <div className="text-[10px] font-mono select-none mt-1 opacity-80">
-                <span className="opacity-50 mr-1">made by</span>
-                <span className="font-bold text-[var(--accent-color)] uppercase tracking-wider">TTM and Grandplat2</span>
-              </div>
             </div>
           </div>
           <button 
@@ -60,6 +60,31 @@ const InformationSection = ({ onClose }) => {
             </span>
           </button>
         </div>
+
+        {/* FEATURED BANNER BUTTON */}
+        {featuredGames && featuredGames.length > 0 && (
+          <div className="bg-[var(--card-bg)] border border-amber-500/20 rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="p-3.5 rounded-2xl bg-amber-500/15 text-amber-400">
+                <Sparkles className="w-6 h-6 animate-pulse" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black uppercase tracking-wider text-[var(--text-primary)]">Featured Showcases</h3>
+                <p className="text-xs text-[var(--text-muted)]">Explore our handpicked, high-performance unblocked portals and resources.</p>
+              </div>
+            </div>
+
+            <button
+              onClick={onGoToFeatured}
+              className="relative z-10 px-5 py-3 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-black text-xs font-black uppercase tracking-wider transition-all duration-250 flex items-center gap-2 border border-amber-500/30 cursor-pointer shadow-md shadow-amber-500/5 hover:shadow-amber-500/20 active:scale-95 whitespace-nowrap self-stretch sm:self-auto justify-center"
+            >
+              <Sparkles className="w-4 h-4 fill-current" />
+              <span>Go to Featured Section</span>
+            </button>
+          </div>
+        )}
 
         {/* REQUEST A GAME / CONTACT US SECTION (Linking to Google Form & Discord) */}
         <div className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded-2xl p-6 md:p-8 mb-8 relative overflow-hidden shadow-sm">
