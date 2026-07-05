@@ -2891,7 +2891,7 @@ export default function App() {
                       <div 
                         key={game.id}
                         onClick={() => { setSelectedGame(game); setZoom(1); }}
-                        className={`custom-card flex flex-col rounded-xl overflow-hidden cursor-pointer h-[360px] transition-all duration-300 ${
+                        className={`custom-card flex flex-col rounded-xl overflow-hidden cursor-pointer h-full transition-all duration-300 ${
                           game.featured 
                             ? 'border-amber-500/20 hover:border-amber-500/50 shadow-md hover:shadow-amber-500/5' 
                             : ''
