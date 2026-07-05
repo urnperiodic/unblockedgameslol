@@ -6,10 +6,10 @@ export const games: Game[] = [
  /*
   {
     title: '',
-    description: 'I used ai to make some of the game.',
-    url: 'https://https://urnperiodic.github.io/cityskylinesremake/',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/58/Cities_Skylines_cover_art.jpg',
-    category: 'Solo'
+    description: '',
+    url: '',
+    thumbnail: '',
+    category: ''
     featured: boolean
   }
 */
@@ -532,14 +532,6 @@ export const games: Game[] = [
     description: 'Make sure you open in a seperate tab to play this game.',
     url: 'claceattorneymilesedgeworth.html',
     thumbnail: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0d/Ace_Attorney_Investigations_Miles_Edgeworth_Game_Cover.jpg/250px-Ace_Attorney_Investigations_Miles_Edgeworth_Game_Cover.jpg',
-    category: 'Emulated',
-    featured: true
-  },
-  {
-    title: 'Phoenix Wright: Ace Attorney',
-    description: 'Make sure you open in a seperate tab to play this game.',
-    url: 'clpheonixrightaceattorny.html',
-    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
