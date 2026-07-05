@@ -1850,13 +1850,30 @@ export default function App() {
               onClick={() => { setFilter(filter === 'lobbychat' ? 'all' : 'lobbychat'); setSelectedGame(null); }}
               className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
                 filter === 'lobbychat'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+                  ? 'bg-red-600 text-white border-red-600 shadow-[0_2px_8px_rgba(220,38,38,0.5)] font-black'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500 hover:text-red-500'
               }`}
               title="Lobby Chat"
             >
-              <MessageSquare className="w-3.5 h-3.5" />
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'lobbychat' ? "#FFFFFF" : "#FF0000"} />
+                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'lobbychat' ? "#FF0000" : "#FFFFFF"} />
+              </svg>
               <span>Lobby Chat</span>
+            </button>
+
+            {/* YouTube Button */}
+            <button
+              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
+                filter === 'youtube'
+                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)] font-bold'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+              }`}
+              title="YouTube Workspace"
+            >
+              <MessageSquare className="w-3.5 h-3.5" />
+              <span>YouTube</span>
             </button>
 
             {/* Cloak Button */}
@@ -1901,7 +1918,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -1913,6 +1930,8 @@ export default function App() {
                     onClick={() => {
                       const url = filter === 'movies' 
                         ? 'https://urnperiodic.github.io/p/' 
+                        : filter === 'youtube'
+                        ? 'https://urnperiodic.github.io/youtube1/'
                         : 'https://urnperiodic.github.io/extrastuffforwebsite/';
                       window.open(url, '_blank');
                     }}
@@ -2018,10 +2037,25 @@ export default function App() {
                 onClick={() => { setFilter(filter === 'lobbychat' ? 'all' : 'lobbychat'); setSelectedGame(null); }}
                 className={`p-1 rounded-md text-xs transition-all duration-200 ${
                   filter === 'lobbychat'
+                    ? 'bg-red-600 text-white shadow-[0_1px_5px_rgba(220,38,38,0.5)] font-bold'
+                    : 'bg-transparent text-[var(--text-primary)] hover:text-red-500'
+                }`}
+                title="Lobby Chat"
+              >
+                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'lobbychat' ? "#FFFFFF" : "#FF0000"} />
+                  <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'lobbychat' ? "#FF0000" : "#FFFFFF"} />
+                </svg>
+              </button>
+
+              <button
+                onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
+                className={`p-1 rounded-md text-xs transition-all duration-200 ${
+                  filter === 'youtube'
                     ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-bold'
                     : 'bg-transparent text-[var(--text-primary)] hover:text-[var(--accent-color)]'
                 }`}
-                title="Lobby Chat"
+                title="YouTube"
               >
                 <MessageSquare className="w-3.5 h-3.5" />
               </button>
@@ -2113,10 +2147,26 @@ export default function App() {
               onClick={() => { setFilter(filter === 'lobbychat' ? 'all' : 'lobbychat'); setSelectedGame(null); }}
               className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
                 filter === 'lobbychat'
+                  ? 'bg-red-600 text-white border-red-600 shadow-[0_2px_8px_rgba(220,38,38,0.5)]'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500 hover:text-red-500'
+              }`}
+              title="Lobby Chat"
+            >
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'lobbychat' ? "#FFFFFF" : "#FF0000"} />
+                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'lobbychat' ? "#FF0000" : "#FFFFFF"} />
+              </svg>
+            </button>
+
+            {/* YouTube Button */}
+            <button
+              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
+              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                filter === 'youtube'
                   ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
                   : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
               }`}
-              title="Lobby Chat"
+              title="YouTube Workspace"
             >
               <MessageSquare className="w-3.5 h-3.5" />
             </button>
@@ -2161,7 +2211,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2173,6 +2223,8 @@ export default function App() {
                     onClick={() => {
                       const url = filter === 'movies' 
                         ? 'https://urnperiodic.github.io/p/' 
+                        : filter === 'youtube'
+                        ? 'https://urnperiodic.github.io/youtube1/'
                         : 'https://urnperiodic.github.io/extrastuffforwebsite/';
                       window.open(url, '_blank');
                     }}
@@ -2311,6 +2363,23 @@ export default function App() {
               <span>Movies</span>
             </button>
 
+            {/* YouTube button in Alt Links Bar */}
+            <button
+              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
+              className={`text-xs border py-1.5 px-3.5 rounded-full font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-[0_2px_8.5px_rgba(0,0,0,0.1)] transition-all duration-200 active:scale-98 ${
+                filter === 'youtube'
+                  ? 'bg-red-600 text-white border-red-600 shadow-[0_4px_12px_rgba(220,38,38,0.5)] font-extrabold'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500 hover:text-red-500'
+              }`}
+              title="Toggle YouTube Workspace"
+            >
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
+                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
+              </svg>
+              <span>YouTube</span>
+            </button>
+
             {/* Decoy Mode Selector */}
             <div className={`flex items-center border rounded-full px-3 py-1.5 text-xs font-mono shadow-sm transition-all duration-300 ${
               decoyType !== 'none' 
@@ -2414,13 +2483,13 @@ export default function App() {
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
       <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 ${
-        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat')
+        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube')
           ? 'max-w-none p-0 gap-0 border-t border-[var(--card-border)]/50 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
       }`}>
         
         {/* LEFT NAV PANEL - CAT SIDEBAR */}
-        {filter !== 'chat' && filter !== 'movies' && (
+        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && (
           <aside className={`transition-all duration-300 ease-in-out shrink-0 flex flex-col gap-2 overflow-hidden ${
             sidebarOpen ? 'w-full md:w-44' : 'w-full md:w-14'
           }`}>
@@ -2704,6 +2773,15 @@ export default function App() {
               <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
                 <MoviesWorkspace onClose={() => setFilter('all')} />
               </div>
+            ) : filter === 'youtube' ? (
+              <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[#0c0a09] border border-[var(--card-border)]/60 rounded-2xl overflow-hidden ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
+                <iframe 
+                  src="https://urnperiodic.github.io/youtube1/" 
+                  className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
+                  allow="fullscreen"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             ) : (
               <div className="flex flex-col gap-6">
               
@@ -2972,12 +3050,15 @@ export default function App() {
                     onClick={() => setDockedChatCollapsed(!dockedChatCollapsed)}
                     className={`flex items-center gap-1.5 border py-1.5 px-3 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
                       !dockedChatCollapsed 
-                        ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10 text-[var(--accent-color)] font-bold shadow-[0_0_8px_rgba(0,229,176,0.15)]' 
-                        : 'border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)]'
+                        ? 'border-red-500 bg-red-500/10 text-red-500 font-bold shadow-[0_0_8px_rgba(239,68,68,0.15)]' 
+                        : 'border-[var(--card-border)] hover:border-red-500 bg-[var(--bg-color)] text-[var(--text-primary)] hover:text-red-500'
                     }`}
                     title="Toggle Live Lobby Chat inside Game Arena"
                   >
-                    <MessageSquare className="w-3.5 h-3.5" />
+                    <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={!dockedChatCollapsed ? "#FFFFFF" : "#FF0000"} />
+                      <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={!dockedChatCollapsed ? "#FF0000" : "#FFFFFF"} />
+                    </svg>
                     <span className="hidden sm:inline text-[10px] font-bold">
                       {dockedChatCollapsed ? 'OPEN CHAT' : 'CLOSE CHAT'}
                     </span>
