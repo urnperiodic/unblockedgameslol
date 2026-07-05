@@ -93,6 +93,17 @@ const safeStorage = {
 };
 
 export default function App() {
+  // Helper to optimize and resize thumbnail URLs dynamically to Poki recommended size (512x512) for fast load & high clarity
+  const getOptimizedThumbnail = (url) => {
+    if (!url) return '';
+    if (url.includes('img.poki-cdn.com')) {
+      return url
+        .replace('width=1200', 'width=512')
+        .replace('height=1200', 'height=512');
+    }
+    return url;
+  };
+
   const [theme, setTheme] = useState(() => {
     const saved = safeStorage.getItem('unblocked-theme');
     return saved && ['cyborg', 'violet', 'ice', 'rose-pine', 'none'].includes(saved) ? saved : 'none';
@@ -2888,10 +2899,10 @@ export default function App() {
                         style={{ contentVisibility: 'auto' }}
                       >
                         {/* Artwork container */}
-                        <div className="relative h-48 bg-neutral-950 flex-shrink-0 flex items-center justify-center border-b border-[var(--card-border)] overflow-hidden">
+                        <div className="relative aspect-video w-full bg-neutral-950 flex-shrink-0 flex items-center justify-center border-b border-[var(--card-border)] overflow-hidden">
                           {game.thumbnail && !failedThumbnails[game.id] ? (
                             <img 
-                              src={game.thumbnail} 
+                              src={getOptimizedThumbnail(game.thumbnail)} 
                               alt={game.title} 
                               referrerPolicy="no-referrer"
                               onError={() => setFailedThumbnails(prev => ({ ...prev, [game.id]: true }))}
