@@ -111,6 +111,41 @@ export default function App() {
   const [altBarOpen, setAltBarOpen] = useState(true);
   const [headerOpen, setHeaderOpen] = useState(false);
 
+  const openWorkspaceInAboutBlank = (currentFilter) => {
+    let url = "";
+    if (currentFilter === 'movies') {
+      url = window.location.origin + '?filter=movies';
+    } else if (currentFilter === 'youtube') {
+      url = 'https://urnperiodic.github.io/youtube1/';
+    } else if (currentFilter === 'chat') {
+      url = 'https://urnperiodic.github.io/extrastuffforwebsite/';
+    } else if (currentFilter === 'lobbychat') {
+      url = window.location.origin + '?filter=lobbychat';
+    } else {
+      url = window.location.origin;
+    }
+
+    const win = window.open('about:blank', '_blank');
+    if (win) {
+      win.document.body.style.margin = '0';
+      win.document.body.style.padding = '0';
+      win.document.body.style.height = '100vh';
+      win.document.body.style.width = '100vw';
+      win.document.body.style.overflow = 'hidden';
+      win.document.body.style.background = '#000';
+      const iframe = win.document.createElement('iframe');
+      iframe.src = url;
+      iframe.style.width = '100%';
+      iframe.style.height = '100%';
+      iframe.style.border = 'none';
+      iframe.style.margin = '0';
+      iframe.style.padding = '0';
+      iframe.setAttribute('allowfullscreen', 'true');
+      iframe.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation');
+      win.document.body.appendChild(iframe);
+    }
+  };
+
   // States for collapsible & resizable docked game chat
   const [dockedChatWidth, setDockedChatWidth] = useState(288); // 288px default (w-72)
   const [dockedChatCollapsed, setDockedChatCollapsed] = useState(true);
@@ -405,6 +440,21 @@ export default function App() {
     };
     window.addEventListener('keydown', handlePanic);
     return () => window.removeEventListener('keydown', handlePanic);
+  }, []);
+
+  // Parse filter parameter from query string on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlFilter = params.get('filter');
+      if (urlFilter && ['chat', 'lobbychat', 'movies', 'youtube', 'info', 'all'].includes(urlFilter)) {
+        setFilter(urlFilter);
+        // Ensure games mode is active so the user goes straight to the loaded workspace
+        if (viewMode !== 'games') {
+          setViewMode('games');
+        }
+      }
+    }
   }, []);
 
   // Set dynamic browser tab title & favicon based on current section & decoy toggle
@@ -750,6 +800,8 @@ export default function App() {
       if (!isMultiplayerCategory(game.category)) return false;
     } else if (filter === 'favorites') {
       if (!favorites.includes(game.id)) return false;
+    } else if (filter === 'featured') {
+      if (!game.featured) return false;
     } else if (filter !== 'all') {
       // Direct category filter matching
       if ((game.category || '').toLowerCase().trim() !== filter.toLowerCase().trim()) return false;
@@ -1805,10 +1857,6 @@ export default function App() {
             <h1 className="text-lg font-black tracking-tighter text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors">
               StudyTools
             </h1>
-            <div className="text-[9px] font-mono select-none opacity-80 mt-1">
-              <span className="opacity-50 mr-1">made by</span>
-              <span className="font-bold text-[var(--accent-color)] tracking-wider">TTM AND GRANDPLAT2</span>
-            </div>
           </div>
         </div>
 
@@ -1918,7 +1966,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -1927,12 +1975,23 @@ export default function App() {
                   className="flex items-center gap-1.5 pl-2 ml-1 border-l border-[var(--card-border)]/50 overflow-hidden whitespace-nowrap"
                 >
                   <button
+                    onClick={() => openWorkspaceInAboutBlank(filter)}
+                    className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[#00e5b0]/30 hover:border-[#00e5b0] bg-[#00e5b0]/10 hover:bg-[#00e5b0]/20 text-[#00e5b0] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
+                    title="Open Workspace in a cloaked about:blank Page"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Open in about:blank</span>
+                  </button>
+
+                  <button
                     onClick={() => {
                       const url = filter === 'movies' 
                         ? 'https://urnperiodic.github.io/p/' 
                         : filter === 'youtube'
                         ? 'https://urnperiodic.github.io/youtube1/'
-                        : 'https://urnperiodic.github.io/extrastuffforwebsite/';
+                        : filter === 'chat'
+                        ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
+                        : window.location.origin + '?filter=lobbychat';
                       window.open(url, '_blank');
                     }}
                     className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[var(--accent-color)]/30 hover:border-[var(--accent-color)] bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)]/20 text-[var(--accent-color)] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
@@ -1986,24 +2045,6 @@ export default function App() {
                       : "StudyTools"}
                   </span>
                 </div>
-              </div>
-
-              <button
-                onClick={() => {
-                  setViewModeAndSave('articles');
-                  setPasscode('');
-                  setSelectedGame(null);
-                }}
-                className="p-1 rounded border border-rose-500/15 text-rose-500 hover:bg-rose-500 hover:text-white transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 active:scale-95"
-                title="Sign Out (Lock)"
-              >
-                <LogOut className="w-3 h-3" />
-                <span className="text-[9px] font-bold font-mono ml-1 hidden sm:inline">Sign Out</span>
-              </button>
-
-              <div className="text-[9px] font-mono select-none opacity-80 shrink-0 whitespace-nowrap hidden sm:block">
-                <span className="opacity-50 mr-0.5">made by</span>
-                <span className="font-bold text-[var(--accent-color)] tracking-wider">TTM & GRANDPLAT2</span>
               </div>
             </div>
 
@@ -2059,19 +2100,6 @@ export default function App() {
                   <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
                 </svg>
               </button>
-
-              {/* Sign Out Button */}
-            <button
-              onClick={() => {
-                setViewModeAndSave('articles');
-                setPasscode('');
-                setSelectedGame(null);
-              }}
-              className="p-1 rounded-md text-rose-500 hover:bg-rose-500/10 transition-all duration-200 cursor-pointer flex items-center justify-center"
-              title="Sign Out"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-            </button>
 
             {/* Cloak Button */}
             <button
@@ -2211,7 +2239,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2220,12 +2248,23 @@ export default function App() {
                   className="flex items-center gap-1.5 pl-2 ml-1 border-l border-[var(--card-border)]/50 overflow-hidden whitespace-nowrap"
                 >
                   <button
+                    onClick={() => openWorkspaceInAboutBlank(filter)}
+                    className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[#00e5b0]/30 hover:border-[#00e5b0] bg-[#00e5b0]/10 hover:bg-[#00e5b0]/20 text-[#00e5b0] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
+                    title="Open Workspace in a cloaked about:blank Page"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    <span>Open in about:blank</span>
+                  </button>
+
+                  <button
                     onClick={() => {
                       const url = filter === 'movies' 
                         ? 'https://urnperiodic.github.io/p/' 
                         : filter === 'youtube'
                         ? 'https://urnperiodic.github.io/youtube1/'
-                        : 'https://urnperiodic.github.io/extrastuffforwebsite/';
+                        : filter === 'chat'
+                        ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
+                        : window.location.origin + '?filter=lobbychat';
                       window.open(url, '_blank');
                     }}
                     className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[var(--accent-color)]/30 hover:border-[var(--accent-color)] bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)]/20 text-[var(--accent-color)] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
@@ -2249,10 +2288,6 @@ export default function App() {
 
           {/* Right Side: Made By + Slider + Theme (Compact) */}
           <div className="flex items-center gap-2">
-            <div className="text-[9px] font-mono select-none opacity-80 hidden lg:block">
-              <span className="opacity-50 mr-1">made by</span>
-              <span className="font-bold text-[var(--accent-color)] tracking-wider">TTM & GRANDPLAT2</span>
-            </div>
 
             {/* Light/Dark slider (Compact) */}
             <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-full shadow-sm">
@@ -2271,7 +2306,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Unified Settings, Colors & Sign Out Group (Compact) */}
+            {/* Unified Settings, Colors Group (Compact) */}
             <div className="flex items-center gap-1.5 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-lg shadow-sm">
               {/* Settings Gear Button */}
               <button
@@ -2306,21 +2341,6 @@ export default function App() {
                   />
                 ))}
               </div>
-
-              <div className="w-[1px] h-3 bg-[var(--card-border)]/80" />
-
-              {/* Sign Out Button */}
-              <button
-                onClick={() => {
-                  setViewModeAndSave('articles');
-                  setPasscode('');
-                  setSelectedGame(null);
-                }}
-                className="p-1 rounded-md border border-rose-500/15 text-rose-500 hover:bg-rose-500 hover:text-white transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0"
-                title="Sign Out (Lock)"
-              >
-                <LogOut className="w-3 h-3" />
-              </button>
             </div>
 
           </div>
@@ -2442,21 +2462,6 @@ export default function App() {
                   />
                 ))}
               </div>
-
-              <div className="w-[1px] h-3.5 bg-[var(--card-border)]/80" />
-
-              {/* Sign Out Button */}
-              <button
-                onClick={() => {
-                  setViewModeAndSave('articles');
-                  setPasscode('');
-                  setSelectedGame(null);
-                }}
-                className="p-1 rounded-full border border-rose-500/15 text-rose-500 hover:bg-rose-500 hover:text-white transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0"
-                title="Sign Out (Lock)"
-              >
-                <LogOut className="w-3 h-3" />
-              </button>
             </div>
 
             {/* Light/Dark Mode slider */}
@@ -2544,6 +2549,18 @@ export default function App() {
           >
             <Layers className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>All Classrooms</span>
+          </button>
+
+          <button
+            onClick={() => { setFilter('featured'); setSelectedGame(null); }}
+            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
+              filter === 'featured' && !selectedGame
+                ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_4px_12px_var(--accent-shadow)] font-bold'
+                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80 text-amber-400/90 hover:text-amber-300'
+            }`}
+          >
+            <Sparkles className="w-4.5 h-4.5 shrink-0" />
+            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Featured</span>
           </button>
 
           <button
@@ -2767,7 +2784,18 @@ export default function App() {
               </div>
             ) : filter === 'info' ? (
               <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
-                <InformationSection onClose={() => setFilter('all')} />
+                <InformationSection 
+                  onClose={() => setFilter('all')} 
+                  games={games}
+                  onPlayGame={(game) => {
+                    setSelectedGame(game);
+                    setFilter('all');
+                  }}
+                  onGoToFeatured={() => {
+                    setFilter('featured');
+                    setSelectedGame(null);
+                  }}
+                />
               </div>
             ) : filter === 'movies' ? (
               <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
@@ -2775,6 +2803,23 @@ export default function App() {
               </div>
             ) : filter === 'youtube' ? (
               <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[#0c0a09] border border-[var(--card-border)]/60 rounded-2xl overflow-hidden ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
+                {/* Header bar */}
+                <header className="px-3 py-2 border-b border-white/5 bg-[#070a11]/95 flex items-center justify-between shrink-0 select-none">
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-500 font-black text-xs">📺</span>
+                    <h1 className="text-xs font-black text-white uppercase tracking-wider">YouTube Workspace</h1>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setFilter('all')}
+                      className="p-1 hover:bg-white/10 text-neutral-400 hover:text-white rounded transition-all cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </header>
+
                 <iframe 
                   src="https://urnperiodic.github.io/youtube1/" 
                   className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
@@ -2790,6 +2835,7 @@ export default function App() {
                   <h2 className="text-lg font-black uppercase tracking-wider text-[var(--text-primary)]">
                     {filter === 'all' && 'Games Library'}
                     {filter === 'favorites' && 'Bookmarked Games'}
+                    {filter === 'featured' && 'Featured Showcases'}
                     {filter === 'single' && 'Singleplayer Arcades'}
                     {filter === 'multiplayer' && 'Multiplayer Hub'}
                     {filter === 'Shooter' && 'Shooter Games'}
@@ -2834,7 +2880,11 @@ export default function App() {
                       <div 
                         key={game.id}
                         onClick={() => { setSelectedGame(game); setZoom(1); }}
-                        className="custom-card flex flex-col rounded-xl overflow-hidden cursor-pointer h-[360px]"
+                        className={`custom-card flex flex-col rounded-xl overflow-hidden cursor-pointer h-[360px] transition-all duration-300 ${
+                          game.featured 
+                            ? 'border-amber-500/20 hover:border-amber-500/50 shadow-md hover:shadow-amber-500/5' 
+                            : ''
+                        }`}
                         style={{ contentVisibility: 'auto' }}
                       >
                         {/* Artwork container */}
@@ -2851,13 +2901,19 @@ export default function App() {
                             renderGameArt(game)
                           )}
 
+                          {game.featured && (
+                            <span className="absolute top-2.5 left-2.5 text-[8px] font-black uppercase tracking-widest bg-black/85 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-md inline-block z-10 shadow-sm font-mono">
+                              ★ FEATURED
+                            </span>
+                          )}
+
                           <span className="absolute top-2.5 right-2.5 text-[8px] font-bold uppercase tracking-widest bg-black/75 backdrop-blur-sm text-white border border-white/10 px-2.5 py-0.5 rounded-full inline-block z-10">
                             {game.category}
                           </span>
 
                           <button
                             onClick={(e) => toggleFavorite(e, game.id)}
-                            className="absolute top-2.5 left-2.5 p-1.5 rounded-full bg-black/40 hover:bg-black/80 text-white/90 border border-white/10 hover:text-rose-500 hover:scale-110 active:scale-95 transition-all duration-200"
+                            className={`absolute top-2.5 ${game.featured ? 'left-[88px]' : 'left-2.5'} p-1.5 rounded-full bg-black/40 hover:bg-black/80 text-white/90 border border-white/10 hover:text-rose-500 hover:scale-110 active:scale-95 transition-all duration-200 z-10`}
                             title={isFav ? "Remove Bookmark" : "Add Bookmark"}
                           >
                             <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-rose-500 text-rose-500' : ''}`} />
@@ -2867,7 +2923,11 @@ export default function App() {
                         {/* Title and descriptions */}
                         <div className="p-4 flex-1 flex flex-col justify-between">
                           <div className="space-y-1.5">
-                            <h3 className="text-sm font-black text-[var(--text-primary)] line-clamp-1 group-hover:text-[var(--accent-color)] leading-snug">
+                            <h3 className={`text-sm font-black line-clamp-1 leading-snug transition-colors ${
+                              game.featured 
+                                ? 'text-[var(--text-primary)] group-hover:text-amber-400' 
+                                : 'text-[var(--text-primary)] group-hover:text-[var(--accent-color)]'
+                            }`}>
                               {game.title}
                             </h3>
                             <p className="text-xs text-[var(--text-muted)] line-clamp-3 leading-relaxed">
@@ -2875,13 +2935,23 @@ export default function App() {
                             </p>
                           </div>
 
-                          <button
-                            onClick={() => { setSelectedGame(game); setZoom(1); }}
-                            className="w-full mt-3 border border-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-black hover:font-bold hover:shadow-[0_0_12px_calc(var(--accent-color))] text-[11px] font-semibold tracking-wider text-[var(--accent-color)] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 self-end"
-                          >
-                            <Play className="w-3 h-3 fill-current" />
-                            <span>Open Article</span>
-                          </button>
+                          {game.featured ? (
+                            <button
+                              onClick={() => { setSelectedGame(game); setZoom(1); }}
+                              className="w-full mt-3 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500 hover:text-black hover:font-bold hover:shadow-[0_0_12px_rgba(245,158,11,0.5)] text-[11px] font-semibold tracking-wider text-amber-400 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-250 self-end uppercase cursor-pointer"
+                            >
+                              <Play className="w-3 h-3 fill-current" />
+                              <span>LAUNCH PORTAL</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => { setSelectedGame(game); setZoom(1); }}
+                              className="w-full mt-3 border border-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-black hover:font-bold hover:shadow-[0_0_12px_calc(var(--accent-color))] text-[11px] font-semibold tracking-wider text-[var(--accent-color)] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 self-end"
+                            >
+                              <Play className="w-3 h-3 fill-current" />
+                              <span>Open Article</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
