@@ -16,7 +16,7 @@ export const games: Game[] = [
   {
     title: 'City Skylines copy',
     description: 'I used ai to make some of the game.',
-    url: 'https://https://urnperiodic.github.io/cityskylinesremake/',
+    url: 'https://urnperiodic.github.io/cityskylinesremake/',
     thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/58/Cities_Skylines_cover_art.jpg',
     category: 'Solo',
     featured: true
@@ -56,7 +56,7 @@ export const games: Game[] = [
   {
     title: 'Shader Pilot',
     description: 'Game that TTM made and It looks good Ig and cool ig. ',
-    url: 'https://https://urnperiodic.github.io/shader-piolet/',
+    url: 'https://urnperiodic.github.io/shader-piolet/',
     thumbnail: 'https://i.ytimg.com/vi/cpsY9WQxh5U/maxresdefault.jpg',
     category: 'Solo',
     featured: true
@@ -217,7 +217,7 @@ export const games: Game[] = [
   {
     title: 'Suika Watermelon copy',
     description: 'yeah',
-    url: 'https://https://urnperiodic.github.io/suika-game/',
+    url: 'https://urnperiodic.github.io/suika-game/',
     thumbnail: 'https://media.tenor.com/7vR97sAI99IAAAAe/watermelon-game-suika-game.png',
     category: 'solo',
     featured: true
