@@ -5,6 +5,7 @@ export interface Game {
   url: string;
   thumbnail: string;
   category: string;
+  featured?: boolean;
 }
 
 export interface Article {
