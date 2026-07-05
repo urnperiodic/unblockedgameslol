@@ -1989,9 +1989,14 @@ export default function App() {
                     onClick={() => openWorkspaceInAboutBlank(filter)}
                     className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[#00e5b0]/30 hover:border-[#00e5b0] bg-[#00e5b0]/10 hover:bg-[#00e5b0]/20 text-[#00e5b0] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
                     title="Open Workspace in a cloaked about:blank Page"
+                    style={{ backgroundColor: '#000000', borderColor: '#ffffff' }}
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open in about:blank</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5" style={{ color: '#ffffff' }}>
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    </svg>
+                    <span style={{ fontSize: '6px', fontFamily: 'Verdana', fontWeight: 'normal', color: '#ffffff', height: '10px' }}>About:blank</span>
                   </button>
 
                   <button
@@ -2007,9 +2012,14 @@ export default function App() {
                     }}
                     className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[var(--accent-color)]/30 hover:border-[var(--accent-color)] bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)]/20 text-[var(--accent-color)] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
                     title="Open separately"
+                    style={{ fontSize: '10px' }}
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open separately</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" style={{ fontSize: '8px' }} />
+                    </svg>
+                    <span style={{ fontSize: '6px', fontFamily: 'Verdana', fontWeight: 'normal' }}>Open Link</span>
                   </button>
                   
                   <button
@@ -2262,9 +2272,14 @@ export default function App() {
                     onClick={() => openWorkspaceInAboutBlank(filter)}
                     className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[#00e5b0]/30 hover:border-[#00e5b0] bg-[#00e5b0]/10 hover:bg-[#00e5b0]/20 text-[#00e5b0] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
                     title="Open Workspace in a cloaked about:blank Page"
+                    style={{ backgroundColor: '#000000', borderColor: '#ffffff' }}
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open in about:blank</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5" style={{ color: '#ffffff' }}>
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                    </svg>
+                    <span style={{ fontSize: '6px', fontFamily: 'Verdana', fontWeight: 'normal', color: '#ffffff', height: '10px' }}>About:blank</span>
                   </button>
 
                   <button
@@ -2280,9 +2295,14 @@ export default function App() {
                     }}
                     className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[var(--accent-color)]/30 hover:border-[var(--accent-color)] bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)]/20 text-[var(--accent-color)] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
                     title="Open separately"
+                    style={{ fontSize: '10px' }}
                   >
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Open separately</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                      <path d="M15 3h6v6" />
+                      <path d="M10 14 21 3" />
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" style={{ fontSize: '8px' }} />
+                    </svg>
+                    <span style={{ fontSize: '6px', fontFamily: 'Verdana', fontWeight: 'normal' }}>Open Link</span>
                   </button>
                   
                   <button
@@ -2505,18 +2525,18 @@ export default function App() {
       }`}>
         
         {/* LEFT NAV PANEL - CAT SIDEBAR */}
-        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && (
+        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && (
           <aside className={`transition-all duration-300 ease-in-out shrink-0 flex flex-col gap-2 overflow-hidden ${
             sidebarOpen ? 'w-full md:w-44' : 'w-full md:w-14'
           }`}>
             
             <div className="flex items-center justify-between px-2 py-1 min-h-[36px]">
               {sidebarOpen ? (
-                <span className="text-[10px] font-mono tracking-wider opacity-50 uppercase whitespace-nowrap">
+                <span className="text-[10px] font-mono tracking-wider opacity-50 uppercase whitespace-nowrap" style={{ borderColor: '#ffffff', color: '#ffffff', fontFamily: 'Verdana', fontWeight: 'normal' }}>
                   Browse Portals
                 </span>
               ) : (
-                <span className="hidden md:inline text-[9px] font-mono tracking-wider opacity-50 uppercase text-center mx-auto font-bold text-[var(--accent-color)]">
+                <span className="hidden md:inline text-[9px] font-mono tracking-wider opacity-50 uppercase text-center mx-auto font-bold text-[var(--accent-color)]" style={{ borderColor: '#ffffff', color: '#ffffff', fontFamily: 'Verdana', fontWeight: 'normal' }}>
                   NAV
                 </span>
               )}
