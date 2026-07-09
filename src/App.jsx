@@ -89,6 +89,13 @@ const safeStorage = {
     } catch (e) {
       // Ignore security errors
     }
+  },
+  removeItem: (key) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      // Ignore security errors
+    }
   }
 };
 
@@ -114,10 +121,44 @@ export default function App() {
     const initialViewMode = safeStorage.getItem('classroom-view-mode') || 'articles';
     return initialViewMode === 'games' ? 'dark' : 'light';
   });
-  const [filter, setFilter] = useState('info');
+  const [filter, setFilter] = useState(() => {
+    try {
+      const hasVisited = safeStorage.getItem('has-visited-before');
+      if (!hasVisited) {
+        safeStorage.setItem('has-visited-before', 'true');
+        return 'info';
+      }
+      const saved = safeStorage.getItem('unblocked-last-filter');
+      return saved || 'all';
+    } catch {
+      return 'info';
+    }
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedGame, setSelectedGame] = useState(null);
+  const [selectedGame, setSelectedGame] = useState(() => {
+    try {
+      const savedId = safeStorage.getItem('unblocked-last-game');
+      if (savedId) {
+        return games.find(g => g.id === savedId) || null;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    safeStorage.setItem('unblocked-last-filter', filter);
+  }, [filter]);
+
+  useEffect(() => {
+    if (selectedGame) {
+      safeStorage.setItem('unblocked-last-game', selectedGame.id);
+    } else {
+      safeStorage.removeItem('unblocked-last-game');
+    }
+  }, [selectedGame]);
   const [toolsExpanded, setToolsExpanded] = useState(false);
   const [altBarOpen, setAltBarOpen] = useState(true);
   const [headerOpen, setHeaderOpen] = useState(false);
@@ -236,12 +277,6 @@ export default function App() {
   const [selectedArticleId, setSelectedArticleId] = useState(initialArticles[0].id);
   const [articleSearch, setArticleSearch] = useState('');
   const [selectedArticleCategory, setSelectedArticleCategory] = useState('All');
-  const [newArticleGame, setNewArticleGame] = useState(gameOptions[0].value);
-  const [newArticleTone, setNewArticleTone] = useState(toneOptions[0].value);
-  const [customPromptText, setCustomPromptText] = useState(`Write an educational, informational article focusing on ${gameOptions[0].value} concepts suited for school reading.`);
-  const [isPromptUserModified, setIsPromptUserModified] = useState(false);
-  const [isGeneratingArticle, setIsGeneratingArticle] = useState(false);
-  const [generationProgress, setGenerationProgress] = useState(0);
 
   // Classroom/Games Cloak/Decoy State
   const [decoyType, setDecoyType] = useState(() => {
@@ -283,29 +318,6 @@ export default function App() {
       setMode('dark');
     }
   }, [viewMode]);
-
-  const handleGenerateArticle = () => {
-    if (isGeneratingArticle) return;
-    setIsGeneratingArticle(true);
-    setGenerationProgress(0);
-
-    const interval = setInterval(() => {
-      setGenerationProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          setTimeout(() => {
-            const article = generateMockAIArticle(newArticleGame, newArticleTone, customPromptText);
-            setArticles((prevArticles) => [article, ...prevArticles]);
-            setSelectedArticleCategory(article.category);
-            setSelectedArticleId(article.id);
-            setIsGeneratingArticle(false);
-          }, 200);
-          return 100;
-        }
-        return prev + 5;
-      });
-    }, 45);
-  };
 
   const handlePasswordSubmit = (customPass) => {
     const inputPass = (customPass !== undefined ? customPass : passcode).trim().toLowerCase();
@@ -453,6 +465,17 @@ export default function App() {
     return () => window.removeEventListener('keydown', handlePanic);
   }, []);
 
+  // Prevent accidental close or refresh
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      e.preventDefault();
+      e.returnValue = ''; // Required for most browsers to show prompt
+      return ''; 
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
   // Parse filter parameter from query string on mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -563,13 +586,6 @@ export default function App() {
       updateFavicon(bookSvgDataUri);
     }
   }, [viewMode, decoyType]);
-
-  // Sync custom prompt text with dropdown selections if not manually customized
-  useEffect(() => {
-    if (!isPromptUserModified) {
-      setCustomPromptText(`Write an educational, ${newArticleTone.toLowerCase()} article focusing on ${newArticleGame} concepts suited for school reading.`);
-    }
-  }, [newArticleGame, newArticleTone, isPromptUserModified]);
 
   // Set LocalStorage theme and mode on change
   useEffect(() => {
@@ -1280,98 +1296,6 @@ export default function App() {
                       })
                     )}
                   </div>
-
-                  {/* CUSTOMIZABLE PROMPT GENERATOR CONTAINER WRAP */}
-                  <div className="bg-[var(--bg-secondary)] border border-[var(--card-border)] rounded-2xl p-3 flex-shrink-0 flex flex-col gap-2 text-left">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-                        <span className="text-xs font-bold text-[var(--text-primary)] font-mono">Interactive AI Writer</span>
-                      </div>
-                      
-                      {isPromptUserModified && (
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            setCustomPromptText(`Write an educational, informational article focusing on ${newArticleGame} concepts suited for school reading.`);
-                            setIsPromptUserModified(false);
-                          }}
-                          className="text-[9px] font-mono text-[var(--accent-color)] hover:underline flex items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
-                        >
-                          Reset preset
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-left">
-                      <div className="flex flex-col gap-0.5">
-                        <label className="text-[9px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Subject</label>
-                        <select
-                          value={newArticleGame}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setNewArticleGame(val);
-                            if (!isPromptUserModified) {
-                              setCustomPromptText(`Write an educational, informational article focusing on ${val} concepts suited for school reading.`);
-                            }
-                          }}
-                          className="text-[10px] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-1.5 text-[var(--text-primary)] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] font-mono"
-                          style={{ colorScheme: mode }}
-                        >
-                          {gameOptions.map(opt => (
-                            <option key={opt.value} value={opt.value} style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}>{opt.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex flex-col gap-0.5">
-                        <label className="text-[9px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Tone</label>
-                        <select
-                          value={newArticleTone}
-                          onChange={(e) => setNewArticleTone(e.target.value)}
-                          className="text-[10px] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-1.5 text-[var(--text-primary)] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] font-mono"
-                          style={{ colorScheme: mode }}
-                        >
-                          {toneOptions.map(opt => (
-                            <option key={opt.value} value={opt.value} style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}>{opt.value}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-0.5 mt-0.5 text-left">
-                      <label className="text-[9px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Custom prompt instructions</label>
-                      <textarea
-                        value={customPromptText}
-                        onChange={(e) => {
-                          setCustomPromptText(e.target.value);
-                          setIsPromptUserModified(true);
-                        }}
-                        placeholder="Type standard prompt rules..."
-                        rows={2}
-                        className="text-[10px] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-2 text-[var(--text-primary)] w-full focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] font-sans resize-none scrollbar-thin"
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleGenerateArticle}
-                      disabled={isGeneratingArticle}
-                      className="w-full text-xs font-semibold bg-[var(--accent-color)] text-[var(--bg-color)] py-1.5 rounded-xl hover:opacity-95 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center justify-center gap-1.5 font-mono shadow-sm mt-0.5"
-                    >
-                      {isGeneratingArticle ? (
-                        <>
-                          <Sparkles className="w-3 h-3 animate-spin text-yellow-300" />
-                          <span>DEEP WRITER ({generationProgress}%)...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="w-3 h-3 text-yellow-300" />
-                          <span>GENERATE ARTICLE WITH AI</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
                 </div>
 
                 {/* Right Column - Deep Active Article view */}
@@ -1621,8 +1545,7 @@ export default function App() {
               </h3>
             </div>
             <div className="flex items-center gap-1.5 self-start sm:self-auto uppercase tracking-wider text-[10px] font-mono bg-[var(--bg-secondary)] py-1 px-2 rounded-md border border-[var(--card-border)] text-[var(--accent-color)]">
-              <Sparkles className="w-3.5 h-3.5 animate-pulse text-yellow-400" />
-              <span>AI generated examples</span>
+              <span>Educational examples</span>
             </div>
           </div>
 
@@ -1707,89 +1630,6 @@ export default function App() {
                 )}
               </div>
 
-              {/* Creator board container */}
-              <div className="bg-[var(--bg-secondary)] border border-[var(--card-border)] rounded-2xl p-3 flex-shrink-0 flex flex-col gap-2">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-                  <span className="text-xs font-bold text-[var(--text-primary)] font-mono">Interactive AI Writer</span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex flex-col gap-0.5">
-                    <label className="text-[9px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Subject</label>
-                    <select
-                      value={newArticleGame}
-                      onChange={(e) => setNewArticleGame(e.target.value)}
-                      className="text-[10px] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-1.5 text-[var(--text-primary)] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] font-mono"
-                      style={{ colorScheme: mode }}
-                    >
-                      {gameOptions.map(opt => (
-                        <option key={opt.value} value={opt.value} style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}>{opt.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="flex flex-col gap-0.5">
-                    <label className="text-[9px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Tone</label>
-                    <select
-                      value={newArticleTone}
-                      onChange={(e) => setNewArticleTone(e.target.value)}
-                      className="text-[10px] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-1.5 text-[var(--text-primary)] cursor-pointer focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] font-mono"
-                      style={{ colorScheme: mode }}
-                    >
-                      {toneOptions.map(opt => (
-                        <option key={opt.value} value={opt.value} style={{ backgroundColor: 'var(--card-bg)', color: 'var(--text-primary)' }}>{opt.value}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-1 mt-1">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[9px] font-mono text-[var(--text-muted)] uppercase tracking-wider">Customize Prompt</label>
-                    {isPromptUserModified && (
-                      <button 
-                        type="button" 
-                        onClick={() => {
-                          setIsPromptUserModified(false);
-                        }}
-                        className="text-[9px] font-mono text-[var(--accent-color)] hover:underline flex items-center gap-0.5 cursor-pointer bg-transparent border-none p-0"
-                      >
-                        Reset to preset
-                      </button>
-                    )}
-                  </div>
-                  <textarea
-                    value={customPromptText}
-                    onChange={(e) => {
-                      setCustomPromptText(e.target.value);
-                      setIsPromptUserModified(true);
-                    }}
-                    placeholder="Type a custom prompt for the AI to write about..."
-                    rows={2}
-                    className="text-[10px] bg-[var(--card-bg)] border border-[var(--card-border)] rounded-lg p-2 text-[var(--text-primary)] w-full focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] font-sans resize-none scrollbar-thin"
-                  />
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleGenerateArticle}
-                  disabled={isGeneratingArticle}
-                  className="w-full text-xs font-semibold bg-[var(--accent-color)] text-[var(--bg-color)] py-1.5 rounded-xl hover:opacity-95 active:scale-98 transition-all disabled:opacity-50 disabled:pointer-events-none cursor-pointer flex items-center justify-center gap-1.5 font-mono shadow-sm mt-0.5"
-                >
-                  {isGeneratingArticle ? (
-                    <>
-                      <Sparkles className="w-3 h-3 animate-spin text-yellow-300" />
-                      <span>DEEP WRITER ({generationProgress}%)...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-3 h-3 text-yellow-300" />
-                      <span>GENERATE ARTICLE WITH AI</span>
-                    </>
-                  )}
-                </button>
-              </div>
-
             </div>
 
             {/* Right expanded active details reader card (cols 3) */}
@@ -1838,22 +1678,9 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-300">
-      {/* Unified Navigation Collapse/Expand Toggle Button (Always single, unanimated, smaller when closed) */}
-      <button
-        onClick={() => setHeaderOpen(!headerOpen)}
-        className={`fixed z-[9999] w-8 h-8 rounded-full bg-[var(--card-bg)] border border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--accent-color)]/10 active:scale-95 transition-all duration-300 shadow-md flex items-center justify-center cursor-pointer top-3 right-4`}
-        title={headerOpen ? "Collapse Navigation Header" : "Expand Navigation Header"}
-      >
-        {headerOpen ? (
-          <ChevronUp className="w-3.5 h-3.5" />
-        ) : (
-          <ChevronDown className="w-3.5 h-3.5" />
-        )}
-      </button>
-
       {/* HEADER */}
       {headerOpen ? (
-        <nav className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-3.5 pl-4 pr-16 md:pl-6 md:pr-20 flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors duration-300 sticky top-0 z-50 shadow-sm animate-fade-in">
+        <nav className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-3.5 px-4 md:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors duration-300 sticky top-0 z-50 shadow-sm animate-fade-in">
         
         {/* Left Side: Logo & Title */}
         <div 
@@ -1890,7 +1717,7 @@ export default function App() {
               <span>Movies</span>
             </button>
 
-            {/* AI Socratic Tutor Button */}
+            {/* Socratic Tutor Button */}
             <button
               onClick={() => { setFilter(filter === 'chat' ? 'all' : 'chat'); setSelectedGame(null); }}
               className={`px-3 py-1.5 rounded-lg border text-xs font-sans font-black flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
@@ -1898,7 +1725,7 @@ export default function App() {
                   ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
                   : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
               }`}
-              title="GEMINI AI Tutor"
+              title="Chat Tutor"
             >
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               <span>AI</span>
@@ -1916,23 +1743,6 @@ export default function App() {
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Lobby Chat</span>
-            </button>
-
-            {/* YouTube Button */}
-            <button
-              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
-                filter === 'youtube'
-                  ? 'bg-red-600 text-white border-red-600 shadow-[0_2px_8px_rgba(220,38,38,0.5)] font-black'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500 hover:text-red-500'
-              }`}
-              title="YouTube Workspace"
-            >
-              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
-                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
-              </svg>
-              <span>YouTube</span>
             </button>
 
             {/* Cloak Button */}
@@ -2090,7 +1900,7 @@ export default function App() {
                     ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)]'
                     : 'bg-transparent text-[var(--text-primary)] hover:text-[var(--accent-color)]'
                 }`}
-                title="GEMINI AI / GROQ AI"
+                title="Chat"
               >
                 <span>AI</span>
               </button>
@@ -2178,7 +1988,7 @@ export default function App() {
               <Tv className="w-3.5 h-3.5" />
             </button>
 
-            {/* AI Socratic Tutor Button */}
+            {/* Socratic Tutor Button */}
             <button
               onClick={() => { setFilter(filter === 'chat' ? 'all' : 'chat'); setSelectedGame(null); }}
               className={`p-1.5 px-2.5 rounded-lg border text-xs font-sans font-black flex items-center justify-center cursor-pointer transition-all duration-200 ${
@@ -2186,7 +1996,7 @@ export default function App() {
                   ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
                   : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
               }`}
-              title="GEMINI AI Tutor"
+              title="Chat Tutor"
             >
               <span>AI</span>
             </button>
@@ -2202,22 +2012,6 @@ export default function App() {
               title="Lobby Chat"
             >
               <MessageSquare className="w-3.5 h-3.5" />
-            </button>
-
-            {/* YouTube Button */}
-            <button
-              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
-              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                filter === 'youtube'
-                  ? 'bg-red-600 text-white border-red-600 shadow-[0_2px_8px_rgba(220,38,38,0.5)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500 hover:text-red-500'
-              }`}
-              title="YouTube Workspace"
-            >
-              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
-                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
-              </svg>
             </button>
 
             {/* Cloak Button */}
@@ -2348,6 +2142,14 @@ export default function App() {
                 <Settings className="w-3 h-3" />
               </button>
 
+              <button
+                onClick={() => setViewModeAndSave('articles')}
+                className="p-1 rounded-md text-[var(--text-muted)] hover:text-red-500 hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center justify-center shrink-0"
+                title="Sign Out (Lock Workspace)"
+              >
+                <LogOut className="w-3 h-3" />
+              </button>
+
               <div className="w-[1px] h-3 bg-[var(--card-border)]/80" />
 
               {/* Colors picker dots */}
@@ -2382,7 +2184,7 @@ export default function App() {
       {/* ALT LINKS BAR */}
       {headerOpen && altBarOpen && (
         <section className="bg-[var(--bg-secondary)] border-b border-[var(--card-border)] py-3 px-4 md:px-6 transition-colors duration-300 animate-fade-in">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           {/* Alt Links Removed */}
 
           <div className="flex flex-wrap items-center gap-2 md:ml-auto w-full md:w-auto overflow-visible">
@@ -2414,23 +2216,6 @@ export default function App() {
               <span>Movies</span>
             </button>
 
-            {/* YouTube button in Alt Links Bar */}
-            <button
-              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
-              className={`text-xs border py-1.5 px-3.5 rounded-full font-mono font-bold flex items-center gap-1.5 cursor-pointer shadow-[0_2px_8.5px_rgba(0,0,0,0.1)] transition-all duration-200 active:scale-98 ${
-                filter === 'youtube'
-                  ? 'bg-red-600 text-white border-red-600 shadow-[0_4px_12px_rgba(220,38,38,0.5)] font-extrabold'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500 hover:text-red-500'
-              }`}
-              title="Toggle YouTube Workspace"
-            >
-              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
-                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
-              </svg>
-              <span>YouTube</span>
-            </button>
-
             {/* Decoy Mode Selector */}
             <div className={`flex items-center border rounded-full px-3 py-1.5 text-xs font-mono shadow-sm transition-all duration-300 ${
               decoyType !== 'none' 
@@ -2458,6 +2243,23 @@ export default function App() {
               </select>
             </div>
 
+            {/* Light/Dark Mode slider */}
+            <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-1 rounded-full shadow-sm">
+              <div 
+                onClick={() => setMode(prev => prev === 'light' ? 'dark' : 'light')}
+                className="relative w-[38px] h-5 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 select-none transition-all duration-300"
+                title="Slide to change Mode"
+              >
+                <div 
+                  className={`w-3.5 h-3.5 rounded-full bg-[var(--accent-color)] shadow-sm transition-all duration-300 ease-out flex items-center justify-center text-[8px] transform ${
+                    mode === 'dark' ? 'translate-x-4' : 'translate-x-0'
+                  }`}
+                >
+                  {mode === 'dark' ? '🌙' : '☀️'}
+                </div>
+              </div>
+            </div>
+
             {/* Unified Settings, Colors & Sign Out Group */}
             <div className="flex items-center gap-2 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-1 rounded-full shadow-sm">
               {/* Settings Gear Button (opens System Settings Modal) */}
@@ -2467,6 +2269,14 @@ export default function App() {
                 title="System Settings (Backup & Restore)"
               >
                 <Settings className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => setViewModeAndSave('articles')}
+                className="p-1.5 rounded-full text-[var(--text-muted)] hover:text-red-500 hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center justify-center shrink-0"
+                title="Sign Out (Lock Workspace)"
+              >
+                <LogOut className="w-3.5 h-3.5" />
               </button>
 
               <div className="w-[1px] h-3.5 bg-[var(--card-border)]/80" />
@@ -2492,23 +2302,6 @@ export default function App() {
                     }`}
                   />
                 ))}
-              </div>
-            </div>
-
-            {/* Light/Dark Mode slider */}
-            <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-1 rounded-full shadow-sm">
-              <div 
-                onClick={() => setMode(prev => prev === 'light' ? 'dark' : 'light')}
-                className="relative w-[38px] h-5 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 select-none transition-all duration-300"
-                title="Slide to change Mode"
-              >
-                <div 
-                  className={`w-3.5 h-3.5 rounded-full bg-[var(--accent-color)] shadow-sm transition-all duration-300 ease-out flex items-center justify-center text-[8px] transform ${
-                    mode === 'dark' ? 'translate-x-4' : 'translate-x-0'
-                  }`}
-                >
-                  {mode === 'dark' ? '🌙' : '☀️'}
-                </div>
               </div>
             </div>
           </div>
@@ -2580,6 +2373,18 @@ export default function App() {
           >
             <Layers className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>All Classrooms</span>
+          </button>
+
+          <button
+            onClick={() => { setFilter('favorites'); setSelectedGame(null); }}
+            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
+              filter === 'favorites' && !selectedGame
+                ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_4px_12px_var(--accent-shadow)] font-bold'
+                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80 text-rose-500/90 hover:text-rose-400'
+            }`}
+          >
+            <Heart className="w-4.5 h-4.5 shrink-0" />
+            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Favorites</span>
           </button>
 
           <button
@@ -2834,23 +2639,6 @@ export default function App() {
               </div>
             ) : filter === 'youtube' ? (
               <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[#0c0a09] border border-[var(--card-border)]/60 rounded-2xl overflow-hidden ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
-                {/* Header bar */}
-                <header className="px-3 py-2 border-b border-white/5 bg-[#070a11]/95 flex items-center justify-between shrink-0 select-none">
-                  <div className="flex items-center gap-2">
-                    <span className="text-red-500 font-black text-xs">📺</span>
-                    <h1 className="text-xs font-black text-white uppercase tracking-wider">YouTube Workspace</h1>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button 
-                      onClick={() => setFilter('all')}
-                      className="p-1 hover:bg-white/10 text-neutral-400 hover:text-white rounded transition-all cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </header>
-
                 <iframe 
                   src="https://urnperiodic.github.io/youtube1/" 
                   className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
@@ -2933,7 +2721,7 @@ export default function App() {
                           )}
 
                           {game.featured && (
-                            <span className="absolute top-2.5 left-2.5 text-[8px] font-black uppercase tracking-widest bg-black/85 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-md inline-block z-10 shadow-sm font-mono">
+                            <span className="absolute top-2.5 left-2.5 text-[12px] font-black uppercase tracking-widest bg-black/85 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-md inline-block z-10 shadow-sm font-mono">
                               ★ FEATURED
                             </span>
                           )}
@@ -2944,7 +2732,7 @@ export default function App() {
 
                           <button
                             onClick={(e) => toggleFavorite(e, game.id)}
-                            className={`absolute top-2.5 ${game.featured ? 'left-[88px]' : 'left-2.5'} p-1.5 rounded-full bg-black/40 hover:bg-black/80 text-white/90 border border-white/10 hover:text-rose-500 hover:scale-110 active:scale-95 transition-all duration-200 z-10`}
+                            className={`absolute top-2.5 ${game.featured ? 'left-[120px]' : 'left-2.5'} p-1.5 rounded-full bg-black/40 hover:bg-black/80 text-white/90 border border-white/10 hover:text-rose-500 hover:scale-110 active:scale-95 transition-all duration-200 z-10`}
                             title={isFav ? "Remove Bookmark" : "Add Bookmark"}
                           >
                             <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-rose-500 text-rose-500' : ''}`} />
