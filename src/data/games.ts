@@ -2,6 +2,78 @@
 import { Game } from '../types';
 
 export const games: Game[] = [
+  {
+    id: 'neon-breakout',
+    title: 'Neon Breakout',
+    description: 'A retro cyber-neon brick shatterer with synthesized Web Audio sound.',
+    url: 'clneonbreaker.html',
+    thumbnail: '',
+    category: 'Solo',
+    featured: true
+  },
+  {
+    id: 'synthwave-runner',
+    title: 'Synthwave Runner',
+    description: 'A high-speed perspective retro runner on an endless cyber sunset grid.',
+    url: 'clsynthrunner.html',
+    thumbnail: '',
+    category: 'Solo',
+    featured: true
+  },
+  {
+    id: 'tron-lightcycle',
+    title: 'TRON Lightcycle Trail',
+    description: 'Avoid trail lines and grow your neon lightcycle barrier on the digital grid grid.',
+    url: 'cllightcycle.html',
+    thumbnail: '',
+    category: 'Solo',
+    featured: true
+  },
+  {
+    id: 'cyber-defenders',
+    title: 'Cyber Defenders Arcade',
+    description: 'Endless waves of glowing alien invaders in a high-energy space shooter.',
+    url: 'clcyberdefenders.html',
+    thumbnail: '',
+    category: 'Solo',
+    featured: true
+  },
+  {
+    id: 'phoenix-wright-aa',
+    title: 'Phoenix Wright: Ace Attorney',
+    description: 'Defend clients and uncover truths in the courtroom emulator. Open in a separate tab if needed.',
+    url: 'clpheonixrightaceattorny.html',
+    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6A66VlZf3lCMy0mQ0VunLd87V2-CqQoT9wA&s',
+    category: 'Emulated',
+    featured: true
+  },
+  {
+    id: 'kindergarten',
+    title: 'Kindergarten',
+    description: 'The popular retro-style unblocked adventure puzzle game set in a mysterious school.',
+    url: 'kindergarten.html',
+    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfB77gWb89bA4XU9l7Uvj5g-Sj9eXn-K0_yQ&s',
+    category: 'Solo',
+    featured: true
+  },
+  {
+    id: 'classic-uno-classic',
+    title: 'Classic Uno (Classic Edition)',
+    description: 'Classic card game with customizable rules, play against local AI contenders.',
+    url: 'cluno.html',
+    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEhekk0qTgz3FPvdI-7B2BajmVa-AQgjwkQA&s',
+    category: 'Multiplayer',
+    featured: false
+  },
+  {
+    id: 'ai-chat-companion',
+    title: 'AI Chat Companion',
+    description: 'An unblocked, lightweight AI conversational chat partner.',
+    url: 'clai.html',
+    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-v7S7H6eSgL0Bf3lC-A0U_yU1_A4d9_Z8aA&s',
+    category: 'Solo',
+    featured: false
+  },
   // ── CHAT / AI ──
  /*
   {

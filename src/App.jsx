@@ -465,8 +465,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', handlePanic);
   }, []);
 
-  // Prevent accidental close or refresh
+  // Prevent accidental close or refresh only when actively inside a game
   useEffect(() => {
+    if (!selectedGame) return;
     const handleBeforeUnload = (e) => {
       e.preventDefault();
       e.returnValue = ''; // Required for most browsers to show prompt
@@ -474,7 +475,7 @@ export default function App() {
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, []);
+  }, [selectedGame]);
 
   // Parse filter parameter from query string on mount
   useEffect(() => {
@@ -621,6 +622,80 @@ export default function App() {
   const renderGameArt = (game) => {
     const iconSize = 48;
     switch (game.id) {
+      case 'neon-breakout':
+        return (
+          <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-neutral-950">
+            {/* Ambient cyber grid */}
+            <div className="absolute inset-0 opacity-25 overflow-hidden">
+              <div className="w-full h-full bg-[linear-gradient(to_bottom,rgba(244,63,94,0.15)_1px,transparent_1px),linear-gradient(to_right,rgba(244,63,94,0.15)_1px,transparent_1px)] bg-[size:14px_14px]" />
+            </div>
+            {/* Retro ball bounce */}
+            <div className="relative flex flex-col items-center gap-2.5 z-10">
+              <div className="flex gap-1.5">
+                <div className="w-7 h-3.5 bg-rose-500 rounded-sm shadow-[0_0_8px_rgba(244,63,94,0.8)]" />
+                <div className="w-7 h-3.5 bg-pink-500 rounded-sm shadow-[0_0_8px_rgba(236,72,153,0.8)] animate-pulse" />
+                <div className="w-7 h-3.5 bg-purple-500 rounded-sm shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+              </div>
+              <div className="w-4 h-4 bg-cyan-400 rounded-full shadow-[0_0_12px_#22d3ee] animate-bounce my-1.5" />
+              <div className="w-16 h-2 bg-cyan-500 rounded-full shadow-[0_0_8px_#06b6d4] translate-x-1" />
+            </div>
+          </div>
+        );
+      case 'synthwave-runner':
+        return (
+          <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-[#050512]">
+            {/* Sunrise halo */}
+            <div className="absolute top-4 w-24 h-24 bg-gradient-to-t from-pink-600 via-orange-500 to-yellow-400 rounded-full opacity-70 filter blur-sm animate-pulse" />
+            {/* Horizontal lines */}
+            <div className="absolute bottom-0 w-full h-1/2 bg-[linear-gradient(to_bottom,rgba(168,85,247,0.25)_1px,transparent_1px)] bg-[size:100%_8px]" />
+            {/* Space ship silhouette */}
+            <div className="relative z-10 flex flex-col items-center gap-1.5">
+              <div className="w-9 h-9 bg-gradient-to-b from-white to-pink-500 rounded-full border-2 border-pink-400 flex items-center justify-center shadow-[0_0_15px_#ec4899] transform -rotate-12 hover:rotate-12 transition-transform duration-300">
+                <span className="text-xs">🏎️</span>
+              </div>
+              <div className="text-[9px] font-mono tracking-widest text-cyan-400 font-black uppercase animate-pulse">SUNSET GRID</div>
+            </div>
+          </div>
+        );
+      case 'tron-lightcycle':
+        return (
+          <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-[#02020a]">
+            {/* Grid overlay */}
+            <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_bottom,#00f0ff_1px,transparent_1px),linear-gradient(to_right,#00f0ff_1px,transparent_1px)] bg-[size:12px_12px]" />
+            {/* Cycle line trail with neon glow */}
+            <div className="absolute left-6 bottom-12 w-28 h-1 bg-gradient-to-r from-transparent via-[#ff007f] to-[#ff007f] shadow-[0_0_8px_#ff007f]" />
+            <div className="absolute left-32 bottom-12 w-1 h-14 bg-gradient-to-b from-[#ff007f] to-[#ff007f] shadow-[0_0_8px_#ff007f]" />
+            {/* Lightcycle pod */}
+            <div className="absolute left-28 bottom-26 w-8 h-4 bg-cyan-400 rounded-sm border-2 border-white flex items-center justify-center shadow-[0_0_12px_#00f0ff] animate-pulse">
+              <span className="text-[10px]">🏍️</span>
+            </div>
+            <div className="relative z-10 text-[10px] font-mono tracking-widest text-cyan-400 font-bold uppercase mt-12 bg-neutral-900/80 px-2 py-0.5 rounded border border-cyan-500/20">LIGHTCYCLE GRID</div>
+          </div>
+        );
+      case 'cyber-defenders':
+        return (
+          <div className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden bg-[#030310]">
+            {/* Vaporwave Sun */}
+            <div className="absolute -bottom-6 w-28 h-28 bg-gradient-to-t from-pink-500 via-[#ff007f] to-orange-400 rounded-full opacity-60 filter blur-[1px]" />
+            {/* Falling alien pixel ships */}
+            <div className="absolute top-4 left-6 flex gap-3 animate-pulse">
+              <span className="text-sm">👾</span>
+              <span className="text-sm text-cyan-400">👾</span>
+            </div>
+            <div className="absolute top-10 right-8 flex gap-3 animate-pulse duration-1000">
+              <span className="text-sm text-yellow-300">👾</span>
+              <span className="text-sm">👾</span>
+            </div>
+            {/* Laser beams */}
+            <div className="absolute top-14 left-16 w-0.5 h-6 bg-rose-500 shadow-[0_0_5px_red] animate-bounce" />
+            <div className="absolute bottom-10 right-16 w-0.5 h-8 bg-cyan-400 shadow-[0_0_5px_cyan] animate-bounce" />
+            {/* Player shooter */}
+            <div className="absolute bottom-3 w-8 h-6 bg-gradient-to-t from-cyan-600 to-cyan-300 rounded-t-lg flex items-center justify-center shadow-[0_0_12px_#00f0ff]">
+              <span className="text-[10px]">🚀</span>
+            </div>
+            <div className="relative z-10 text-[9px] font-mono tracking-widest text-[#ff007f] font-black uppercase mt-12 bg-neutral-900/80 px-2.5 py-0.5 rounded border border-pink-500/20">DEFEND CORE</div>
+          </div>
+        );
       case 1: // Slope
         return (
           <div className="relative w-full h-full flex items-center justify-center">
@@ -1704,7 +1779,9 @@ export default function App() {
           {/* Workspaces Group */}
           <div className="flex flex-wrap items-center gap-1.5">
             {/* Movies Button */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => { setFilter(filter === 'movies' ? 'all' : 'movies'); setSelectedGame(null); }}
               className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
                 filter === 'movies'
@@ -1715,10 +1792,12 @@ export default function App() {
             >
               <Tv className="w-3.5 h-3.5" />
               <span>Movies</span>
-            </button>
+            </motion.button>
 
             {/* Socratic Tutor Button */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => { setFilter(filter === 'chat' ? 'all' : 'chat'); setSelectedGame(null); }}
               className={`px-3 py-1.5 rounded-lg border text-xs font-sans font-black flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
                 filter === 'chat'
@@ -1729,10 +1808,12 @@ export default function App() {
             >
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
               <span>AI</span>
-            </button>
+            </motion.button>
 
             {/* Lobby Chat Button */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => { setFilter(filter === 'lobbychat' ? 'all' : 'lobbychat'); setSelectedGame(null); }}
               className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
                 filter === 'lobbychat'
@@ -1743,10 +1824,12 @@ export default function App() {
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Lobby Chat</span>
-            </button>
+            </motion.button>
 
             {/* Cloak Button */}
-            <button
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => {
                 const win = window.open("about:blank", "_blank");
                 if (!win) { alert("Popup blocked!"); return; }
@@ -1764,7 +1847,7 @@ export default function App() {
             >
               <Globe className="w-3.5 h-3.5" />
               <span>Cloak</span>
-            </button>
+            </motion.button>
 
             {/* Decoy Selector */}
             <div className="flex items-center bg-[var(--bg-secondary)] border border-[var(--card-border)] px-2.5 py-1.5 rounded-lg text-xs font-mono shadow-sm">
@@ -2343,7 +2426,9 @@ export default function App() {
             </div>
 
 
-            <button
+            <motion.button
+              whileHover={{ x: 6 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => setFilter('info')}
               className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
                 filter === 'info' 
@@ -2353,17 +2438,21 @@ export default function App() {
             >
               <Info className="w-4.5 h-4.5 shrink-0" />
               <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Information</span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ x: 6 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => { window.open('https://forms.gle/YCN8itY7WqmN82CY8', '_blank'); }}
               className="w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80"
             >
               <ExternalLink className="w-4.5 h-4.5 shrink-0" />
               <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Request a Game</span>
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ x: 6 }}
+              whileTap={{ scale: 0.97 }}
               onClick={() => { setFilter('all'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'all' && !selectedGame
@@ -2373,9 +2462,11 @@ export default function App() {
           >
             <Layers className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>All Classrooms</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('favorites'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'favorites' && !selectedGame
@@ -2385,9 +2476,11 @@ export default function App() {
           >
             <Heart className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Favorites</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('featured'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'featured' && !selectedGame
@@ -2397,9 +2490,11 @@ export default function App() {
           >
             <Sparkles className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Featured</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('single'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'single' && !selectedGame
@@ -2409,9 +2504,11 @@ export default function App() {
           >
             <Gamepad2 className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Single Player</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('multiplayer'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'multiplayer' && !selectedGame
@@ -2421,9 +2518,11 @@ export default function App() {
           >
             <Users className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Multiplayer</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('Shooter'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'Shooter' && !selectedGame
@@ -2433,9 +2532,11 @@ export default function App() {
           >
             <Crosshair className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Shooter</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('Party'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'Party' && !selectedGame
@@ -2445,9 +2546,11 @@ export default function App() {
           >
             <PartyPopper className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Party</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('Sports'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'Sports' && !selectedGame
@@ -2457,9 +2560,11 @@ export default function App() {
           >
             <Trophy className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Sports</span>
-          </button>
+          </motion.button>
           
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('Random'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'Random' && !selectedGame
@@ -2469,9 +2574,11 @@ export default function App() {
           >
             <Shuffle className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Random Games</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('Emulated'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'Emulated' && !selectedGame
@@ -2481,9 +2588,11 @@ export default function App() {
           >
             <Cpu className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Emulated</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('minecraft'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'minecraft' && !selectedGame
@@ -2493,9 +2602,11 @@ export default function App() {
           >
             <Box className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Minecraft</span>
-          </button>
+          </motion.button>
 
-          <button
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('Not Games'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'Not Games' && !selectedGame
@@ -2505,17 +2616,19 @@ export default function App() {
           >
             <Globe className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Other Websites</span>
-          </button>
+          </motion.button>
 
           <div className="flex-1" />
 
-          <button
+          <motion.button
+            whileHover={{ x: 4 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => setIsGlobalSettingsOpen(true)}
             className="w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80 mt-auto"
           >
             <Settings className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Settings</span>
-          </button>
+          </motion.button>
 
         </aside>
         )}
@@ -2610,44 +2723,87 @@ export default function App() {
         <main className="flex-1 min-w-0">
           
           {!selectedGame ? (
-            filter === 'chat' ? (
-              <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
-                <ChatWorkspace onClose={() => setFilter('all')} />
-              </div>
-            ) : filter === 'lobbychat' ? (
-              <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
-                <UserChat onClose={() => setFilter('all')} />
-              </div>
-            ) : filter === 'info' ? (
-              <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
-                <InformationSection 
-                  onClose={() => setFilter('all')} 
-                  games={games}
-                  onPlayGame={(game) => {
-                    setSelectedGame(game);
-                    setFilter('all');
-                  }}
-                  onGoToFeatured={() => {
-                    setFilter('featured');
-                    setSelectedGame(null);
-                  }}
-                />
-              </div>
-            ) : filter === 'movies' ? (
-              <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
-                <MoviesWorkspace onClose={() => setFilter('all')} />
-              </div>
-            ) : filter === 'youtube' ? (
-              <div className={`flex flex-col w-full min-h-[550px] animate-fade-in bg-[#0c0a09] border border-[var(--card-border)]/60 rounded-2xl overflow-hidden ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}>
-                <iframe 
-                  src="https://urnperiodic.github.io/youtube1/" 
-                  className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
-                  allow="fullscreen"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col gap-6">
+            <AnimatePresence mode="wait">
+              {filter === 'chat' ? (
+                <motion.div 
+                  key="chat"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex flex-col w-full min-h-[550px] bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
+                >
+                  <ChatWorkspace onClose={() => setFilter('all')} />
+                </motion.div>
+              ) : filter === 'lobbychat' ? (
+                <motion.div 
+                  key="lobbychat"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex flex-col w-full min-h-[550px] bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
+                >
+                  <UserChat onClose={() => setFilter('all')} />
+                </motion.div>
+              ) : filter === 'info' ? (
+                <motion.div 
+                  key="info"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex flex-col w-full min-h-[550px] bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
+                >
+                  <InformationSection 
+                    onClose={() => setFilter('all')} 
+                    games={games}
+                    onPlayGame={(game) => {
+                      setSelectedGame(game);
+                      setFilter('all');
+                    }}
+                    onGoToFeatured={() => {
+                      setFilter('featured');
+                      setSelectedGame(null);
+                    }}
+                  />
+                </motion.div>
+              ) : filter === 'movies' ? (
+                <motion.div 
+                  key="movies"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex flex-col w-full min-h-[550px] bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
+                >
+                  <MoviesWorkspace onClose={() => setFilter('all')} />
+                </motion.div>
+              ) : filter === 'youtube' ? (
+                <motion.div 
+                  key="youtube"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex flex-col w-full min-h-[550px] bg-[#0c0a09] border border-[var(--card-border)]/60 rounded-2xl overflow-hidden ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
+                >
+                  <iframe 
+                    src="https://urnperiodic.github.io/youtube1/" 
+                    className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
+                    allow="fullscreen"
+                    referrerPolicy="no-referrer"
+                  />
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="games-list"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="flex flex-col gap-6"
+                >
               
               <div className="flex flex-col sm:flex-row justify-start items-start sm:items-center border-l-4 border-[var(--accent-color)] pl-3 gap-4 sm:gap-10">
                 <div>
@@ -2696,8 +2852,14 @@ export default function App() {
                   {filteredGames.map(game => {
                     const isFav = favorites.includes(game.id);
                     return (
-                      <div 
+                      <motion.div 
                         key={game.id}
+                        layout
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -15 }}
+                        whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.2 } }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={() => { setSelectedGame(game); setZoom(1); }}
                         className={`custom-card flex flex-col rounded-xl overflow-hidden cursor-pointer h-full transition-all duration-300 ${
                           game.featured 
@@ -2772,15 +2934,16 @@ export default function App() {
                             </button>
                           )}
                         </div>
-                      </div>
+                      </motion.div>
                     );
                   })}
                 </div>
               )}
 
-            </div>
-          )
-        ) : selectedGame.title === 'Bloons TD 5 Sandbox' ? (
+            </motion.div>
+          )}
+        </AnimatePresence>
+          ) : selectedGame.title === 'Bloons TD 5 Sandbox' ? (
           <div className="flex flex-col gap-4 animate-fade-in bg-[#0c0f16]/90 p-4 md:p-6 rounded-2xl border border-zinc-800 shadow-2xl">
             <div className="flex justify-start">
               <button
