@@ -203,8 +203,8 @@ export default function GrammarCheckerWorkspace() {
                   </>
                 ) : (
                   <>
-                    <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-                    <span>RUN AI GRAMMAR CHECK</span>
+                    <Check className="w-3.5 h-3.5 text-green-300" />
+                    <span>RUN GRAMMAR CHECK</span>
                   </>
                 )}
               </button>
@@ -248,7 +248,7 @@ export default function GrammarCheckerWorkspace() {
               <div>
                 <h4 className="text-xs font-bold text-[var(--text-primary)]">Ready to Proofread</h4>
                 <p className="text-[10px] text-[var(--text-muted)] leading-relaxed mt-1 max-w-xs">
-                  Type your text or click Load Sample Draft, then press 'Run AI Grammar Check' to identify corrections.
+                  Type your text or click Load Sample Draft, then press 'Run Grammar Check' to identify corrections.
                 </p>
               </div>
             </div>

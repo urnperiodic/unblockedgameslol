@@ -174,19 +174,8 @@ export default function QuizWorkspace({ refArticle, onGeneratedSuccess }) {
           </p>
         </div>
 
-        {/* AI quick triggers */}
+        {/* Action triggers */}
         <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto text-left">
-          {refArticle && (
-            <button
-              onClick={handleArticleQuickBuild}
-              className="text-[10px] bg-[var(--accent-color)]/10 text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-color)] border border-[var(--accent-color)] px-2.5 py-1.5 rounded-xl font-bold font-mono transition-all flex items-center gap-1 cursor-pointer"
-              title="Generate a multiple choice quiz directly on the active educational article"
-            >
-              <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-              <span>GENERATE QUIZ FROM ARTICLE</span>
-            </button>
-          )}
-
           <button
             onClick={() => {
               const quizName = prompt("Enter Quiz Name (Syllabus/Curriculum topic):");
@@ -261,44 +250,6 @@ export default function QuizWorkspace({ refArticle, onGeneratedSuccess }) {
                 </div>
               );
             })}
-          </div>
-
-          {/* AI Generator Panel */}
-          <div className="bg-[var(--bg-secondary)] border border-[var(--card-border)] rounded-xl p-3.5 flex flex-col gap-2 mt-2">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-              <span className="text-xs font-bold text-[var(--text-primary)] font-mono">AI Practice Builder</span>
-            </div>
-            
-            <p className="text-[10px] text-[var(--text-muted)] leading-relaxed">
-              Generate a custom evaluation. Write down a curriculum subject or chapter title below.
-            </p>
-
-            <div className="flex gap-1.5 mt-1">
-              <input
-                type="text"
-                value={aiTopic}
-                onChange={(e) => setAiTopic(e.target.value)}
-                placeholder="Topic for practice test..."
-                className="flex-1 text-xs rounded-lg px-2.5 py-1.5 border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)]"
-                disabled={isGenerating}
-              />
-              <button
-                type="button"
-                onClick={() => triggerAIQuizGen(aiTopic, "Science")}
-                disabled={isGenerating || !aiTopic.trim()}
-                className="bg-[var(--accent-color)] text-[var(--bg-color)] px-3 rounded-lg text-[10px] font-bold hover:opacity-90 disabled:opacity-50 font-mono flex items-center justify-center gap-1 shrink-0 cursor-pointer"
-              >
-                {isGenerating ? (
-                  <RotateCcw className="w-3 h-3 animate-spin" />
-                ) : (
-                  <>
-                    <Plus className="w-3 h-3" />
-                    <span>GEN</span>
-                  </>
-                )}
-              </button>
-            </div>
           </div>
 
         </div>

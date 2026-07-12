@@ -13,19 +13,19 @@ html, body, #root {
 
 /* --- Theme Variable Definitions under [data-mode='dark'] and [data-mode='light'] --- */
 
-/* Fallback Defaults (Dark Violet) */
+/* Fallback Defaults (Monochrome Dark) */
 :root {
-  --bg-color: #0b071e;
-  --bg-secondary: #120e2e;
-  --card-bg: #1a153b;
-  --card-border: #3b2c6f;
-  --text-primary: #ddd6fe;
-  --text-muted: #a78bfa;
-  --accent-color: #a78bfa;
-  --accent-hover: #c084fc;
-  --accent-shadow: rgba(167, 139, 250, 0.35);
-  --input-fill: #141033;
-  --header-bg: #09061a;
+  --bg-color: #000000;
+  --bg-secondary: #0a0a0a;
+  --card-bg: #121212;
+  --card-border: #262626;
+  --text-primary: #ffffff;
+  --text-muted: #a3a3a3;
+  --accent-color: #ffffff;
+  --accent-hover: #e5e5e5;
+  --accent-shadow: rgba(255, 255, 255, 0.15);
+  --input-fill: #000000;
+  --header-bg: #000000;
 }
 
 /* 🟢 CYBORG THEME */

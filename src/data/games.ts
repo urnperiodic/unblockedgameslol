@@ -65,15 +65,7 @@ export const games: Game[] = [
     category: 'Multiplayer',
     featured: false
   },
-  {
-    id: 'ai-chat-companion',
-    title: 'AI Chat Companion',
-    description: 'An unblocked, lightweight AI conversational chat partner.',
-    url: 'clai.html',
-    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-v7S7H6eSgL0Bf3lC-A0U_yU1_A4d9_Z8aA&s',
-    category: 'Solo',
-    featured: false
-  },
+
   // ── CHAT / AI ──
  /*
   {

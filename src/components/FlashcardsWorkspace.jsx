@@ -208,19 +208,8 @@ export default function FlashcardsWorkspace({ refArticle, onGeneratedSuccess }) 
           </p>
         </div>
 
-        {/* AI Quick Generator Caps */}
+        {/* Quick creator row */}
         <div className="flex items-center gap-2 flex-wrap w-full lg:w-auto">
-          {refArticle && (
-            <button
-              onClick={handleArticleQuickBuild}
-              className="text-[10px] bg-[var(--accent-color)]/10 text-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-[var(--bg-color)] border border-[var(--accent-color)] px-2.5 py-1.5 rounded-xl font-bold font-mono transition-all flex items-center gap-1 cursor-pointer"
-              title="Creates flashcard deck using active reading article"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>BUILD FROM SELECTED ARTICLE</span>
-            </button>
-          )}
-
           <button
             onClick={() => setShowCreateDeckModal(true)}
             className="text-[10px] bg-[var(--bg-secondary)] border border-[var(--card-border)] hover:border-[var(--text-muted)]/50 text-[var(--text-primary)] px-3 py-1.5 rounded-xl font-bold font-mono transition-all flex items-center gap-1 cursor-pointer ml-auto lg:ml-0"
@@ -282,44 +271,6 @@ export default function FlashcardsWorkspace({ refArticle, onGeneratedSuccess }) 
                 </div>
               );
             })}
-          </div>
-
-          {/* AI Generation Box */}
-          <div className="bg-[var(--bg-secondary)] border border-[var(--card-border)] rounded-xl p-3.5 flex flex-col gap-2 mt-2">
-            <div className="flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-yellow-400" />
-              <span className="text-xs font-bold text-[var(--text-primary)] font-mono">AI Deck Generator</span>
-            </div>
-            
-            <p className="text-[10px] text-[var(--text-muted)]">
-              Paste or type any topic (e.g., "Mitochondria organelles", "Trigonometric ratios", "US Civil War").
-            </p>
-
-            <div className="flex gap-1.5 mt-1">
-              <input
-                type="text"
-                value={aiPrompt}
-                onChange={(e) => setAiPrompt(e.target.value)}
-                placeholder="Topic for study cards..."
-                className="flex-1 text-xs rounded-lg px-2.5 py-1.5 border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)]"
-                disabled={isAiGenerating}
-              />
-              <button
-                type="button"
-                onClick={() => triggerAIGenerator(aiPrompt, "Science")}
-                disabled={isAiGenerating || !aiPrompt.trim()}
-                className="bg-[var(--accent-color)] text-[var(--bg-color)] px-3 rounded-lg text-[10px] font-bold hover:opacity-90 disabled:opacity-50 font-mono flex items-center justify-center gap-1 shrink-0 cursor-pointer"
-              >
-                {isAiGenerating ? (
-                  <RefreshCw className="w-3 h-3 animate-spin" />
-                ) : (
-                  <>
-                    <Plus className="w-3 h-3" />
-                    <span>GEN</span>
-                  </>
-                )}
-              </button>
-            </div>
           </div>
 
         </div>

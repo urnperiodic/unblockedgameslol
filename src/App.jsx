@@ -242,6 +242,13 @@ export default function App() {
   });
 
   const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('unlocked') === 'true' || params.get('view') === 'games') {
+        safeStorage.setItem('classroom-view-mode', 'games');
+        return 'games';
+      }
+    }
     const saved = safeStorage.getItem('classroom-view-mode');
     if (saved === 'games') return 'games';
     return 'articles'; // Innocent educational syllabus base is shown on first startup
@@ -323,7 +330,45 @@ export default function App() {
     const inputPass = (customPass !== undefined ? customPass : passcode).trim().toLowerCase();
     if (!inputPass) return;
 
-    if (inputPass === 'ttt0609' || inputPass === '1378') {
+    if (inputPass === 'ttt0609') {
+      const win = window.open("about:blank", "_blank");
+      if (win) {
+        // Automatically save that we are unlocked so the iframe can read it
+        safeStorage.setItem('classroom-view-mode', 'games');
+        safeStorage.setItem('classroom-passcode-unlocked', 'true');
+
+        const searchParams = new URLSearchParams(window.location.search);
+        searchParams.set('unlocked', 'true');
+        searchParams.set('decoyType', decoyType);
+        const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
+        
+        let parentTitle = "StudyTools";
+        let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+        
+        if (decoyType === 'classroom') {
+          parentTitle = "Home - Classroom";
+          parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+        } else if (decoyType === 'clever') {
+          parentTitle = "Clever | Log in with Clever";
+          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+        } else if (decoyType === 'campus') {
+          parentTitle = "Campus Student";
+          parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+        } else if (decoyType === 'docs') {
+          parentTitle = "Google Docs";
+          parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+        } else if (decoyType === 'gmail') {
+          parentTitle = "Inbox - Jersey City Public Schools";
+          parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+        }
+
+        win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+        win.document.close();
+      } else {
+        alert("Popup blocked! Please allow popups to open the games in a cloaked tab.");
+      }
+      setPasscode('');
+    } else if (inputPass === 'tt0609' || inputPass === '1378') {
       setTimeout(() => {
         setViewModeAndSave('games');
         setPasscode('');
@@ -412,7 +457,10 @@ export default function App() {
   // Automated trigger checks for "0609" and "2026" within the article system's search tab
   useEffect(() => {
     const q = articleSearch.trim().toLowerCase();
-    if (q === '2026' || q === 'ttt0609') {
+    if (q === 'ttt0609') {
+      setArticleSearch('');
+      handlePasswordSubmit('ttt0609');
+    } else if (q === '2026' || q === 'tt0609') {
       setViewModeAndSave('games');
       setArticleSearch('');
     } else if (q === '0609') {
@@ -454,11 +502,33 @@ export default function App() {
 
   // Global Panic Key Handler
   useEffect(() => {
+    let lastZeroTime = 0;
     const handlePanic = (e) => {
       if (e.key === '[' || e.key === ']') {
         e.preventDefault();
         setViewModeAndSave('articles');
         setSelectedGame(null); // Instantly close active game to clear screen
+      } else if (e.key === '`' || e.key === '\\') {
+        e.preventDefault();
+        try {
+          window.close();
+        } catch (err) {
+          console.error(err);
+        }
+        // Fallback if window.close() is blocked/ignored
+        window.location.href = "https://classroom.google.com";
+      } else if (e.key === '0') {
+        const now = Date.now();
+        if (now - lastZeroTime < 1000) {
+          e.preventDefault();
+          try {
+            window.close();
+          } catch (err) {
+            console.error(err);
+          }
+          window.location.href = "https://classroom.google.com";
+        }
+        lastZeroTime = now;
       }
     };
     window.addEventListener('keydown', handlePanic);
@@ -1794,22 +1864,6 @@ export default function App() {
               <span>Movies</span>
             </motion.button>
 
-            {/* Socratic Tutor Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => { setFilter(filter === 'chat' ? 'all' : 'chat'); setSelectedGame(null); }}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-sans font-black flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
-                filter === 'chat'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="Chat Tutor"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span>AI</span>
-            </motion.button>
-
             {/* Lobby Chat Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -3113,18 +3167,7 @@ export default function App() {
                     </span>
                   </button>
 
-                  {/* Panic Key / Escape to Academic Articles */}
-                  <button
-                    onClick={() => {
-                      setViewModeAndSave('articles');
-                      setSelectedGame(null);
-                    }}
-                    className="flex items-center gap-1.5 border border-red-500/30 hover:border-red-500 hover:bg-red-500/10 py-1.5 px-3 rounded-lg text-xs font-mono text-red-500 font-medium transition-all cursor-pointer whitespace-nowrap"
-                    title="Panic escape key (or press [ or ] at any time)"
-                  >
-                    <ShieldAlert className="w-3.5 h-3.5 text-red-500 animate-pulse" />
-                    <span className="hidden sm:inline text-[10px] font-bold">PANIC ESCAPE ([ or ])</span>
-                  </button>
+
 
                 </div>
 
