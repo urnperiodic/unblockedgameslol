@@ -22,7 +22,6 @@ import GrammarCheckerWorkspace from './components/GrammarCheckerWorkspace';
 import ChatWorkspace from './components/ChatWorkspace';
 import UserChat from './components/UserChat';
 import MoviesWorkspace from './components/MoviesWorkspace';
-import BrowserWorkspace from './components/BrowserWorkspace';
 import InformationSection from './components/InformationSection';
 import { 
   School, 
@@ -168,8 +167,6 @@ export default function App() {
     let url = "";
     if (currentFilter === 'movies') {
       url = window.location.origin + '?filter=movies';
-    } else if (currentFilter === 'browser') {
-      url = window.location.origin + '?filter=browser';
     } else if (currentFilter === 'youtube') {
       url = 'https://urnperiodic.github.io/youtube1/';
     } else if (currentFilter === 'chat') {
@@ -555,7 +552,7 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlFilter = params.get('filter');
-      if (urlFilter && ['chat', 'lobbychat', 'movies', 'youtube', 'info', 'all', 'browser'].includes(urlFilter)) {
+      if (urlFilter && ['chat', 'lobbychat', 'movies', 'youtube', 'info', 'all'].includes(urlFilter)) {
         setFilter(urlFilter);
         // Ensure games mode is active so the user goes straight to the loaded workspace
         if (viewMode !== 'games') {
@@ -1867,22 +1864,6 @@ export default function App() {
               <span>Movies</span>
             </motion.button>
 
-            {/* Browser Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => { setFilter(filter === 'browser' ? 'all' : 'browser'); setSelectedGame(null); }}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
-                filter === 'browser'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="Secure Browser"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>Browser</span>
-            </motion.button>
-
             {/* Lobby Chat Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -1943,7 +1924,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'browser') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -1969,8 +1950,6 @@ export default function App() {
                     onClick={() => {
                       const url = filter === 'movies' 
                         ? 'https://urnperiodic.github.io/p/' 
-                        : filter === 'browser'
-                        ? window.location.origin + '?filter=browser'
                         : filter === 'youtube'
                         ? 'https://urnperiodic.github.io/youtube1/'
                         : filter === 'chat'
@@ -2049,18 +2028,6 @@ export default function App() {
                 title="Movies"
               >
                 <Tv className="w-3.5 h-3.5" />
-              </button>
-
-              <button
-                onClick={() => { setFilter(filter === 'browser' ? 'all' : 'browser'); setSelectedGame(null); }}
-                className={`p-1 rounded-md text-xs transition-all duration-200 ${
-                  filter === 'browser'
-                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-bold'
-                    : 'bg-transparent text-[var(--text-primary)] hover:text-[var(--accent-color)]'
-                }`}
-                title="Browser"
-              >
-                <Globe className="w-3.5 h-3.5" />
               </button>
 
               <button
@@ -2158,19 +2125,6 @@ export default function App() {
               <Tv className="w-3.5 h-3.5" />
             </button>
 
-            {/* Browser Button */}
-            <button
-              onClick={() => { setFilter(filter === 'browser' ? 'all' : 'browser'); setSelectedGame(null); }}
-              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                filter === 'browser'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="Secure Browser"
-            >
-              <Globe className="w-3.5 h-3.5" />
-            </button>
-
             {/* Socratic Tutor Button */}
             <button
               onClick={() => { setFilter(filter === 'chat' ? 'all' : 'chat'); setSelectedGame(null); }}
@@ -2237,7 +2191,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'browser') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2263,8 +2217,6 @@ export default function App() {
                     onClick={() => {
                       const url = filter === 'movies' 
                         ? 'https://urnperiodic.github.io/p/' 
-                        : filter === 'browser'
-                        ? window.location.origin + '?filter=browser'
                         : filter === 'youtube'
                         ? 'https://urnperiodic.github.io/youtube1/'
                         : filter === 'chat'
@@ -2880,17 +2832,6 @@ export default function App() {
                   className={`flex flex-col w-full min-h-[550px] bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
                 >
                   <MoviesWorkspace onClose={() => setFilter('all')} />
-                </motion.div>
-              ) : filter === 'browser' ? (
-                <motion.div 
-                  key="browser"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.2 }}
-                  className={`flex flex-col w-full min-h-[550px] bg-[var(--bg-secondary)] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
-                >
-                  <BrowserWorkspace onClose={() => setFilter('all')} />
                 </motion.div>
               ) : filter === 'youtube' ? (
                 <motion.div 
