@@ -157,6 +157,7 @@ export default function App() {
       safeStorage.setItem('unblocked-last-game', selectedGame.id);
     } else {
       safeStorage.removeItem('unblocked-last-game');
+      setWindowFullscreen(false);
     }
   }, [selectedGame]);
   const [toolsExpanded, setToolsExpanded] = useState(false);
@@ -231,6 +232,7 @@ export default function App() {
   }, [isDraggingDock]);
 
   const [zoom, setZoom] = useState(1);
+  const [windowFullscreen, setWindowFullscreen] = useState(false);
   const [failedThumbnails, setFailedThumbnails] = useState({});
   const [favorites, setFavorites] = useState(() => {
     try {
@@ -503,6 +505,7 @@ export default function App() {
   // Global Panic Key Handler
   useEffect(() => {
     let lastZeroTime = 0;
+    let lastEscapeTime = 0;
     const handlePanic = (e) => {
       if (e.key === '[' || e.key === ']') {
         e.preventDefault();
@@ -529,6 +532,27 @@ export default function App() {
           window.location.href = "https://classroom.google.com";
         }
         lastZeroTime = now;
+      } else if (e.key === 'Escape') {
+        const now = Date.now();
+        if (now - lastEscapeTime < 1000) {
+          e.preventDefault();
+          try {
+            window.close();
+          } catch (err) {
+            console.error(err);
+          }
+          window.location.href = "https://classroom.google.com";
+        } else {
+          // If in window fullscreen, exit on single escape
+          setWindowFullscreen(curr => {
+            if (curr) {
+              e.preventDefault();
+              return false;
+            }
+            return curr;
+          });
+        }
+        lastEscapeTime = now;
       }
     };
     window.addEventListener('keydown', handlePanic);
@@ -3012,7 +3036,7 @@ export default function App() {
           </div>
         ) : (
             /* ACTIVE GAME SCREEN */
-            <div className="flex flex-col gap-4 animate-fade-in">
+            <div className={`flex flex-col gap-4 animate-fade-in ${windowFullscreen ? 'fixed inset-0 z-[9999] bg-[#0c0f16] p-4 w-screen h-screen overflow-hidden' : ''}`}>
               
               {/* Controls bar */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border border-[var(--card-border)] bg-[var(--bg-secondary)] rounded-xl py-3 px-4 gap-3 shadow-inner">
@@ -3074,6 +3098,22 @@ export default function App() {
                     title="Reload game frame session"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Window Fullscreen button */}
+                  <button
+                    onClick={() => setWindowFullscreen(!windowFullscreen)}
+                    className={`flex items-center gap-1.5 border py-1.5 px-3 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
+                      windowFullscreen
+                        ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10 text-[var(--accent-color)] font-bold shadow-[0_0_8px_rgba(0,229,176,0.15)]'
+                        : 'border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)]'
+                    }`}
+                    title="Toggle Window Fullscreen"
+                  >
+                    {windowFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                    <span className="hidden sm:inline text-[10px] font-bold">
+                      {windowFullscreen ? 'EXIT WINDOW FS' : 'WINDOW FS'}
+                    </span>
                   </button>
 
                   {/* Fullscreen button */}
@@ -3176,7 +3216,7 @@ export default function App() {
               {/* Game Arena with Side-by-Side Docked Chat */}
               <div 
                 id="game-arena-container"
-                className="flex flex-col lg:flex-row gap-0 w-full h-[65vh] min-h-[500px] relative"
+                className={`flex flex-col lg:flex-row gap-0 w-full relative ${windowFullscreen ? 'flex-1 min-h-0' : 'h-[65vh] min-h-[500px]'}`}
               >
                 {/* Game Viewport Container */}
                 <div 
