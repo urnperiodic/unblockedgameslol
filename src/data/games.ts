@@ -3,42 +3,6 @@ import { Game } from '../types';
 
 export const games: Game[] = [
   {
-    id: 'neon-breakout',
-    title: 'Neon Breakout',
-    description: 'A retro cyber-neon brick shatterer with synthesized Web Audio sound.',
-    url: 'clneonbreaker.html',
-    thumbnail: '',
-    category: 'Solo',
-    featured: true
-  },
-  {
-    id: 'synthwave-runner',
-    title: 'Synthwave Runner',
-    description: 'A high-speed perspective retro runner on an endless cyber sunset grid.',
-    url: 'clsynthrunner.html',
-    thumbnail: '',
-    category: 'Solo',
-    featured: true
-  },
-  {
-    id: 'tron-lightcycle',
-    title: 'TRON Lightcycle Trail',
-    description: 'Avoid trail lines and grow your neon lightcycle barrier on the digital grid grid.',
-    url: 'cllightcycle.html',
-    thumbnail: '',
-    category: 'Solo',
-    featured: true
-  },
-  {
-    id: 'cyber-defenders',
-    title: 'Cyber Defenders Arcade',
-    description: 'Endless waves of glowing alien invaders in a high-energy space shooter.',
-    url: 'clcyberdefenders.html',
-    thumbnail: '',
-    category: 'Solo',
-    featured: true
-  },
-  {
     id: 'phoenix-wright-aa',
     title: 'Phoenix Wright: Ace Attorney',
     description: 'Defend clients and uncover truths in the courtroom emulator. Open in a separate tab if needed.',
@@ -606,5 +570,45 @@ export const games: Game[] = [
     thumbnail: 'Mia_Happy-1.jpg',
     category: 'Emulated',
     featured: true
+  },
+  {
+    id: 'neon-breakout',
+    title: 'Neon Breakout',
+    description: 'A retro cyber-neon brick shatterer with synthesized Web Audio sound.',
+    url: 'clneonbreaker.html',
+    thumbnail: '',
+    category: 'Solo',
+    featured: true,
+    isAiGenerated: true
+  },
+  {
+    id: 'synthwave-runner',
+    title: 'Synthwave Runner',
+    description: 'A high-speed perspective retro runner on an endless cyber sunset grid.',
+    url: 'clsynthrunner.html',
+    thumbnail: '',
+    category: 'Solo',
+    featured: true,
+    isAiGenerated: true
+  },
+  {
+    id: 'tron-lightcycle',
+    title: 'TRON Lightcycle Trail',
+    description: 'Avoid trail lines and grow your neon lightcycle barrier on the digital grid grid.',
+    url: 'cllightcycle.html',
+    thumbnail: '',
+    category: 'Solo',
+    featured: true,
+    isAiGenerated: true
+  },
+  {
+    id: 'cyber-defenders',
+    title: 'Cyber Defenders Arcade',
+    description: 'Endless waves of glowing alien invaders in a high-energy space shooter.',
+    url: 'clcyberdefenders.html',
+    thumbnail: '',
+    category: 'Solo',
+    featured: true,
+    isAiGenerated: true
   }
 ];

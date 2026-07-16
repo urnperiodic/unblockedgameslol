@@ -174,28 +174,36 @@ export default function App() {
       url = 'https://urnperiodic.github.io/extrastuffforwebsite/';
     } else if (currentFilter === 'lobbychat') {
       url = window.location.origin + '?filter=lobbychat';
+    } else if (currentFilter === 'proxy') {
+      url = 'https://scramjet.mercurywork.shop/';
     } else {
       url = window.location.origin;
     }
 
     const win = window.open('about:blank', '_blank');
     if (win) {
-      win.document.body.style.margin = '0';
-      win.document.body.style.padding = '0';
-      win.document.body.style.height = '100vh';
-      win.document.body.style.width = '100vw';
-      win.document.body.style.overflow = 'hidden';
-      win.document.body.style.background = '#000';
-      const iframe = win.document.createElement('iframe');
-      iframe.src = url;
-      iframe.style.width = '100%';
-      iframe.style.height = '100%';
-      iframe.style.border = 'none';
-      iframe.style.margin = '0';
-      iframe.style.padding = '0';
-      iframe.setAttribute('allowfullscreen', 'true');
-      iframe.setAttribute('allow', 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation');
-      win.document.body.appendChild(iframe);
+      let parentTitle = "StudyTools";
+      let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+      
+      if (decoyType === 'classroom') {
+        parentTitle = "Home - Classroom";
+        parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+      } else if (decoyType === 'clever') {
+        parentTitle = "Clever | Log in with Clever";
+        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+      } else if (decoyType === 'campus') {
+        parentTitle = "Campus Student";
+        parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+      } else if (decoyType === 'docs') {
+        parentTitle = "Google Docs";
+        parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+      } else if (decoyType === 'gmail') {
+        parentTitle = "Inbox - Jersey City Public Schools";
+        parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+      }
+
+      win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{width:100vw;height:100vh;border:none;display:block;margin:0;padding:0;}</style></head><body><iframe src="${url}" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation" allowfullscreen="true"></iframe></body></html>`);
+      win.document.close();
     }
   };
 
@@ -520,18 +528,6 @@ export default function App() {
         }
         // Fallback if window.close() is blocked/ignored
         window.location.href = "https://classroom.google.com";
-      } else if (e.key === '0') {
-        const now = Date.now();
-        if (now - lastZeroTime < 1000) {
-          e.preventDefault();
-          try {
-            window.close();
-          } catch (err) {
-            console.error(err);
-          }
-          window.location.href = "https://classroom.google.com";
-        }
-        lastZeroTime = now;
       } else if (e.key === 'Escape') {
         const now = Date.now();
         if (now - lastEscapeTime < 1000) {
@@ -1904,6 +1900,22 @@ export default function App() {
               <span>Lobby Chat</span>
             </motion.button>
 
+            {/* Proxy Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
+                filter === 'proxy'
+                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)] font-bold'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+              }`}
+              title="Proxy"
+            >
+              <Globe className="w-3.5 h-3.5" />
+              <span>Proxy</span>
+            </motion.button>
+
             {/* Cloak Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -1916,14 +1928,31 @@ export default function App() {
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
                 let parentTitle = "StudyTools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                if (decoyType === 'classroom') { parentTitle = "Home - Classroom"; parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png"; }
+                
+                if (decoyType === 'classroom') {
+                  parentTitle = "Home - Classroom";
+                  parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                } else if (decoyType === 'clever') {
+                  parentTitle = "Clever | Log in with Clever";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+                } else if (decoyType === 'campus') {
+                  parentTitle = "Campus Student";
+                  parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+                } else if (decoyType === 'docs') {
+                  parentTitle = "Google Docs";
+                  parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+                } else if (decoyType === 'gmail') {
+                  parentTitle = "Inbox - Jersey City Public Schools";
+                  parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                }
+
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
                 win.document.close();
               }}
               className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
               title="Cloak in about:blank"
             >
-              <Globe className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5" />
               <span>Cloak</span>
             </motion.button>
 
@@ -1948,7 +1977,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -1978,6 +2007,8 @@ export default function App() {
                         ? 'https://urnperiodic.github.io/youtube1/'
                         : filter === 'chat'
                         ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
+                        : filter === 'proxy'
+                        ? 'https://scramjet.mercurywork.shop/'
                         : window.location.origin + '?filter=lobbychat';
                       window.open(url, '_blank');
                     }}
@@ -2093,6 +2124,18 @@ export default function App() {
                 </svg>
               </button>
 
+              <button
+                onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
+                className={`p-1 rounded-md text-xs transition-all duration-200 ${
+                  filter === 'proxy'
+                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-bold'
+                    : 'bg-transparent text-[var(--text-primary)] hover:text-[var(--accent-color)]'
+                }`}
+                title="Proxy"
+              >
+                <Globe className="w-3.5 h-3.5" />
+              </button>
+
             {/* Cloak Button */}
             <button
               onClick={() => {
@@ -2106,15 +2149,31 @@ export default function App() {
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
                 let parentTitle = "StudyTools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                if (decoyType === 'classroom') { parentTitle = "Home - Classroom"; parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png"; }
-                else if (decoyType === 'clever') { parentTitle = "Clever | Log in"; parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com"; }
+                
+                if (decoyType === 'classroom') {
+                  parentTitle = "Home - Classroom";
+                  parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                } else if (decoyType === 'clever') {
+                  parentTitle = "Clever | Log in with Clever";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+                } else if (decoyType === 'campus') {
+                  parentTitle = "Campus Student";
+                  parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+                } else if (decoyType === 'docs') {
+                  parentTitle = "Google Docs";
+                  parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+                } else if (decoyType === 'gmail') {
+                  parentTitle = "Inbox - Jersey City Public Schools";
+                  parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                }
+
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
                 win.document.close();
               }}
               className="p-1 rounded-md text-[var(--accent-color)] hover:bg-[var(--accent-color)]/10 transition-all"
               title="Cloak site"
             >
-              <Globe className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </button>
 
             {/* Decoy Selector */}
@@ -2175,6 +2234,19 @@ export default function App() {
               <MessageSquare className="w-3.5 h-3.5" />
             </button>
 
+            {/* Proxy Button */}
+            <button
+              onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
+              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                filter === 'proxy'
+                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+              }`}
+              title="Proxy"
+            >
+              <Globe className="w-3.5 h-3.5" />
+            </button>
+
             {/* Cloak Button */}
             <button
               onClick={() => {
@@ -2185,14 +2257,31 @@ export default function App() {
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
                 let parentTitle = "StudyTools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                if (decoyType === 'classroom') { parentTitle = "Home - Classroom"; parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png"; }
+                
+                if (decoyType === 'classroom') {
+                  parentTitle = "Home - Classroom";
+                  parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                } else if (decoyType === 'clever') {
+                  parentTitle = "Clever | Log in with Clever";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+                } else if (decoyType === 'campus') {
+                  parentTitle = "Campus Student";
+                  parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+                } else if (decoyType === 'docs') {
+                  parentTitle = "Google Docs";
+                  parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+                } else if (decoyType === 'gmail') {
+                  parentTitle = "Inbox - Jersey City Public Schools";
+                  parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                }
+
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
                 win.document.close();
               }}
               className="p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer flex items-center justify-center"
               title="Cloak in about:blank"
             >
-              <Globe className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </button>
 
             {/* Decoy Selector */}
@@ -2215,7 +2304,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2245,6 +2334,8 @@ export default function App() {
                         ? 'https://urnperiodic.github.io/youtube1/'
                         : filter === 'chat'
                         ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
+                        : filter === 'proxy'
+                        ? 'https://scramjet.mercurywork.shop/'
                         : window.location.origin + '?filter=lobbychat';
                       window.open(url, '_blank');
                     }}
@@ -2350,7 +2441,7 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-2 md:ml-auto w-full md:w-auto overflow-visible">
             {/* Go back to games back button */}
-            {(filter === 'chat' || filter === 'movies') && (
+            {(filter === 'chat' || filter === 'movies' || filter === 'proxy') && (
               <button
                 id="chat-back-button"
                 onClick={() => setFilter('all')}
@@ -2473,13 +2564,13 @@ export default function App() {
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
       <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 ${
-        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube')
+        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy')
           ? 'max-w-none p-0 gap-0 border-t border-[var(--card-border)]/50 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
       }`}>
         
         {/* LEFT NAV PANEL - CAT SIDEBAR */}
-        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && (
+        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'proxy' && (
           <aside className={`transition-all duration-300 ease-in-out shrink-0 flex flex-col gap-2 overflow-hidden ${
             sidebarOpen ? 'w-full md:w-44' : 'w-full md:w-14'
           }`}>
@@ -2873,6 +2964,22 @@ export default function App() {
                     referrerPolicy="no-referrer"
                   />
                 </motion.div>
+              ) : filter === 'proxy' ? (
+                <motion.div 
+                  key="proxy"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex flex-col w-full min-h-[550px] bg-[#0c0a09] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
+                >
+                  <iframe 
+                    src="https://scramjet.mercurywork.shop/" 
+                    className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
+                    allow="fullscreen"
+                    referrerPolicy="no-referrer"
+                  />
+                </motion.div>
               ) : (
                 <motion.div 
                   key="games-list"
@@ -2977,17 +3084,28 @@ export default function App() {
                           >
                             <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-rose-500 text-rose-500' : ''}`} />
                           </button>
+
+                          {game.isAiGenerated && (
+                            <span className="absolute bottom-2.5 left-2.5 text-[8px] font-extrabold tracking-widest bg-purple-950/85 backdrop-blur-sm text-purple-400 border border-purple-500/40 px-2 py-0.5 rounded-full inline-block z-10 shadow-sm font-mono uppercase">
+                              ✧ AI Generated
+                            </span>
+                          )}
                         </div>
 
                         {/* Title and descriptions */}
                         <div className="p-4 flex-1 flex flex-col justify-between">
                           <div className="space-y-1.5">
-                            <h3 className={`text-sm font-black line-clamp-1 leading-snug transition-colors ${
+                            <h3 className={`text-sm font-black line-clamp-1 leading-snug transition-colors flex items-center gap-1.5 ${
                               game.featured 
                                 ? 'text-[var(--text-primary)] group-hover:text-amber-400' 
                                 : 'text-[var(--text-primary)] group-hover:text-[var(--accent-color)]'
                             }`}>
-                              {game.title}
+                              <span>{game.title}</span>
+                              {game.isAiGenerated && (
+                                <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 whitespace-nowrap">
+                                  AI
+                                </span>
+                              )}
                             </h3>
                             <p className="text-xs text-[var(--text-muted)] line-clamp-3 leading-relaxed">
                               {game.description}
@@ -3055,6 +3173,11 @@ export default function App() {
                     <span className="text-[9px] uppercase tracking-wider font-mono px-2 py-0.5 rounded border border-[var(--card-border)] bg-[var(--bg-color)] text-[var(--accent-color)]">
                       {selectedGame.category}
                     </span>
+                    {selectedGame.isAiGenerated && (
+                      <span className="text-[9px] uppercase tracking-wider font-mono px-2 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-400">
+                        ✧ AI Generated
+                      </span>
+                    )}
                   </span>
                 </div>
 
