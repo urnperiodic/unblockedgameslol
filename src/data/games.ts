@@ -137,7 +137,7 @@ export const games: Game[] = [
   {
     title: 'Bloons TD6 copy',
     description: 'A knockoff',
-    url: 'https://iims-sucksasaschool.github.io/BTD6/',
+    url: 'https://studytoolforiihs.github.io/as/',
     thumbnail: 'bloons.jpg',
     category: 'Solo or Multiplayer.',
     featured: false
