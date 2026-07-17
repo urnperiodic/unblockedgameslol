@@ -2,24 +2,6 @@
 import { Game } from '../types';
 
 export const games: Game[] = [
-  {
-    id: 'phoenix-wright-aa',
-    title: 'Phoenix Wright: Ace Attorney',
-    description: 'Defend clients and uncover truths in the courtroom emulator. Open in a separate tab if needed.',
-    url: 'clpheonixrightaceattorny.html',
-    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR6A66VlZf3lCMy0mQ0VunLd87V2-CqQoT9wA&s',
-    category: 'Emulated',
-    featured: true
-  },
-  {
-    id: 'kindergarten',
-    title: 'Kindergarten',
-    description: 'The popular retro-style unblocked adventure puzzle game set in a mysterious school.',
-    url: 'kindergarten.html',
-    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSfB77gWb89bA4XU9l7Uvj5g-Sj9eXn-K0_yQ&s',
-    category: 'Solo',
-    featured: true
-  },
   // ── CHAT / AI ──
  /*
   {
@@ -158,6 +140,14 @@ export const games: Game[] = [
     url: 'https://iims-sucksasaschool.github.io/BTD6/',
     thumbnail: 'bloons.jpg',
     category: 'Solo or Multiplayer.',
+    featured: false
+  },
+  {
+    title: 'Bloons Tower Defense 5',
+    description: '',
+    url: 'clbloonstd5.html',
+    thumbnail: 'capsule_616x353.jpg',
+    category: 'Solo',
     featured: false
   },
   {
