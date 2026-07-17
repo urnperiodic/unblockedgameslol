@@ -20,16 +20,6 @@ export const games: Game[] = [
     category: 'Solo',
     featured: true
   },
-  {
-    id: 'classic-uno-classic',
-    title: 'Classic Uno (Classic Edition)',
-    description: 'Classic card game with customizable rules, play against local AI contenders.',
-    url: 'cluno.html',
-    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEhekk0qTgz3FPvdI-7B2BajmVa-AQgjwkQA&s',
-    category: 'Multiplayer',
-    featured: false
-  },
-
   // ── CHAT / AI ──
  /*
   {
