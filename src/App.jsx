@@ -2008,11 +2008,11 @@ export default function App() {
 
 
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-300 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-clip">
       <CursorSpotlight active={viewMode === 'games'} />
       {/* HEADER */}
       {headerOpen ? (
-        <nav className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-3.5 px-4 md:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors duration-300 sticky top-0 z-50 shadow-sm animate-fade-in">
+        <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-3.5 px-4 md:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
         
         {/* Left Side: Logo & Title */}
         <div 
@@ -2214,9 +2214,9 @@ export default function App() {
 
         </div>
 
-      </nav>
+      </header>
       ) : (
-        <nav className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-1.5 pl-4 pr-14 flex flex-col md:flex-row justify-between items-center gap-3 transition-colors duration-300 sticky top-0 z-50 shadow-sm animate-fade-in">
+        <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-1.5 pl-4 pr-14 flex flex-col md:flex-row justify-between items-center gap-3 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
           
           <div className="flex items-center justify-between w-full md:w-auto gap-3">
             {/* Left Side: Decoy Classroom Title (Compact) */}
@@ -2644,7 +2644,7 @@ export default function App() {
 
           </div>
 
-        </nav>
+        </header>
       )}
 
       {/* ALT LINKS BAR */}
