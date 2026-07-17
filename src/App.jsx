@@ -99,6 +99,145 @@ const safeStorage = {
   }
 };
 
+const decoyOptions = [
+  { value: 'none', label: 'Off', labelLong: 'Off (StudyTools)', icon: 'school' },
+  { value: 'classroom', label: 'Classroom', labelLong: 'Google Classroom', icon: 'https://ssl.gstatic.com/classroom/favicon.png' },
+  { value: 'clever', label: 'Clever', labelLong: 'Clever Login', icon: 'https://www.google.com/s2/favicons?sz=64&domain=clever.com' },
+  { value: 'campus', label: 'Campus', labelLong: 'Infinite Campus', icon: 'https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png' },
+  { value: 'docs', label: 'Docs', labelLong: 'Google Docs', icon: 'https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico' },
+  { value: 'gmail', label: 'Inbox', labelLong: 'Inbox - JCPS', icon: 'https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico' },
+  { value: 'duolingo', label: 'Lingo', labelLong: 'Duolingo', icon: 'https://www.google.com/s2/favicons?sz=64&domain=duolingo.com' }
+];
+
+function CursorSpotlight({ active }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!active) return;
+
+    const el = ref.current;
+    if (!el) return;
+
+    const handleMouseMove = (e) => {
+      el.style.setProperty('--x', `${e.clientX}px`);
+      el.style.setProperty('--y', `${e.clientY}px`);
+      el.style.opacity = '1';
+    };
+
+    const handleMouseLeave = () => {
+      el.style.opacity = '0';
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [active]);
+
+  if (!active) return null;
+
+  return (
+    <div
+      ref={ref}
+      className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-500 opacity-0"
+      style={{
+        background: 'radial-gradient(circle 350px at var(--x, -1000px) var(--y, -1000px), color-mix(in srgb, var(--accent-color) 12%, transparent), transparent 80%)',
+      }}
+    />
+  );
+}
+
+function DecoyDropdown({ value, onChange, mode, compact = false, showLabel = false }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = decoyOptions.find(opt => opt.value === value) || decoyOptions[0];
+  const isHighlighted = value !== 'none';
+
+  return (
+    <div ref={dropdownRef} className="relative inline-block text-left">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-1.5 rounded-full border cursor-pointer transition-all duration-200 select-none ${
+          compact ? 'px-2 py-0.5 text-[10px] h-6' : 'px-3 py-1 text-xs h-8'
+        } ${
+          isHighlighted
+            ? 'bg-[var(--accent-color)]/10 border-[var(--accent-color)] text-[var(--accent-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-black'
+            : 'bg-[var(--card-bg)] border-[var(--card-border)] text-[var(--text-primary)] hover:border-[var(--accent-color)]/50'
+        }`}
+        style={{ colorScheme: mode }}
+      >
+        {selectedOption.icon === 'school' ? (
+          <School className={`${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} ${isHighlighted ? 'text-[var(--accent-color)]' : 'text-neutral-400'}`} />
+        ) : (
+          <img src={selectedOption.icon} className={`${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} object-contain shrink-0`} referrerPolicy="no-referrer" alt="" />
+        )}
+        
+        {showLabel && (
+          <span className="font-mono font-bold leading-none uppercase tracking-tight text-[10px]">
+            {selectedOption.label}
+          </span>
+        )}
+        
+        <ChevronDown className={`${compact ? 'w-2.5 h-2.5' : 'w-3.5 h-3.5'} transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-[var(--accent-color)]' : 'text-neutral-400'}`} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute top-full right-0 mt-1.5 w-48 rounded-xl bg-[#12121a]/95 backdrop-blur-md border border-white/10 p-1 shadow-2xl z-[2600] overflow-hidden select-none"
+          >
+            <div className="flex flex-col gap-0.5">
+              {decoyOptions.map((opt) => {
+                const isSelected = opt.value === value;
+                return (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      onChange(opt.value);
+                      setIsOpen(false);
+                    }}
+                    className={`flex items-center gap-2 w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150 cursor-pointer ${
+                      isSelected 
+                        ? 'bg-[var(--accent-color)] text-[var(--bg-color)] font-bold' 
+                        : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                    }`}
+                  >
+                    {opt.icon === 'school' ? (
+                      <School className={`w-3.5 h-3.5 ${isSelected ? 'text-[var(--bg-color)]' : 'text-[var(--accent-color)]'}`} />
+                    ) : (
+                      <img src={opt.icon} className="w-3.5 h-3.5 object-contain shrink-0" referrerPolicy="no-referrer" alt="" />
+                    )}
+                    <span className="flex-1 font-sans truncate">{opt.labelLong}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function App() {
   // Helper to optimize and resize thumbnail URLs dynamically to Poki recommended size (512x512) for fast load & high clarity
   const getOptimizedThumbnail = (url) => {
@@ -200,6 +339,9 @@ export default function App() {
       } else if (decoyType === 'gmail') {
         parentTitle = "Inbox - Jersey City Public Schools";
         parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+      } else if (decoyType === 'duolingo') {
+        parentTitle = "Duolingo - Learn a language for free";
+        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
       }
 
       win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{width:100vw;height:100vh;border:none;display:block;margin:0;padding:0;}</style></head><body><iframe src="${url}" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation" allowfullscreen="true"></iframe></body></html>`);
@@ -283,6 +425,24 @@ export default function App() {
       }
     }, [viewMode]);
 
+  const [autoLockOnLeave, setAutoLockOnLeave] = useState(() => {
+    const saved = safeStorage.getItem('unblocked-auto-lock-on-leave');
+    return saved !== 'false'; // Defaults to true
+  });
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && autoLockOnLeave) {
+        setViewModeAndSave('articles');
+        setSelectedGame(null);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [autoLockOnLeave]);
+
   const [passcode, setPasscode] = useState('');
   const [isShake, setIsShake] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
@@ -300,17 +460,17 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlDecoyType = params.get('decoyType');
-      if (urlDecoyType && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail'].includes(urlDecoyType)) {
+      if (urlDecoyType && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo'].includes(urlDecoyType)) {
         return urlDecoyType;
       }
       const urlDecoy = params.get('decoy');
       if (urlDecoy === 'true') return 'classroom';
       if (urlDecoy === 'false') return 'none';
-      if (urlDecoy && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail'].includes(urlDecoy)) {
+      if (urlDecoy && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo'].includes(urlDecoy)) {
         return urlDecoy;
       }
       const cached = localStorage.getItem('study-tools-decoy-type');
-      if (cached && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail'].includes(cached)) {
+      if (cached && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo'].includes(cached)) {
         return cached;
       }
       const cachedLegacy = localStorage.getItem('study-tools-classroom-decoy');
@@ -370,6 +530,9 @@ export default function App() {
         } else if (decoyType === 'gmail') {
           parentTitle = "Inbox - Jersey City Public Schools";
           parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+        } else if (decoyType === 'duolingo') {
+          parentTitle = "Duolingo - Learn a language for free";
+          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
         }
 
         win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
@@ -667,6 +830,9 @@ export default function App() {
       } else if (decoyType === 'gmail') {
         setBothTitles("Inbox - Jersey City Public Schools");
         updateFavicon("https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico");
+      } else if (decoyType === 'duolingo') {
+        setBothTitles("Duolingo - Learn a language for free");
+        updateFavicon("https://www.google.com/s2/favicons?sz=64&domain=duolingo.com");
       } else {
         setBothTitles("StudyTools");
         updateFavicon(bookSvgDataUri);
@@ -1842,7 +2008,8 @@ export default function App() {
 
 
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-300">
+    <div className="min-h-screen flex flex-col transition-colors duration-300 relative overflow-hidden">
+      <CursorSpotlight active={viewMode === 'games'} />
       {/* HEADER */}
       {headerOpen ? (
         <nav className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-3.5 px-4 md:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors duration-300 sticky top-0 z-50 shadow-sm animate-fade-in">
@@ -1881,7 +2048,7 @@ export default function App() {
               title="Movies Workspace"
             >
               <Tv className="w-3.5 h-3.5" />
-              <span>Movies</span>
+              <span style={{ fontSize: '9px', lineHeight: '18px', textAlign: 'center', fontStyle: 'normal', fontWeight: 'normal', fontFamily: 'Inter' }}>movies</span>
             </motion.button>
 
             {/* Lobby Chat Button */}
@@ -1898,6 +2065,25 @@ export default function App() {
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Lobby Chat</span>
+            </motion.button>
+
+            {/* YouTube Workspace Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
+                filter === 'youtube'
+                  ? 'bg-red-600 text-white border-red-600 shadow-[0_2px_8px_rgba(220,38,38,0.5)] font-bold'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500/50 hover:text-red-500'
+              }`}
+              title="YouTube Workspace"
+            >
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
+                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
+              </svg>
+              <span>YouTube</span>
             </motion.button>
 
             {/* Proxy Button */}
@@ -1944,6 +2130,9 @@ export default function App() {
                 } else if (decoyType === 'gmail') {
                   parentTitle = "Inbox - Jersey City Public Schools";
                   parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                } else if (decoyType === 'duolingo') {
+                  parentTitle = "Duolingo - Learn a language for free";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
                 }
 
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
@@ -1957,22 +2146,9 @@ export default function App() {
             </motion.button>
 
             {/* Decoy Selector */}
-            <div className="flex items-center bg-[var(--bg-secondary)] border border-[var(--card-border)] px-2.5 py-1.5 rounded-lg text-xs font-mono shadow-sm">
-              <School className="w-3.5 h-3.5 mr-1.5 text-[var(--accent-color)]" />
-              <span className="text-[10px] font-bold text-neutral-400 mr-1 uppercase">DECOY:</span>
-              <select 
-                value={decoyType}
-                onChange={(e) => setDecoyType(e.target.value)}
-                className="bg-transparent border-none outline-none font-bold cursor-pointer text-[var(--text-primary)] text-xs"
-                style={{ colorScheme: mode }}
-              >
-                <option value="none" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Off</option>
-                <option value="classroom" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Classroom</option>
-                <option value="clever" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Clever</option>
-                <option value="campus" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Campus</option>
-                <option value="docs" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Docs</option>
-                <option value="gmail" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Inbox</option>
-              </select>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase select-none">Decoy:</span>
+              <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} />
             </div>
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
@@ -2065,6 +2241,8 @@ export default function App() {
                       ? "Docs" 
                       : decoyType === 'gmail' 
                       ? "Inbox" 
+                      : decoyType === 'duolingo'
+                      ? "Lingo"
                       : "StudyTools"}
                   </span>
                 </div>
@@ -2165,6 +2343,9 @@ export default function App() {
                 } else if (decoyType === 'gmail') {
                   parentTitle = "Inbox - Jersey City Public Schools";
                   parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                } else if (decoyType === 'duolingo') {
+                  parentTitle = "Duolingo - Learn a language for free";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
                 }
 
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
@@ -2177,19 +2358,7 @@ export default function App() {
             </button>
 
             {/* Decoy Selector */}
-            <select 
-              value={decoyType}
-              onChange={(e) => setDecoyType(e.target.value)}
-              className="p-0.5 text-[8px] font-mono border border-[var(--card-border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded cursor-pointer outline-none font-bold"
-              style={{ colorScheme: mode }}
-            >
-              <option value="none" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Off</option>
-              <option value="classroom" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Classroom</option>
-              <option value="clever" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Clever</option>
-              <option value="campus" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Campus</option>
-              <option value="docs" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Docs</option>
-              <option value="gmail" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Inbox</option>
-            </select>
+            <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
           </div>
           </div>
 
@@ -2234,6 +2403,22 @@ export default function App() {
               <MessageSquare className="w-3.5 h-3.5" />
             </button>
 
+            {/* YouTube Workspace Button */}
+            <button
+              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
+              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                filter === 'youtube'
+                  ? 'bg-red-600 text-white border-red-600 shadow-[0_2px_8px_rgba(220,38,38,0.5)] font-bold'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500/50 hover:text-red-500'
+              }`}
+              title="YouTube"
+            >
+              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
+                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
+              </svg>
+            </button>
+
             {/* Proxy Button */}
             <button
               onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
@@ -2273,6 +2458,9 @@ export default function App() {
                 } else if (decoyType === 'gmail') {
                   parentTitle = "Inbox - Jersey City Public Schools";
                   parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                } else if (decoyType === 'duolingo') {
+                  parentTitle = "Duolingo - Learn a language for free";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
                 }
 
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
@@ -2285,22 +2473,7 @@ export default function App() {
             </button>
 
             {/* Decoy Selector */}
-            <div className="flex items-center bg-[var(--bg-secondary)] border border-[var(--card-border)] px-1.5 py-0.5 rounded-lg text-[10px] font-mono shadow-sm">
-              <School className="w-3.5 h-3.5 mr-1.5 text-[var(--accent-color)]" />
-              <select 
-                value={decoyType}
-                onChange={(e) => setDecoyType(e.target.value)}
-                className="bg-transparent border-none outline-none font-bold cursor-pointer text-[var(--text-primary)]"
-                style={{ colorScheme: mode }}
-              >
-                <option value="none" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Off</option>
-                <option value="classroom" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Class</option>
-                <option value="clever" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Clever</option>
-                <option value="campus" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Campus</option>
-                <option value="docs" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Docs</option>
-                <option value="gmail" style={{ backgroundColor: mode === 'dark' ? '#1a1a24' : '#ffffff', color: mode === 'dark' ? '#ffffff' : '#000000' }}>Inbox</option>
-              </select>
-            </div>
+            <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
             <AnimatePresence>
@@ -2384,15 +2557,56 @@ export default function App() {
             </div>
 
             {/* Unified Settings, Colors Group (Compact) */}
-            <div className="flex items-center gap-1.5 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-lg shadow-sm">
+            <div className="relative flex items-center gap-1.5 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-lg shadow-sm">
               {/* Settings Gear Button */}
               <button
-                onClick={() => setIsGlobalSettingsOpen(true)}
+                onClick={() => setIsGlobalSettingsOpen(!isGlobalSettingsOpen)}
                 className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center justify-center shrink-0"
-                title="System Settings (Backup & Restore)"
+                title="System Settings"
               >
                 <Settings className="w-3 h-3" />
               </button>
+
+              {isGlobalSettingsOpen && (
+                <div className="absolute top-full right-0 mt-2 w-64 bg-[#12121a] border border-white/10 rounded-xl p-4 shadow-2xl z-[2500] select-none text-left animate-fade-in">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">System Settings</span>
+                      <button onClick={() => setIsGlobalSettingsOpen(false)} className="text-neutral-400 hover:text-white cursor-pointer">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-bold text-white">Sign Out on Leave</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
+                          Lock workspace and return to school decoy when switching tabs.
+                        </span>
+                        <div
+                          onClick={() => {
+                            const newVal = !autoLockOnLeave;
+                            setAutoLockOnLeave(newVal);
+                            safeStorage.setItem('unblocked-auto-lock-on-leave', String(newVal));
+                          }}
+                          className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                          title="Toggle Sign Out on Leave"
+                        >
+                          <div 
+                            className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                              autoLockOnLeave ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border-t border-white/5 pt-2 mt-1 text-center">
+                      <p className="text-[9px] font-mono text-neutral-500">
+                        made by urnperiodic and Grandplat2
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <button
                 onClick={() => setViewModeAndSave('articles')}
@@ -2441,7 +2655,7 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-2 md:ml-auto w-full md:w-auto overflow-visible">
             {/* Go back to games back button */}
-            {(filter === 'chat' || filter === 'movies' || filter === 'proxy') && (
+            {(filter === 'chat' || filter === 'movies' || filter === 'proxy' || filter === 'youtube' || filter === 'lobbychat') && (
               <button
                 id="chat-back-button"
                 onClick={() => setFilter('all')}
@@ -2469,30 +2683,9 @@ export default function App() {
             </button>
 
             {/* Decoy Mode Selector */}
-            <div className={`flex items-center border rounded-full px-3 py-1.5 text-xs font-mono shadow-sm transition-all duration-300 ${
-              decoyType !== 'none' 
-                ? 'bg-[var(--accent-color)]/10 border-[var(--accent-color)] text-[var(--accent-color)]' 
-                : 'bg-[var(--card-bg)] border-[var(--card-border)] text-[var(--text-muted)]'
-            }`}>
-              <span className="text-[10px] uppercase font-extrabold mr-1.5 flex items-center gap-1">
-                <School className="w-3.5 h-3.5" />
-                <span>Decoy:</span>
-              </span>
-              <select 
-                value={decoyType}
-                onChange={(e) => setDecoyType(e.target.value)}
-                className={`bg-transparent border-none outline-none font-bold cursor-pointer py-0.5 ${
-                  decoyType !== 'none' ? 'text-[var(--accent-color)]' : 'text-[var(--text-primary)]'
-                }`}
-                style={{ colorScheme: mode }}
-              >
-                <option value="none" style={{ backgroundColor: '#1a1a24', color: '#ffffff' }}>Off (StudyTools)</option>
-                <option value="classroom" style={{ backgroundColor: '#1a1a24', color: '#ffffff' }}>Google Classroom</option>
-                <option value="clever" style={{ backgroundColor: '#1a1a24', color: '#ffffff' }}>Clever Login</option>
-                <option value="campus" style={{ backgroundColor: '#1a1a24', color: '#ffffff' }}>Infinite Campus</option>
-                <option value="docs" style={{ backgroundColor: '#1a1a24', color: '#ffffff' }}>Google Docs</option>
-                <option value="gmail" style={{ backgroundColor: '#1a1a24', color: '#ffffff' }}>Inbox - Jersey City Public Schools</option>
-              </select>
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase select-none">Decoy:</span>
+              <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} />
             </div>
 
             {/* Light/Dark Mode slider */}
@@ -2513,15 +2706,56 @@ export default function App() {
             </div>
 
             {/* Unified Settings, Colors & Sign Out Group */}
-            <div className="flex items-center gap-2 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-1 rounded-full shadow-sm">
-              {/* Settings Gear Button (opens System Settings Modal) */}
+            <div className="relative flex items-center gap-2 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-1 rounded-full shadow-sm">
+              {/* Settings Gear Button (opens System Settings Dropdown) */}
               <button
-                onClick={() => setIsGlobalSettingsOpen(true)}
+                onClick={() => setIsGlobalSettingsOpen(!isGlobalSettingsOpen)}
                 className="p-1.5 rounded-full text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center justify-center shrink-0"
-                title="System Settings (Backup & Restore)"
+                title="System Settings"
               >
                 <Settings className="w-3.5 h-3.5" />
               </button>
+
+              {isGlobalSettingsOpen && (
+                <div className="absolute top-full right-0 mt-2 w-64 bg-[#12121a] border border-white/10 rounded-xl p-4 shadow-2xl z-[2500] select-none text-left animate-fade-in">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">System Settings</span>
+                      <button onClick={() => setIsGlobalSettingsOpen(false)} className="text-neutral-400 hover:text-white cursor-pointer">
+                        <X className="w-3" style={{ height: '12px' }} />
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <span className="text-xs font-bold text-white">Sign Out on Leave</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
+                          Lock workspace and return to school decoy when switching tabs.
+                        </span>
+                        <div
+                          onClick={() => {
+                            const newVal = !autoLockOnLeave;
+                            setAutoLockOnLeave(newVal);
+                            safeStorage.setItem('unblocked-auto-lock-on-leave', String(newVal));
+                          }}
+                          className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                          title="Toggle Sign Out on Leave"
+                        >
+                          <div 
+                            className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                              autoLockOnLeave ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border-t border-white/5 pt-2 mt-1 text-center">
+                      <p className="text-[9px] font-mono text-neutral-500">
+                        made by urnperiodic and Grandplat2
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <button
                 onClick={() => setViewModeAndSave('articles')}
@@ -2563,7 +2797,7 @@ export default function App() {
 
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
-      <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 ${
+      <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative z-10 ${
         (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy')
           ? 'max-w-none p-0 gap-0 border-t border-[var(--card-border)]/50 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
@@ -2789,104 +3023,63 @@ export default function App() {
 
           <div className="flex-1" />
 
-          <motion.button
-            whileHover={{ x: 4 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setIsGlobalSettingsOpen(true)}
-            className="w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80 mt-auto"
-          >
-            <Settings className="w-4.5 h-4.5 shrink-0" />
-            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Settings</span>
-          </motion.button>
+          <div className="relative w-full mt-auto">
+            <motion.button
+              whileHover={{ x: 4 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => setIsGlobalSettingsOpen(!isGlobalSettingsOpen)}
+              className="w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80"
+            >
+              <Settings className="w-4.5 h-4.5 shrink-0" />
+              <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Settings</span>
+            </motion.button>
+
+            {isGlobalSettingsOpen && (
+              <div className="absolute bottom-full left-0 mb-2 w-64 bg-[#12121a] border border-white/10 rounded-xl p-4 shadow-2xl z-[2500] select-none text-left animate-fade-in">
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">System Settings</span>
+                    <button onClick={() => setIsGlobalSettingsOpen(false)} className="text-neutral-400 hover:text-white cursor-pointer">
+                      <X className="w-3" style={{ height: '12px' }} />
+                    </button>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <span className="text-xs font-bold text-white">Sign Out on Leave</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
+                        Lock workspace and return to school decoy when switching tabs.
+                      </span>
+                      <div
+                        onClick={() => {
+                          const newVal = !autoLockOnLeave;
+                          setAutoLockOnLeave(newVal);
+                          safeStorage.setItem('unblocked-auto-lock-on-leave', String(newVal));
+                        }}
+                        className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                        title="Toggle Sign Out on Leave"
+                      >
+                        <div 
+                          className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                            autoLockOnLeave ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-t border-white/5 pt-2 mt-1 text-center">
+                    <p className="text-[9px] font-mono text-neutral-500">
+                      made by urnperiodic and Grandplat2
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
 
         </aside>
         )}
 
-        {/* GLOBAL SETTINGS MODAL */}
-        {isGlobalSettingsOpen && (
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center select-none">
-            <div 
-              onClick={() => setIsGlobalSettingsOpen(false)}
-              className="absolute inset-0 bg-black/85 backdrop-blur-sm animate-fade-in"
-            />
-            <div className="relative w-full max-w-md bg-[#12121a] border border-white/10 rounded-2xl p-7 flex flex-col shadow-2xl z-10 animate-fade-in">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-4">
-                <div className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-white" />
-                  <h3 className="text-xl font-extrabold uppercase tracking-wider text-white">System Settings</h3>
-                </div>
-                <button 
-                  onClick={() => setIsGlobalSettingsOpen(false)}
-                  className="p-1.5 rounded-full hover:bg-white/5 text-neutral-400 hover:text-white cursor-pointer transition-all duration-200"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
 
-              <div className="space-y-6">
-                <div>
-                  <h4 className="text-xs font-black text-white mb-2 uppercase tracking-widest">One-Click Backup & Restore</h4>
-                  <p className="text-xs text-neutral-400 mb-5 leading-relaxed">
-                    Export your favorited games, bookmarked films, watch history, and chat nickname to a JSON file. Use it to carry your profile across devices.
-                  </p>
-                  <div className="flex items-center gap-4">
-                    <button 
-                      onClick={() => {
-                        const data = {
-                          favorites: safeStorage.getItem('unblocked-favorites'),
-                          moviesBookmarks: safeStorage.getItem('movies-bookmarks'),
-                          moviesHistory: safeStorage.getItem('movies-history'),
-                          chatName: safeStorage.getItem('chat_name')
-                        };
-                        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'unblocked-backup.json';
-                        a.click();
-                        URL.revokeObjectURL(url);
-                      }}
-                      className="flex-1 py-3 px-4 rounded-xl text-xs font-mono font-black uppercase tracking-wider text-center bg-white hover:bg-neutral-200 text-black transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md select-none hover:scale-[1.02] active:scale-95"
-                    >
-                      <Download className="w-4 h-4 text-black" />
-                      EXPORT DATA
-                    </button>
-                    
-                    <label className="flex-1 py-3 px-4 rounded-xl text-xs font-mono font-black uppercase tracking-wider text-center bg-[#202028] border border-white/10 text-white hover:bg-[#2a2a34] hover:border-white/20 transition-all cursor-pointer flex items-center justify-center gap-2 select-none hover:scale-[1.02] active:scale-95">
-                      <input 
-                        type="file" 
-                        accept=".json" 
-                        className="hidden" 
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (!file) return;
-                          const reader = new FileReader();
-                          reader.onload = (event) => {
-                            try {
-                              const data = JSON.parse(event.target.result);
-                              if (data.favorites) safeStorage.setItem('unblocked-favorites', data.favorites);
-                              if (data.moviesBookmarks) safeStorage.setItem('movies-bookmarks', data.moviesBookmarks);
-                              if (data.moviesHistory) safeStorage.setItem('movies-history', data.moviesHistory);
-                              if (data.chatName) safeStorage.setItem('chat_name', data.chatName);
-                              
-                              if (data.favorites) setFavorites(JSON.parse(data.favorites));
-                              alert("Data restored successfully!");
-                            } catch (err) {
-                              alert("Invalid backup file.");
-                            }
-                          };
-                          reader.readAsText(file);
-                        }} 
-                      />
-                      <Upload className="w-4 h-4 text-white" />
-                      IMPORT DATA
-                    </label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* MAIN BODY DISPLAY */}
         <main className="flex-1 min-w-0">
@@ -3285,6 +3478,9 @@ export default function App() {
                       } else if (decoyType === 'gmail') {
                         tabTitle = "Inbox - Jersey City Public Schools";
                         tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=mail.google.com";
+                      } else if (decoyType === 'duolingo') {
+                        tabTitle = "Duolingo - Learn a language for free";
+                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
                       }
 
                       win.document.write(`
