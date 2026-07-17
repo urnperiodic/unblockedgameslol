@@ -106,7 +106,8 @@ const decoyOptions = [
   { value: 'campus', label: 'Campus', labelLong: 'Infinite Campus', icon: 'https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png' },
   { value: 'docs', label: 'Docs', labelLong: 'Google Docs', icon: 'https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico' },
   { value: 'gmail', label: 'Inbox', labelLong: 'Inbox - JCPS', icon: 'https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico' },
-  { value: 'duolingo', label: 'Lingo', labelLong: 'Duolingo', icon: 'https://www.google.com/s2/favicons?sz=64&domain=duolingo.com' }
+  { value: 'duolingo', label: 'Lingo', labelLong: 'Duolingo', icon: 'https://www.google.com/s2/favicons?sz=64&domain=duolingo.com' },
+  { value: 'ixl', label: 'IXL', labelLong: 'IXL Learning', icon: 'https://www.google.com/s2/favicons?sz=64&domain=ixl.com' }
 ];
 
 function CursorSpotlight({ active }) {
@@ -342,6 +343,9 @@ export default function App() {
       } else if (decoyType === 'duolingo') {
         parentTitle = "Duolingo - Learn a language for free";
         parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+      } else if (decoyType === 'ixl') {
+        parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
       }
 
       win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{width:100vw;height:100vh;border:none;display:block;margin:0;padding:0;}</style></head><body><iframe src="${url}" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation" allowfullscreen="true"></iframe></body></html>`);
@@ -533,6 +537,9 @@ export default function App() {
         } else if (decoyType === 'duolingo') {
           parentTitle = "Duolingo - Learn a language for free";
           parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+        } else if (decoyType === 'ixl') {
+          parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
         }
 
         win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
@@ -833,6 +840,9 @@ export default function App() {
       } else if (decoyType === 'duolingo') {
         setBothTitles("Duolingo - Learn a language for free");
         updateFavicon("https://www.google.com/s2/favicons?sz=64&domain=duolingo.com");
+      } else if (decoyType === 'ixl') {
+        setBothTitles("IXL | Math, Language Arts, Science, Social Studies, and Spanish");
+        updateFavicon("https://www.google.com/s2/favicons?sz=64&domain=ixl.com");
       } else {
         setBothTitles("StudyTools");
         updateFavicon(bookSvgDataUri);
@@ -2133,6 +2143,9 @@ export default function App() {
                 } else if (decoyType === 'duolingo') {
                   parentTitle = "Duolingo - Learn a language for free";
                   parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                } else if (decoyType === 'ixl') {
+                  parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
                 }
 
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
@@ -2346,6 +2359,9 @@ export default function App() {
                 } else if (decoyType === 'duolingo') {
                   parentTitle = "Duolingo - Learn a language for free";
                   parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                } else if (decoyType === 'ixl') {
+                  parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
                 }
 
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
@@ -2461,6 +2477,9 @@ export default function App() {
                 } else if (decoyType === 'duolingo') {
                   parentTitle = "Duolingo - Learn a language for free";
                   parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                } else if (decoyType === 'ixl') {
+                  parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
                 }
 
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
@@ -3416,22 +3435,6 @@ export default function App() {
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
 
-                  {/* Window Fullscreen button */}
-                  <button
-                    onClick={() => setWindowFullscreen(!windowFullscreen)}
-                    className={`flex items-center gap-1.5 border py-1.5 px-3 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
-                      windowFullscreen
-                        ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10 text-[var(--accent-color)] font-bold shadow-[0_0_8px_rgba(0,229,176,0.15)]'
-                        : 'border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)]'
-                    }`}
-                    title="Toggle Window Fullscreen"
-                  >
-                    {windowFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                    <span className="hidden sm:inline text-[10px] font-bold">
-                      {windowFullscreen ? 'EXIT WINDOW FS' : 'WINDOW FS'}
-                    </span>
-                  </button>
-
                   {/* Fullscreen button */}
                   <button
                     onClick={() => {
@@ -3481,6 +3484,9 @@ export default function App() {
                       } else if (decoyType === 'duolingo') {
                         tabTitle = "Duolingo - Learn a language for free";
                         tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                      } else if (decoyType === 'ixl') {
+                        tabTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
                       }
 
                       win.document.write(`
