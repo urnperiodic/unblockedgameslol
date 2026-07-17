@@ -53,7 +53,7 @@ export const games: Game[] = [
     title: 'Paper.Io',
     description: '',
     url: 'clpaperio.html',
-    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRSeaYvNRf5sKi2HUrLKcMxWrVHdOCHllA_aQ&s',
+    thumbnail: 'paper.io-2-download-free-pc.png',
     category: 'Solo',
     featured: false
   },
@@ -503,7 +503,7 @@ export const games: Game[] = [
     title: 'Uno',
     description: 'Make sure to say Uno',
     url: 'https://script.google.com/macros/s/AKfycbyOGsDEwmKxazJAHOb9fXbJFZM0LwmZJPkmKdLKa1qPY6OWfKIP9GcqbnkRf0JbUWmERQ/exec',
-    thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEhekk0qTgz3FPvdI-7B2BajmVa-AQgjwkQA&s',
+    thumbnail: 'png-transparent-uno-cards-uno-one-card-phase-10-playing-card-card-game-card-game-miscellaneous-game-emblem-thumbnail.png',
     category: 'Multiplayer',
     featured: false
   },
