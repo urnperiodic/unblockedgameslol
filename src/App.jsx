@@ -429,23 +429,45 @@ export default function App() {
       }
     }, [viewMode]);
 
-  const [autoLockOnLeave, setAutoLockOnLeave] = useState(() => {
-    const saved = safeStorage.getItem('unblocked-auto-lock-on-leave');
+  const [autoLockOnIdle, setAutoLockOnIdle] = useState(() => {
+    const saved = safeStorage.getItem('unblocked-auto-lock-on-idle');
     return saved !== 'false'; // Defaults to true
   });
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && autoLockOnLeave) {
-        setViewModeAndSave('articles');
-        setSelectedGame(null);
+    let timeoutId;
+    
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (autoLockOnIdle && viewMode === 'games') {
+        timeoutId = setTimeout(() => {
+          setViewModeAndSave('articles');
+          setSelectedGame(null);
+        }, 60 * 60 * 1000); // 1 hour
       }
     };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+
+    const handleActivity = () => {
+      resetTimer();
     };
-  }, [autoLockOnLeave]);
+
+    // Set initial timer
+    resetTimer();
+
+    // Listen for activity
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('click', handleActivity);
+    window.addEventListener('touchstart', handleActivity);
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('click', handleActivity);
+      window.removeEventListener('touchstart', handleActivity);
+    };
+  }, [autoLockOnIdle, viewMode]);
 
   const [passcode, setPasscode] = useState('');
   const [isShake, setIsShake] = useState(false);
@@ -2596,23 +2618,23 @@ export default function App() {
                       </button>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <span className="text-xs font-bold text-white">Sign Out on Leave</span>
+                      <span className="text-xs font-bold text-white">Auto Lock (1 Hour)</span>
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
-                          Lock workspace and return to school decoy when switching tabs.
+                          Lock workspace after 1 hour of inactivity.
                         </span>
                         <div
                           onClick={() => {
-                            const newVal = !autoLockOnLeave;
-                            setAutoLockOnLeave(newVal);
-                            safeStorage.setItem('unblocked-auto-lock-on-leave', String(newVal));
+                            const newVal = !autoLockOnIdle;
+                            setAutoLockOnIdle(newVal);
+                            safeStorage.setItem('unblocked-auto-lock-on-idle', String(newVal));
                           }}
                           className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
-                          title="Toggle Sign Out on Leave"
+                          title="Toggle Auto Lock (1 Hour)"
                         >
                           <div 
                             className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
-                              autoLockOnLeave ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                              autoLockOnIdle ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
                             }`}
                           />
                         </div>
@@ -2745,23 +2767,23 @@ export default function App() {
                       </button>
                     </div>
                     <div className="flex flex-col gap-2">
-                      <span className="text-xs font-bold text-white">Sign Out on Leave</span>
+                      <span className="text-xs font-bold text-white">Auto Lock (1 Hour)</span>
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
-                          Lock workspace and return to school decoy when switching tabs.
+                          Lock workspace after 1 hour of inactivity.
                         </span>
                         <div
                           onClick={() => {
-                            const newVal = !autoLockOnLeave;
-                            setAutoLockOnLeave(newVal);
-                            safeStorage.setItem('unblocked-auto-lock-on-leave', String(newVal));
+                            const newVal = !autoLockOnIdle;
+                            setAutoLockOnIdle(newVal);
+                            safeStorage.setItem('unblocked-auto-lock-on-idle', String(newVal));
                           }}
                           className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
-                          title="Toggle Sign Out on Leave"
+                          title="Toggle Auto Lock (1 Hour)"
                         >
                           <div 
                             className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
-                              autoLockOnLeave ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                              autoLockOnIdle ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
                             }`}
                           />
                         </div>
@@ -3063,23 +3085,23 @@ export default function App() {
                     </button>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <span className="text-xs font-bold text-white">Sign Out on Leave</span>
+                    <span className="text-xs font-bold text-white">Auto Lock (1 Hour)</span>
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
-                        Lock workspace and return to school decoy when switching tabs.
+                        Lock workspace after 1 hour of inactivity.
                       </span>
                       <div
                         onClick={() => {
-                          const newVal = !autoLockOnLeave;
-                          setAutoLockOnLeave(newVal);
-                          safeStorage.setItem('unblocked-auto-lock-on-leave', String(newVal));
+                          const newVal = !autoLockOnIdle;
+                          setAutoLockOnIdle(newVal);
+                          safeStorage.setItem('unblocked-auto-lock-on-idle', String(newVal));
                         }}
                         className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
-                        title="Toggle Sign Out on Leave"
+                        title="Toggle Auto Lock (1 Hour)"
                       >
                         <div 
                           className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
-                            autoLockOnLeave ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            autoLockOnIdle ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
                           }`}
                         />
                       </div>
