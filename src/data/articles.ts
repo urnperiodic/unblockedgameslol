@@ -1,30 +1,72 @@
 import { Article } from '../types';
 
 export const initialArticles: Article[] = [
+  // ==================== NEW ADDITION ====================
+  {
+    id: 'ela-paywall-1',
+    title: 'Ways to Remove Paywalls: Overcoming Barriers to Academic Research',
+    subtitle: 'Research Skills • Information Literacy • Bypassing Barriers',
+    content: `### Overview
+When conducting academic research or reading journalism, we frequently encounter paywalls, which is really frustrating. Publishers charge to sustain there work, but these barriers recieve criticism because they restrict access to information, especially for students and self-guided learners. This guide details practical, simple methods to bypass and remove paywalls, enabling open access to public knowledge.
+
+### 1. Web Archiving Platforms
+Archiving services take snapshots of web pages before they are put behind paywalls or preserve the full versions as crawled by non-paywalled bots.
+* **Wayback Machine (Archive.org):** A digital library of the World Wide Web. By pasting the article URL, you can check if a previous, fully accessible snapshot exists.
+* **Archive.today (Archive.ph / Archive.is):** A robust tool that bypasses paywall scripts by loading and rendering teh target page from a clean server, saving a complete public snapshot.
+
+### 2. Disabling JavaScript
+Many modern website implements 'soft paywalls' which loads the complete article content to the browser, then overlay a modal or block script via JavaScript.
+* **How to do it:** Navigate to your browser's site settings, find JavaScript, and select 'Block.'
+* **Alternative:** Use specialized browser extensions that toggle JavaScript execution on and off with a single click.
+
+### 3. Native Reader Mode
+Most browsers (such as Chrome, Safari, and Firefox) feature a built-in 'Reader Mode' or 'Reader View.'
+* **Mechanism:** Reader Mode strips away all CSS stylesheets, ads, and interactive scripts, loading only the plain text and media elements.
+* **Usage:** Often, toggling Reader Mode as the page are loading will recieve the article content before the paywall scripts have a chance to execute.
+
+### 4. Search Engine Cache
+Search engines like Google index paid websites by running crawlers that are granted full access to bypass paywalls. These crawled pages are stored in a public cache database.
+* **How to do it:** In Google Search results, click the three vertical dots next to the result URL and select 'Cached'.
+* **Direct access:** Prepend 'cache:' to the start of the URL in your address bar (e.g., cache:https://example.com/article).
+
+### 5. RemovePaywall.com and Bypass Tools
+There are dedicated, zero-configuration platforms designed to automate paywall removal for research.
+* **RemovePaywall.com:** By visiting https://www.removepaywall.com and entering any article URL, the tool automatically retrieves clean, unblocked versions from archival indexes, search engine caches, or open repositories.
+* **Alternative aggregators:** Similar tools like 12ft.io use custom user-agents to pretend to be search engine crawlers, pulling the un-paywalled version of the text.
+
+### 6. Finding Open-Access Preprints
+Many academic journals charge subscriptions, but researchers are often permitted to upload 'preprints' or draft versions to public universities or repositories.
+* **Unpaywall Extension:** A legal, free browser extension that searches millions of open-access databases for the exact article you are reading.
+* **Google Scholar:** Searching for the title on Google Scholar often reveals PDF versions hosted on university websites.`,
+    date: 'Jul 18, 2026',
+    category: 'ELA',
+    readTime: '4 min read'
+  },
+
   // ==================== SCIENCE ARTICLES (10) ====================
   {
     id: 'sci-1',
     title: 'Newton\'s Laws of Motion: The Physics of Movement',
     subtitle: 'Grade 8 • Physical Science • Forces and Motion',
     content: `### Overview
-Three centuries ago, Sir Isaac Newton formulated three fundamental laws of physics. Together, they explain how and why objects move or change direction. These principles govern everything from the kicking of a soccer ball to the orbit of spacecraft.
+Three centuries ago, Isaac Newton formulated three laws of physics. They explain how objects move and why they change direction. Basically, these principles govern everything from kicking soccer balls to orbiting spacecrafts.
 
 ### The First Law: Inertia
-The first law states that an object at rest will stay at rest, and an object in motion will stay in motion with a constant velocity, unless acted upon by an unbalanced force.
+The first law say that an object at rest stays at rest, and an object in motion stays in motion with constant speed, unless some outside force acts on it.
 * Inertia is the tendency of matter to resist any change in state of motion.
-* For example, when a car stops suddenly, your body continues moving forward—which is why seatbelts are essential.
+* For example, when a car stops sudden, your body keeps moving forward—which is why seatbelts is so important.
 * Massive objects have greater inertia, making them harder to start or stop.
 
 ### The Second Law: Force and Acceleration
-The second law establishes a direct mathematical relationship between force, mass, and acceleration.
+The second law establish a direct math relationship between force, mass, and acceleration.
 * Mathematically written as: Force = Mass × Acceleration (F = ma)
-* If you apply the same force to a tennis ball and a bowling ball, the tennis ball will accelerate much faster because of its smaller mass.
+* If you apply the same force to a tennis ball and a bowling ball, teh tennis ball will accelerate much more faster because its got less mass.
 * Acceleration is measured in meters per second squared (m/s²).
 
 ### The Third Law: Action and Reaction
-The third law states that for every action, there is an equal and opposite reaction.
+The third law says that for every action, there is a equal and opposite reaction.
 * Forces always exist in pairs.
-* When you take a step forward, your foot pushes backward on the ground, and the ground pushes forward on your foot with equal force.
+* When you take a step forward, your foot push backward on the ground, and the ground push forward with equal force.
 * Rockets launch by burning fuel and shooting gas downward. This action creates an equal and opposite upward reaction on the rocket.`,
     date: 'Jun 04, 2026',
     category: 'Science',
@@ -1449,6 +1491,59 @@ Followed directly by an infinitive:
     date: 'Jun 08, 2026',
     category: 'Italian',
     readTime: '15 min read'
+  },
+  {
+    id: 'sci-nyt-1',
+    title: 'The Restless Earth: How Geologists Proved Plate Tectonics',
+    subtitle: 'Adapted from The New York Times • Earth Sciences',
+    content: `### Introduction
+For decades, the idea that continents could crawl across the globe was laughed at by the scientific establishment. Alfred Wegener, a German meteorologist, first proposed "continental drift" in 1912, but he was dismissed because he couldn't explain *how* such solid masses could move. It wasn't until the mid-twentieth century, when oceanographers mapped the deep sea, that Wegener was proven right. This article explores the dramatic discoveries that revolutionized geology.
+
+### Teh Great Rift in the Ocean
+The breakthrough came during the Cold War. The U.S. Navy wanted to map the ocean floor to hide submarines. Oceanographers Marie Tharp and Bruce Heezen created the first comprehensive maps of the Atlantic floor. To there surprise, they found a massive, continuous mountain range cutting down the center of the ocean—the Mid-Atlantic Ridge. 
+* Tharp noticed a deep valley running down the center of the ridge.
+* She suggested it was a rift valley where the earth's crust was splitting open.
+* At first, Heezen dismissed her idea as "girl talk," but later research proved she was exactly right. The sea floor was actively spreading apart.
+
+### Magma and Magnetic Stripes
+As magma wells up from the rift, it cools and forms new crust. Crucially, as the iron-bearing minerals in the magma cool, they align with the Earth's magnetic field like tiny compass needles. 
+Because the Earth's magnetic poles reverse polarity every few hundred thousand years, the seafloor acts as a giant tape recorder. Geologists detected alternating "stripes" of normal and reversed magnetic polarity on either side of the mid-ocean ridges. These stripes is perfectly symmetrical, proving that new crust is constantly being created and pushed outward.
+
+### Subduction: The Final Piece
+If new crust is constantly being made in the ocean, why doesn't the Earth grow bigger? The answer lies in deep-sea trenches. In these regions, dense oceanic plates is forced down into the hot mantle beneath lighter continental plates. This process, known as subduction, melts the old crust back into magma, fueling volcanoes and triggering major earthquakes.
+
+This dynamic system—sea-floor spreading balanced by subduction—is what we call plate tectonics. Wegener's laughed-at theory are now the foundation of modern earth science.`,
+    date: 'Jul 20, 2026',
+    category: 'Science',
+    readTime: '5 min read'
+  },
+  {
+    id: 'soc-jstor-1',
+    title: 'The Social Fabric of the American Revolution: A Re-evaluation',
+    subtitle: 'Reprinted from Journal of American History via JSTOR',
+    content: `### Overview
+Historians often debate whether the American Revolution was a conservative movement to preserve existing liberties or a radical social transformation. While early accounts focused on intellectual elites like Thomas Jefferson and John Adams, modern studies in the *Journal of American History* emphasize the role of ordinary citizens, artisans, and enslaved people in shaping the revolutionary struggle. This paper examines the complex social forces that drove the colonies toward independence.
+
+### Economic Grievances and the Stamp Act
+The road to revolution did not begin in high-minded debate halls, but in crowded taverns and shipping docks. After the Seven Years' War, Great Britain found itself deeply in debt and sought to recoup costs by taxing the colonies directly.
+* The Stamp Act of 1765 sparked widespread protests because it taxed everyday paper items, from legal documents to playing cards.
+* Colonists argued that Parliament had no right to tax them without there consent ("No taxation without representation").
+* Merchants in Boston and New York organized boycotts of British goods, which was highly effective.
+
+### Teh Mob as a Political Force
+While elites wrote letters and pamphlets, ordinary working-class citizens used more direct methods. Group calling themselves the "Sons of Liberty" enforced boycotts through intimidation, sometimes tarring and feathering loyalist tax collectors.
+* The Boston Tea Party of 1773, where protesters dumped 342 chests of tea into Boston Harbor, was not a spontaneous riot but a carefully planned act of defiance.
+* These actions show how working-class anger was harnessed by revolutionary leaders to pressure the British crown.
+
+### Social Contradictions of Liberty
+The rhetoric of the revolution claimed that "all men are created equal," yet the society that fought for independence was deeply unequal. 
+* Many wealthy patriots owned enslaved laborers, and the Continental Congress recieved petitions from enslaved people asking for their freedom based on the same principles of liberty being fought for.
+* Women also played a crucial role by organizing boycotts and managing farms while men were away at war, though they remained legally and politically disenfranchised after the war's conclusion.
+
+In conclusion, the American Revolution was not just a war between two armies, but a complex struggle that reshaped the social fabric of the colonies, raising questions about equality and freedom that the new nation would spend centuries trying to resolve.`,
+    date: 'Jul 19, 2026',
+    category: 'Social Studies',
+    readTime: '6 min read'
   }
 ];
 

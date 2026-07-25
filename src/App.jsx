@@ -18,7 +18,8 @@ const games = [...gamesData, ...slopeGames].map((game, index) => {
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
 import FlashcardsWorkspace from './components/FlashcardsWorkspace';
 import QuizWorkspace from './components/QuizWorkspace';
-import GrammarCheckerWorkspace from './components/GrammarCheckerWorkspace';
+import NotesWorkspace from './components/NotesWorkspace';
+import StudyTimer from './components/StudyTimer';
 import ChatWorkspace from './components/ChatWorkspace';
 import UserChat from './components/UserChat';
 import MoviesWorkspace from './components/MoviesWorkspace';
@@ -303,6 +304,9 @@ export default function App() {
   const [toolsExpanded, setToolsExpanded] = useState(false);
   const [altBarOpen, setAltBarOpen] = useState(true);
   const [headerOpen, setHeaderOpen] = useState(false);
+  const [showGithubNotice, setShowGithubNotice] = useState(() => {
+    return safeStorage.getItem('academic-github-notice-dismissed') !== 'true';
+  });
 
   const openWorkspaceInAboutBlank = (currentFilter) => {
     let url = "";
@@ -1510,11 +1514,12 @@ export default function App() {
     };
 
     if (viewMode === 'articles') {
+      const isPaywallActive = activeEduTab === 'removepaywall';
       return (
-        <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-primary)] flex flex-col p-4 md:p-6 transition-colors duration-300 relative select-text">
+        <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-primary)] flex flex-col h-screen overflow-hidden transition-colors duration-300 relative select-text p-0">
           
           {/* Decoy Legitimate Educational Header */}
-          <header className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center pb-4 mb-4 border-b border-[var(--card-border)] gap-4 select-none">
+          <header className="w-full mx-auto flex flex-col sm:flex-row justify-between items-center border-b border-[var(--card-border)] gap-4 select-none max-w-none px-4 md:px-6 py-3 shrink-0">
             <div 
               onClick={() => { setActiveEduTab('articles'); setArticleSearch(''); }}
               className="flex items-center gap-3 cursor-pointer active:scale-98 transition-transform self-stretch sm:self-auto"
@@ -1534,9 +1539,11 @@ export default function App() {
             <div className="flex items-center gap-1 bg-[var(--bg-secondary)] border border-[var(--card-border)] rounded-full p-1 shadow-sm select-none max-w-full overflow-x-auto scrollbar-none">
               {[
                 { id: 'articles', label: 'Syllabus Articles', icon: BookOpen },
+                { id: 'online-articles', label: 'Online Articles', icon: Compass },
+                { id: 'notes', label: 'Notes & Docs', icon: FileText },
                 { id: 'flashcards', label: 'Study Flashcards', icon: Layers },
                 { id: 'quiz', label: 'Practice Quizzes', icon: Gamepad2 },
-                { id: 'grammar', label: 'Grammar Scanner', icon: FileText }
+                { id: 'removepaywall', label: 'Bypass Paywall', icon: Globe }
               ].map((tab) => {
                 const TabIcon = tab.icon;
                 const isSelected = activeEduTab === tab.id;
@@ -1558,6 +1565,9 @@ export default function App() {
             </div>
 
             <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-start">
+              {/* Study Timer Dropdown */}
+              <StudyTimer />
+
               {/* Light/Dark Toggle */}
               <div className="flex items-center gap-2 border border-[var(--card-border)] bg-[var(--bg-secondary)] py-1.5 px-2.5 rounded-full shadow-sm">
                 <div 
@@ -1576,11 +1586,56 @@ export default function App() {
             </div>
           </header>
 
+          {/* GitHub Hosting Explanation Notification */}
+          {showGithubNotice && (
+            <div className="w-full mx-auto p-3.5 sm:p-4 bg-[var(--card-bg)] border-b border-[var(--card-border)] shadow-md relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left transition-all animate-in fade-in duration-300 max-w-none px-4 md:px-6 shrink-0 rounded-none">
+              <div className="flex items-start gap-3">
+                <div className="p-2 rounded-xl bg-[var(--accent-color)]/10 text-[var(--accent-color)] border border-[var(--accent-color)]/20 shrink-0 mt-0.5">
+                  <Github className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold font-mono uppercase tracking-wider text-[var(--accent-color)] bg-[var(--accent-color)]/10 px-2 py-0.5 rounded border border-[var(--accent-color)]/20">
+                      System Notice
+                    </span>
+                    <h3 className="text-xs font-bold text-[var(--text-primary)]">
+                      Why We Use GitHub Pages for Academic Base
+                    </h3>
+                  </div>
+                  <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
+                    Our Academic Base study modules, syllabus articles, and interactive tools are hosted on <strong>GitHub Pages</strong>—a free web hosting service easily accessible by students worldwide—to ensure continuous uptime, fast global CDN delivery, transparent version control, and dependable open-source accessibility.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                <a
+                  href="https://pages.github.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-3 py-1.5 rounded-xl text-xs font-mono font-semibold bg-[var(--bg-secondary)] hover:bg-[var(--accent-color)]/10 border border-[var(--card-border)] text-[var(--text-primary)] hover:text-[var(--accent-color)] transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span>Docs</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+                <button
+                  onClick={() => {
+                    setShowGithubNotice(false);
+                    safeStorage.setItem('academic-github-notice-dismissed', 'true');
+                  }}
+                  className="p-1.5 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-secondary)] border border-transparent hover:border-[var(--card-border)] transition-all cursor-pointer"
+                  title="Dismiss Notification"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Actual Articles Hub Grid (Occupies full-screen width) */}
-          <div className="w-full max-w-7xl mx-auto bg-[var(--card-bg)] border border-[var(--card-border)] rounded-3xl p-5 md:p-6 shadow-2xl transition-all flex flex-col gap-4 flex-1 md:h-[650px] overflow-hidden">
+          <div className="w-full transition-all flex flex-col flex-1 min-h-0 overflow-hidden max-w-none p-0 shadow-none rounded-none">
             
             {activeEduTab === 'articles' && (
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 flex-1 min-h-0 overflow-hidden">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4 flex-1 min-h-0 overflow-hidden p-4 md:p-6">
                 {/* Left Column - Articles selection */}
                 <div className="md:col-span-2 flex flex-col gap-3 overflow-hidden h-full">
                   
@@ -1721,21 +1776,50 @@ export default function App() {
             )}
 
             {activeEduTab === 'flashcards' && (
-              <FlashcardsWorkspace 
-                refArticle={selectedArticle} 
-                onGeneratedSuccess={(targetTab) => setActiveEduTab(targetTab)} 
-              />
+              <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden bg-white">
+                <FlashcardsWorkspace 
+                  refArticle={selectedArticle} 
+                  onGeneratedSuccess={(targetTab) => setActiveEduTab(targetTab)} 
+                />
+              </div>
             )}
 
             {activeEduTab === 'quiz' && (
-              <QuizWorkspace 
-                refArticle={selectedArticle} 
-                onGeneratedSuccess={(targetTab) => setActiveEduTab(targetTab)} 
-              />
+              <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden bg-white">
+                <QuizWorkspace 
+                  refArticle={selectedArticle} 
+                  onGeneratedSuccess={(targetTab) => setActiveEduTab(targetTab)} 
+                />
+              </div>
             )}
 
-            {activeEduTab === 'grammar' && (
-              <GrammarCheckerWorkspace />
+            {activeEduTab === 'online-articles' && (
+              <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden bg-white">
+                <iframe 
+                  src="https://en.wikipedia.org/wiki/Main_Page" 
+                  className="absolute inset-0 w-full h-full border-none bg-white"
+                  title="Online Articles"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                />
+              </div>
+            )}
+
+            {activeEduTab === 'notes' && (
+              <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden bg-white">
+                <NotesWorkspace />
+              </div>
+            )}
+
+            {activeEduTab === 'removepaywall' && (
+              <div className="flex-1 w-full h-full min-h-0 relative overflow-hidden">
+                <iframe 
+                  src="https://www.removepaywall.com/" 
+                  className="absolute inset-0 w-full h-full border-none"
+                  title="RemovePaywall Tool"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
             )}
 
           </div>

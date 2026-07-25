@@ -336,7 +336,7 @@ export function dynamicAIGenerateDecks(prompt: string, subject: string, refArtic
   }
 
   // Fallback / default generated content
-  let titleStr = "Dynamic AI Terms: " + (prompt.length > 25 ? prompt.substring(0, 22) + "..." : prompt);
+  let titleStr = "Curriculum Study Guide: " + (prompt.length > 25 ? prompt.substring(0, 22) + "..." : prompt);
   return {
     id: "deck-gen-" + Date.now().toString(),
     title: titleStr,
@@ -411,7 +411,7 @@ export function dynamicAIGenerateQuizzes(prompt: string, subject: string, refArt
   }
 
   // Fallback / standard topic quiz
-  let nameStr = "Academic AI Review: " + (prompt.length > 25 ? prompt.substring(0, 22) + "..." : prompt);
+  let nameStr = "Standard Syllabus Review: " + (prompt.length > 25 ? prompt.substring(0, 22) + "..." : prompt);
   return {
     id: "quiz-gen-" + Date.now().toString(),
     title: nameStr,
