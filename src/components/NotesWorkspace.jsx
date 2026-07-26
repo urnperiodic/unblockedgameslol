@@ -17,7 +17,7 @@ export default function NotesWorkspace() {
       {/* Absolute full-bleed iframe */}
       <iframe
         key={iframeKey}
-        src="https://urnperiodic.github.io/notes/"
+        src="https://urnperiodic.github.io/note/"
         className="w-full h-full border-none bg-white"
         title="Periodic Notes"
         sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
@@ -35,7 +35,7 @@ export default function NotesWorkspace() {
         </button>
         <div className="w-px h-3 bg-neutral-200 dark:bg-neutral-700" />
         <a
-          href="https://urnperiodic.github.io/notes/"
+          href="https://urnperiodic.github.io/note/"
           target="_blank"
           rel="noopener noreferrer"
           className="p-2 text-neutral-600 dark:text-neutral-300 hover:text-[var(--accent-color)] hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-colors cursor-pointer"

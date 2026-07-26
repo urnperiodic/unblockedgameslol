@@ -101,7 +101,7 @@ const safeStorage = {
 };
 
 const decoyOptions = [
-  { value: 'none', label: 'Off', labelLong: 'Off (StudyTools)', icon: 'school' },
+  { value: 'none', label: 'Off', labelLong: 'Off (Urnperiodic Tools)', icon: 'school' },
   { value: 'classroom', label: 'Classroom', labelLong: 'Google Classroom', icon: 'https://ssl.gstatic.com/classroom/favicon.png' },
   { value: 'clever', label: 'Clever', labelLong: 'Clever Login', icon: 'https://www.google.com/s2/favicons?sz=64&domain=clever.com' },
   { value: 'campus', label: 'Campus', labelLong: 'Infinite Campus', icon: 'https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png' },
@@ -326,7 +326,7 @@ export default function App() {
 
     const win = window.open('about:blank', '_blank');
     if (win) {
-      let parentTitle = "StudyTools";
+      let parentTitle = "Urnperiodic Tools";
       let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
       
       if (decoyType === 'classroom') {
@@ -542,7 +542,7 @@ export default function App() {
         searchParams.set('decoyType', decoyType);
         const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
         
-        let parentTitle = "StudyTools";
+        let parentTitle = "Urnperiodic Tools";
         let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
         
         if (decoyType === 'classroom') {
@@ -845,7 +845,7 @@ export default function App() {
     const bookSvgDataUri = "https://ssl.gstatic.com/classroom/favicon.png";
 
     if (viewMode === 'articles') {
-      setBothTitles("StudyTools");
+      setBothTitles("Urnperiodic Tools");
       updateFavicon(bookSvgDataUri);
     } else if (viewMode === 'games') {
       if (decoyType === 'classroom') {
@@ -870,12 +870,12 @@ export default function App() {
         setBothTitles("IXL | Math, Language Arts, Science, Social Studies, and Spanish");
         updateFavicon("https://www.google.com/s2/favicons?sz=64&domain=ixl.com");
       } else {
-        setBothTitles("StudyTools");
+        setBothTitles("Urnperiodic Tools");
         updateFavicon(bookSvgDataUri);
       }
     } else {
       // Default to StudyTools for locked/welcome screens
-      setBothTitles("StudyTools");
+      setBothTitles("Urnperiodic Tools");
       updateFavicon(bookSvgDataUri);
     }
   }, [viewMode, decoyType]);
@@ -1519,31 +1519,31 @@ export default function App() {
         <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-primary)] flex flex-col h-screen overflow-hidden transition-colors duration-300 relative select-text p-0">
           
           {/* Decoy Legitimate Educational Header */}
-          <header className="w-full mx-auto flex flex-col sm:flex-row justify-between items-center border-b border-[var(--card-border)] gap-4 select-none max-w-none px-4 md:px-6 py-3 shrink-0">
+          <header className="w-full mx-auto flex flex-col lg:flex-row justify-between items-center border-b border-[var(--card-border)] gap-4 select-none max-w-none px-4 md:px-6 py-3 shrink-0">
             <div 
               onClick={() => { setActiveEduTab('articles'); setArticleSearch(''); }}
-              className="flex items-center gap-3 cursor-pointer active:scale-98 transition-transform self-stretch sm:self-auto"
-              title="StudyTools Home"
+              className="flex items-center justify-center lg:justify-start gap-3 cursor-pointer active:scale-98 transition-transform self-stretch lg:self-auto"
+              title="Urnperiodic Tools Home"
             >
               <div className="p-2 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-xl shadow-[0_2px_8.5px_var(--accent-shadow)] border border-[var(--card-border)]">
                 <School className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] sm:text-base">
-                  StudyTools <span className="text-[9px] font-mono border border-[var(--accent-color)] bg-[var(--accent-color)]/10 text-[var(--accent-color)] px-2 py-0.5 rounded-full uppercase tracking-widest font-bold">Academic Base</span>
+                  Urnperiodic Tools
                 </h1>
               </div>
             </div>
 
             {/* HIGHLY ACCESSIBLE PRIMARY TAB SWITCHER */}
-            <div className="flex items-center gap-1 bg-[var(--bg-secondary)] border border-[var(--card-border)] rounded-full p-1 shadow-sm select-none max-w-full overflow-x-auto scrollbar-none">
+            <div className="bg-[var(--bg-secondary)] border border-[var(--card-border)] p-1 shadow-sm select-none w-full max-w-sm sm:max-w-xl lg:max-w-none lg:w-auto rounded-2xl lg:rounded-full grid grid-cols-2 sm:grid-cols-3 lg:flex lg:items-center gap-1 shrink-0">
               {[
-                { id: 'articles', label: 'Syllabus Articles', icon: BookOpen },
-                { id: 'online-articles', label: 'Online Articles', icon: Compass },
-                { id: 'notes', label: 'Notes & Docs', icon: FileText },
+                { id: 'articles', label: 'Study Guides', icon: BookOpen },
+                { id: 'online-articles', label: 'Wikipedia', icon: Compass },
+                { id: 'notes', label: 'Note Taker', icon: FileText },
                 { id: 'flashcards', label: 'Study Flashcards', icon: Layers },
-                { id: 'quiz', label: 'Practice Quizzes', icon: Gamepad2 },
-                { id: 'removepaywall', label: 'Bypass Paywall', icon: Globe }
+                { id: 'quiz', label: 'Quizzes', icon: Gamepad2 },
+                { id: 'removepaywall', label: 'Remove the paywall', icon: Globe }
               ].map((tab) => {
                 const TabIcon = tab.icon;
                 const isSelected = activeEduTab === tab.id;
@@ -1551,7 +1551,7 @@ export default function App() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveEduTab(tab.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap ${
+                    className={`px-3 py-1.5 text-xs font-semibold flex items-center justify-center lg:justify-start gap-1.5 transition-all cursor-pointer whitespace-nowrap rounded-xl lg:rounded-full w-full lg:w-auto ${
                       isSelected
                         ? 'bg-[var(--accent-color)] text-[var(--bg-color)] font-bold shadow-sm'
                         : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
@@ -1564,7 +1564,7 @@ export default function App() {
               })}
             </div>
 
-            <div className="flex items-center gap-3 self-stretch sm:self-auto justify-between sm:justify-start">
+            <div className="flex items-center gap-3 self-stretch lg:self-auto justify-center lg:justify-start">
               {/* Study Timer Dropdown */}
               <StudyTimer />
 
@@ -1603,7 +1603,7 @@ export default function App() {
                     </h3>
                   </div>
                   <p className="text-xs text-[var(--text-muted)] mt-1 leading-relaxed">
-                    Our Academic Base study modules, syllabus articles, and interactive tools are hosted on <strong>GitHub Pages</strong>—a free web hosting service easily accessible by students worldwide—to ensure continuous uptime, fast global CDN delivery, transparent version control, and dependable open-source accessibility.
+                    Our Academic Base study modules, syllabus articles, and interactive tools are hosted on <strong>GitHub Pages</strong>. Using this free hosting platform allows us to give these resources to other students while providing reliable uptime, fast content delivery, transparent version control, and open-source accessibility.
                   </p>
                 </div>
               </div>
@@ -1798,7 +1798,7 @@ export default function App() {
                 <iframe 
                   src="https://en.wikipedia.org/wiki/Main_Page" 
                   className="absolute inset-0 w-full h-full border-none bg-white"
-                  title="Online Articles"
+                  title="Wikipedia"
                   sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
                 />
               </div>
@@ -2141,7 +2141,7 @@ export default function App() {
           </div>
           <div>
             <h1 className="text-lg font-black tracking-tighter text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors">
-              StudyTools
+              Urnperiodic Tools
             </h1>
           </div>
         </div>
@@ -2228,7 +2228,7 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "StudyTools";
+                let parentTitle = "Urnperiodic Tools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                 
                 if (decoyType === 'classroom') {
@@ -2362,7 +2362,7 @@ export default function App() {
                       ? "Inbox" 
                       : decoyType === 'duolingo'
                       ? "Lingo"
-                      : "StudyTools"}
+                      : "Urnperiodic Tools"}
                   </span>
                 </div>
               </div>
@@ -2444,7 +2444,7 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "StudyTools";
+                let parentTitle = "Urnperiodic Tools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                 
                 if (decoyType === 'classroom') {
@@ -2562,7 +2562,7 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "StudyTools";
+                let parentTitle = "Urnperiodic Tools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                 
                 if (decoyType === 'classroom') {

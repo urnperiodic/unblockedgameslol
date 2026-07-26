@@ -305,20 +305,190 @@ a{color:inherit}
 .field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 
 /* Card editor rows */
-.cards-editor{display:flex;flex-direction:column;gap:14px}
+.cards-editor{display:flex;flex-direction:column;gap:16px}
 .card-row{
-  border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;background:var(--bg);position:relative;
+  border:1.5px solid var(--border);
+  border-radius:18px;
+  padding:24px;
+  background:var(--bg-elev);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  transition:transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow:0 2px 8px rgba(0,0,0,0.02);
 }
-.card-row-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.card-row-head .num{font-weight:700;font-size:13px;color:var(--primary);display:flex;align-items:center;gap:8px}
-.card-row-head button{color:var(--text-mute);padding:4px 8px;border-radius:8px;transition:var(--trans)}
-.card-row-head .dup:hover{color:var(--primary)}
-.card-row-head .del:hover{color:var(--danger)}
-.card-row .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.card-row textarea{min-height:56px}
-.card-row .opt-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+[data-theme="dark"] .card-row{
+  background:var(--bg-soft);
+}
+.card-row:hover{
+  border-color:color-mix(in srgb, var(--primary) 40%, var(--border));
+  box-shadow:0 4px 14px rgba(0,0,0,0.04);
+}
+.card-row:focus-within{
+  border-color:var(--primary);
+  box-shadow:var(--shadow-lg);
+  transform:translateY(-2px);
+}
+.card-row-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px dashed var(--border);
+  padding-bottom:12px;
+  margin-bottom:4px;
+}
+.card-row-head .num{
+  font-weight:700;
+  font-size:15px;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.card-row-head .num i{
+  font-size:15px;
+  color:var(--primary);
+}
+.card-row-head .actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.card-row-head button{
+  color:var(--text-mute);
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  transition:var(--trans);
+  display:grid;
+  place-items:center;
+  font-size:14.5px;
+}
+.card-row-head button:hover:not(:disabled){
+  background:var(--bg-soft);
+  color:var(--text);
+}
+.card-row-head .dup:hover:not(:disabled){color:var(--primary)!important;background:var(--primary-soft)!important}
+.card-row-head .del:hover:not(:disabled){color:var(--danger)!important;background:var(--danger-soft)!important}
+.card-row-head button:disabled{
+  opacity:0.3;
+  cursor:not-allowed;
+}
+.action-divider{
+  width:1px;
+  height:18px;
+  background:var(--border);
+  margin:0 4px;
+}
+
+/* Custom Input Groups & Labels */
+.input-group{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  position:relative;
+}
+.input-label{
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.8px;
+  color:var(--text-soft);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-left:2px;
+}
+.input-label i{
+  font-size:11px;
+  color:var(--text-mute);
+}
+
+/* Card completeness status badge */
+.card-status{
+  font-size:11px;
+  font-weight:600;
+  padding:3px 8px;
+  border-radius:20px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-left:10px;
+  transition:var(--trans);
+}
+.card-status.complete{
+  background:var(--success-soft);
+  color:var(--success);
+}
+.card-status.incomplete{
+  background:var(--bg-soft);
+  color:var(--text-mute);
+}
+
+.card-row .grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  position:relative;
+}
+.card-row textarea, .card-row input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1.5px solid var(--border);
+  background:var(--bg-elev);
+  color:var(--text);
+  outline:none;
+  transition:var(--trans);
+  font-family:inherit;
+  font-size:14px;
+}
+.card-row textarea:focus, .card-row input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px var(--primary-soft);
+}
+.card-row textarea{
+  min-height:90px;
+  resize:vertical;
+  line-height:1.5;
+}
+.card-row .opt-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
 .card-row .opt-row input{margin:0}
-.card-thumb{max-width:110px;border-radius:8px;margin-top:8px;border:1px solid var(--border)}
+
+/* Swap button */
+.swap-btn{
+  position:absolute;
+  left:calc(50% - 16px);
+  top:calc(50% + 1px);
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:var(--bg-elev);
+  border:1.5px solid var(--border);
+  color:var(--text-soft);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition:var(--trans);
+  z-index:10;
+  box-shadow:0 3px 8px rgba(0,0,0,0.06);
+}
+.swap-btn:hover{
+  color:var(--primary);
+  border-color:var(--primary);
+  transform:scale(1.1) rotate(180deg);
+  box-shadow:0 4px 12px rgba(99,102,241,0.15);
+}
+@media(max-width:768px){
+  .swap-btn{display:none}
+}
+
+.card-thumb{max-width:120px;max-height:80px;object-fit:cover;border-radius:10px;margin-top:6px;border:1.5px solid var(--border);box-shadow:0 2px 6px rgba(0,0,0,0.05)}
 
 /* ===================================================================
    STUDY MODE
@@ -615,51 +785,7 @@ function totalMastered(){ return state.sets.reduce((n,s)=>n+s.cards.filter(c=>c.
    SEED DATA
 =================================================================== */
 function seedData(){
-  state.sets = [
-    {
-      id:uid(), title:'Spanish Essentials', description:'Common everyday Spanish words & phrases for beginners.',
-      category:'Language', pinned:true, createdAt:Date.now()-86400000*5, updatedAt:Date.now()-86400000*2,
-      lastStudied:Date.now()-86400000, cards:[
-        {id:uid(),front:'Hello',back:'Hola',hint:'Starts with H',image:'',status:'learned'},
-        {id:uid(),front:'Thank you',back:'Gracias',hint:'',image:'',status:'learned'},
-        {id:uid(),front:'Goodbye',back:'Adiós',hint:'',image:'',status:'practice'},
-        {id:uid(),front:'Please',back:'Por favor',hint:'Two words',image:'',status:'new'},
-        {id:uid(),front:'Water',back:'Agua',hint:'',image:'',status:'new'},
-        {id:uid(),front:'Friend',back:'Amigo / Amiga',hint:'',image:'',status:'new'},
-      ]
-    },
-    {
-      id:uid(), title:'Cell Biology Basics', description:'Core concepts about cells and their organelles.',
-      category:'Science', pinned:false, createdAt:Date.now()-86400000*10, updatedAt:Date.now()-86400000*3,
-      lastStudied:Date.now()-86400000*3, cards:[
-        {id:uid(),front:'What is the powerhouse of the cell?',back:'The mitochondria',hint:'Produces ATP',image:'',status:'learned'},
-        {id:uid(),front:'What controls what enters and exits the cell?',back:'The cell membrane',hint:'',image:'',status:'new'},
-        {id:uid(),front:'Where is DNA stored?',back:'In the nucleus',hint:'',image:'',status:'practice'},
-        {id:uid(),front:'What makes proteins?',back:'Ribosomes',hint:'',image:'',status:'new'},
-      ]
-    },
-    {
-      id:uid(), title:'World Capitals', description:'Match countries to their capital cities.',
-      category:'Geography', pinned:false, createdAt:Date.now()-86400000*2, updatedAt:Date.now()-86400000,
-      lastStudied:null, cards:[
-        {id:uid(),front:'France',back:'Paris',hint:'',image:'',status:'new'},
-        {id:uid(),front:'Japan',back:'Tokyo',hint:'',image:'',status:'new'},
-        {id:uid(),front:'Australia',back:'Canberra',hint:'Not Sydney!',image:'',status:'new'},
-        {id:uid(),front:'Canada',back:'Ottawa',hint:'',image:'',status:'new'},
-        {id:uid(),front:'Brazil',back:'Brasília',hint:'',image:'',status:'new'},
-      ]
-    },
-    {
-      id:uid(), title:'JavaScript Fundamentals', description:'Key JS concepts every developer should know.',
-      category:'Technology', pinned:true, createdAt:Date.now()-86400000, updatedAt:Date.now()-3600000,
-      lastStudied:null, cards:[
-        {id:uid(),front:'What keyword declares a block-scoped variable?',back:'let (or const)',hint:'',image:'',status:'new'},
-        {id:uid(),front:'What does === check?',back:'Strict equality (value AND type)',hint:'',image:'',status:'new'},
-        {id:uid(),front:'What method adds an item to the end of an array?',back:'push()',hint:'',image:'',status:'new'},
-        {id:uid(),front:'What is a function stored in a variable called?',back:'A function expression',hint:'',image:'',status:'new'},
-      ]
-    },
-  ];
+  state.sets = [];
   save();
 }
 
@@ -914,8 +1040,8 @@ function openSetEditor(id){
       <div class="field"><label>Description</label>
         <textarea id="f-desc" placeholder="What is this set about?">${esc(s.description)}</textarea></div>
 
-      <div style="display:flex;align-items:center;justify-content:space-between;margin:20px 0 12px">
-        <label style="font-weight:700;font-size:15px">Flashcards <span id="cardCount" style="color:var(--text-mute);font-weight:500"></span></label>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:24px 0 16px">
+        <h3 style="font-size:18px;font-weight:800;color:var(--text)">Flashcards <span id="cardCount" style="color:var(--text-soft);font-weight:500"></span></h3>
         <button class="btn btn-soft btn-sm" onclick="addEditorCard()"><i class="fa-solid fa-plus"></i> Add Card</button>
       </div>
       <div class="cards-editor" id="cardsEditor"></div>
@@ -935,6 +1061,51 @@ function addEditorCard(render=true){
 function removeEditorCard(i){ editorCards.splice(i,1); renderEditorCards(); }
 function dupEditorCard(i){ const c=JSON.parse(JSON.stringify(editorCards[i])); c.id=uid(); editorCards.splice(i+1,0,c); renderEditorCards(); }
 
+function moveCardUp(i){
+  if(i<=0) return;
+  syncEditorFromDOM();
+  const temp = editorCards[i];
+  editorCards[i] = editorCards[i-1];
+  editorCards[i-1] = temp;
+  renderEditorCards();
+}
+function moveCardDown(i){
+  if(i>=editorCards.length-1) return;
+  syncEditorFromDOM();
+  const temp = editorCards[i];
+  editorCards[i] = editorCards[i+1];
+  editorCards[i+1] = temp;
+  renderEditorCards();
+}
+function swapCardFrontBack(i){
+  syncEditorFromDOM();
+  const temp = editorCards[i].front;
+  editorCards[i].front = editorCards[i].back;
+  editorCards[i].back = temp;
+  renderEditorCards();
+  const rows = $$('#cardsEditor .card-row');
+  if(rows[i]){
+    const f = $('.c-front', rows[i]);
+    if(f) f.focus();
+  }
+}
+function updateCardStatus(el){
+  const row = el.closest('.card-row');
+  if(!row) return;
+  const front = $('.c-front', row).value.trim();
+  const back = $('.c-back', row).value.trim();
+  const badge = $('.card-status', row);
+  if(badge){
+    if(front && back){
+      badge.className = 'card-status complete';
+      badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Complete';
+    } else {
+      badge.className = 'card-status incomplete';
+      badge.innerHTML = '<i class="fa-solid fa-circle"></i> Incomplete';
+    }
+  }
+}
+
 function syncEditorFromDOM(){
   $$('#cardsEditor .card-row').forEach((row,i)=>{
     if(!editorCards[i]) return;
@@ -948,25 +1119,48 @@ function syncEditorFromDOM(){
 function renderEditorCards(){
   const box = $('#cardsEditor'); if(!box) return;
   $('#cardCount').textContent = `(${editorCards.length})`;
-  box.innerHTML = editorCards.map((c,i)=>`
+  box.innerHTML = editorCards.map((c,i)=>{
+    const isComplete = c.front.trim() && c.back.trim();
+    const statusHtml = isComplete 
+      ? `<span class="card-status complete"><i class="fa-solid fa-circle-check"></i> Complete</span>`
+      : `<span class="card-status incomplete"><i class="fa-solid fa-circle"></i> Incomplete</span>`;
+
+    return `
     <div class="card-row">
       <div class="card-row-head">
-        <span class="num"><i class="fa-solid fa-clone"></i> Card ${i+1}</span>
-        <div>
-          <button class="dup" title="Duplicate card" onclick="dupEditorCard(${i})"><i class="fa-solid fa-copy"></i></button>
-          <button class="del" title="Delete card" onclick="removeEditorCard(${i})"><i class="fa-solid fa-trash"></i></button>
+        <span class="num"><i class="fa-solid fa-layer-group"></i> Card ${i+1} ${statusHtml}</span>
+        <div class="actions">
+          <button class="move-up" title="Move card up" onclick="moveCardUp(${i})" ${i===0?'disabled':''}><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down" title="Move card down" onclick="moveCardDown(${i})" ${i===editorCards.length-1?'disabled':''}><i class="fa-solid fa-chevron-down"></i></button>
+          <div class="action-divider"></div>
+          <button class="dup" title="Duplicate card" onclick="dupEditorCard(${i})"><i class="fa-regular fa-copy"></i></button>
+          <button class="del" title="Delete card" onclick="removeEditorCard(${i})"><i class="fa-regular fa-trash-can"></i></button>
         </div>
       </div>
       <div class="grid2">
-        <textarea class="c-front" placeholder="Front (question / term)">${esc(c.front)}</textarea>
-        <textarea class="c-back" placeholder="Back (answer / definition)">${esc(c.back)}</textarea>
+        <button class="swap-btn" title="Swap front and back" onclick="swapCardFrontBack(${i})"><i class="fa-solid fa-right-left"></i></button>
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-font"></i> Front (question / term)</label>
+          <textarea class="c-front" placeholder="Type question or term..." oninput="updateCardStatus(this)">${esc(c.front)}</textarea>
+        </div>
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-quote-right"></i> Back (answer / definition)</label>
+          <textarea class="c-back" placeholder="Type answer or definition..." oninput="updateCardStatus(this)">${esc(c.back)}</textarea>
+        </div>
       </div>
       <div class="opt-row">
-        <input class="c-hint" placeholder="Optional hint" value="${esc(c.hint)}">
-        <input class="c-image" placeholder="Optional image URL" value="${esc(c.image)}" oninput="previewThumb(this)">
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-circle-info"></i> Optional hint</label>
+          <input class="c-hint" placeholder="Provide a hint for this card..." value="${esc(c.hint)}">
+        </div>
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-image"></i> Optional image URL</label>
+          <input class="c-image" placeholder="Paste image URL..." value="${esc(c.image)}" oninput="previewThumb(this)">
+        </div>
       </div>
       ${c.image?`<img class="card-thumb" src="${esc(c.image)}" onerror="this.style.display='none'">`:''}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 function previewThumb(inp){
   const row = inp.closest('.card-row');
@@ -1124,6 +1318,7 @@ function startQuiz(id){
 }
 
 function renderQuizSetup(s){
+  const optionsHtml = [5,10,15,20].filter(n=>n<=s.cards.length).map(n=>`<option value="${n}">${n} questions</option>`).join('');
   $('#view-quiz').innerHTML = `
   <div class="quiz-wrap">
     <div class="study-head" style="margin-bottom:20px">
@@ -1133,8 +1328,8 @@ function renderQuizSetup(s){
     <div class="quiz-setup">
       <div class="field"><label>Number of questions</label>
         <select id="q-count">
-          \${[5,10,15,20].filter(n=>n<=s.cards.length).map(n=>`<option value="\${n}">\${n} questions</option>`).join('')}
-          <option value="\${s.cards.length}">All (\${s.cards.length})</option>
+          ${optionsHtml}
+          <option value="${s.cards.length}">All (${s.cards.length})</option>
         </select></div>
       <div class="field"><label>Question types</label>
         <div style="display:flex;flex-direction:column;gap:10px">
@@ -1142,7 +1337,7 @@ function renderQuizSetup(s){
           <label style="display:flex;align-items:center;gap:10px;font-weight:500;color:var(--text)"><input type="checkbox" id="t-type" checked> Type the Answer</label>
           <label style="display:flex;align-items:center;gap:10px;font-weight:500;color:var(--text)"><input type="checkbox" id="t-tf" checked> True / False</label>
         </div></div>
-      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="buildQuiz('\${s.id}')"><i class="fa-solid fa-play"></i> Start Quiz</button>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="buildQuiz('${s.id}')"><i class="fa-solid fa-play"></i> Start Quiz</button>
     </div>
   </div>`;
 }
@@ -1165,7 +1360,7 @@ function buildQuiz(id){
       const flip = Math.random()<0.5;
       const shown = flip ? (s.cards.filter(c=>c.id!==card.id)[Math.floor(Math.random()*Math.max(1,s.cards.length-1))]?.back || card.back) : card.back;
       const isTrue = shown===card.back;
-      return {type:'tf',card,question:`"\${card.front}" → "\${shown}"`,answer:isTrue?'True':'False'};
+      return {type:'tf',card,question:`"${card.front}" → "${shown}"`,answer:isTrue?'True':'False'};
     }
     return {type:'type',card,question:card.front,answer:card.back};
   });
@@ -1183,9 +1378,10 @@ function renderQuizQuestion(){
 
   let body='';
   if(q.type==='mc'){
-    body = `<div class="quiz-options">\${q.options.map((o,i)=>`
-      <button class="quiz-opt" onclick="answerMC(this,'\${esc(o).replace(/'/g,"\\\\'")}')">
-        <span class="letter">\${String.fromCharCode(65+i)}</span> \${esc(o)}</button>`).join('')}</div>`;
+    const optionsHtml = q.options.map((o,i)=>`
+      <button class="quiz-opt" onclick="answerMC(this,'${esc(o).replace(/'/g,"\\'")}')">
+        <span class="letter">${String.fromCharCode(65+i)}</span> ${esc(o)}</button>`).join('');
+    body = `<div class="quiz-options">${optionsHtml}</div>`;
   } else if(q.type==='tf'){
     body = `<div class="quiz-options" style="flex-direction:row">
       <button class="quiz-opt" style="flex:1;justify-content:center" onclick="answerTF(this,'True')"><i class="fa-solid fa-check"></i> True</button>
@@ -1195,21 +1391,23 @@ function renderQuizQuestion(){
       <button class="btn btn-primary" style="width:100%;margin-top:14px" id="submitType" onclick="answerType()"><i class="fa-solid fa-paper-plane"></i> Submit Answer</button>`;
   }
 
+  const imageHtml = q.card.image && q.type!=='tf' ? `<img class="quiz-qimg" src="${esc(q.card.image)}" onerror="this.style.display='none'">` : '';
+
   $('#view-quiz').innerHTML = `
   <div class="quiz-wrap">
     <div class="study-head" style="margin-bottom:16px">
-      <div><h2>Quiz: \${esc(quiz.set.title)}</h2><div class="sub">Question \${idx+1} of \${questions.length} · Score: \${quiz.score}</div></div>
+      <div><h2>Quiz: ${esc(quiz.set.title)}</h2><div class="sub">Question ${idx+1} of ${questions.length} · Score: ${quiz.score}</div></div>
       <button class="btn btn-ghost btn-sm" onclick="quitQuiz()"><i class="fa-solid fa-xmark"></i> Quit</button>
     </div>
-    <div class="quiz-progress"><span style="width:\${pct}%"></span></div>
+    <div class="quiz-progress"><span style="width:${pct}%"></span></div>
     <div class="quiz-card">
-      <div class="quiz-qtype"><i class="fa-solid \${typeIcon}"></i> \${typeLabel}</div>
-      \${q.card.image && q.type!=='tf' ? `<img class="quiz-qimg" src="\${esc(q.card.image)}" onerror="this.style.display='none'">` : ''}
-      <div class="quiz-question">\${esc(q.question)}</div>
-      \${body}
+      <div class="quiz-qtype"><i class="fa-solid ${typeIcon}"></i> ${typeLabel}</div>
+      ${imageHtml}
+      <div class="quiz-question">${esc(q.question)}</div>
+      ${body}
       <div class="quiz-feedback" id="quizFeedback"></div>
       <div class="quiz-foot">
-        <span style="color:var(--text-mute);font-size:13px">\${q.type==='type'?'Not case-sensitive':''}</span>
+        <span style="color:var(--text-mute);font-size:13px">${q.type==='type'?'Not case-sensitive':''}</span>
         <button class="btn btn-primary hidden" id="nextQ" onclick="nextQuizQuestion()">Next <i class="fa-solid fa-arrow-right"></i></button>
       </div>
     </div>
@@ -1230,7 +1428,7 @@ function recordAnswer(q, given, correct){
   const fb=$('#quizFeedback');
   fb.className='quiz-feedback show '+(correct?'ok':'no');
   fb.innerHTML = correct ? `<i class="fa-solid fa-circle-check"></i> Correct!`
-    : `<i class="fa-solid fa-circle-xmark"></i> Correct answer: <b>\${esc(q.answer)}</b>`;
+    : `<i class="fa-solid fa-circle-xmark"></i> Correct answer: <b>${esc(q.answer)}</b>`;
   $('#nextQ').classList.remove('hidden');
   if(quiz.idx===quiz.questions.length-1) $('#nextQ').innerHTML='See Results <i class="fa-solid fa-flag-checkered"></i>';
 }
@@ -1269,8 +1467,8 @@ function nextQuizQuestion(){
 }
 function quitQuiz(){ confirmDialogSimple('Quit quiz?','Your progress in this quiz will be lost.',()=>go('sets')); }
 function confirmDialogSimple(title,msg,onYes){
-  openModal(`<div class="modal-head"><h2>\${title}</h2><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
-    <div class="modal-body"><p style="color:var(--text-soft)">\${msg}</p></div>
+  openModal(`<div class="modal-head"><h2>${title}</h2><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body"><p style="color:var(--text-soft)">${msg}</p></div>
     <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
     <button class="btn btn-danger" id="cy">Quit</button></div>`);
   $('#cy').onclick=()=>{ closeModal(); onYes(); };
@@ -1286,33 +1484,42 @@ function renderQuizResults(){
   const msg = pct>=80?'Excellent work! 🎉':pct>=50?'Good effort! 👍':'Keep practicing! 💪';
   const circ=2*Math.PI*70, off=circ*(1-pct/100);
 
+  let wrongHtml = '';
+  if(wrong.length){
+    const itemsHtml = wrong.map(a=>`
+      <div class="review-item">
+        <div class="rq">${esc(a.question)}</div>
+        <div class="ra your"><i class="fa-solid fa-xmark"></i> Your answer: ${esc(a.your)}</div>
+        <div class="ra correct"><i class="fa-solid fa-check"></i> Correct: ${esc(a.correct)}</div>
+      </div>`).join('');
+    wrongHtml = `
+      <div class="review-list">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:14px"><i class="fa-solid fa-list-check" style="color:var(--danger)"></i> Review Incorrect Answers (${wrong.length})</h3>
+        ${itemsHtml}
+      </div>`;
+  } else {
+    wrongHtml = `<div style="margin-top:26px;color:var(--success);font-weight:600"><i class="fa-solid fa-trophy"></i> Perfect score — no mistakes!</div>`;
+  }
+
   $('#view-quiz').innerHTML=`
   <div class="quiz-wrap">
     <div class="result-card">
       <div class="score-ring">
         <svg width="160" height="160">
           <circle cx="80" cy="80" r="70" fill="none" stroke="var(--bg-soft)" stroke-width="12"/>
-          <circle cx="80" cy="80" r="70" fill="none" stroke="\${C}" stroke-width="12" stroke-linecap="round"
-            stroke-dasharray="\${circ}" stroke-dashoffset="\${off}"/>
+          <circle cx="80" cy="80" r="70" fill="none" stroke="${C}" stroke-width="12" stroke-linecap="round"
+            stroke-dasharray="${circ}" stroke-dashoffset="${off}"/>
         </svg>
-        <div class="score-txt"><b style="color:\${C}">\${pct}%</b><span>\${score}/\${total} correct</span></div>
+        <div class="score-txt"><b style="color:${C}">${pct}%</b><span>${score}/${total} correct</span></div>
       </div>
-      <div class="result-msg">\${msg}</div>
-      <div class="result-sub">You answered \${score} of \${total} questions correctly.</div>
+      <div class="result-msg">${msg}</div>
+      <div class="result-sub">You answered ${score} of ${total} questions correctly.</div>
       <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="startQuiz('\${set.id}')"><i class="fa-solid fa-rotate-right"></i> Retake Quiz</button>
-        <button class="btn btn-soft" onclick="startStudy('\${set.id}')"><i class="fa-solid fa-book-open"></i> Study Set</button>
+        <button class="btn btn-primary" onclick="startQuiz('${set.id}')"><i class="fa-solid fa-rotate-right"></i> Retake Quiz</button>
+        <button class="btn btn-soft" onclick="startStudy('${set.id}')"><i class="fa-solid fa-book-open"></i> Study Set</button>
         <button class="btn btn-ghost" onclick="go('sets')"><i class="fa-solid fa-clone"></i> My Sets</button>
       </div>
-      \${wrong.length?`
-      <div class="review-list">
-        <h3 style="font-size:16px;font-weight:700;margin-bottom:14px"><i class="fa-solid fa-list-check" style="color:var(--danger)"></i> Review Incorrect Answers (\${wrong.length})</h3>
-        \${wrong.map(a=>`<div class="review-item">
-          <div class="rq">\${esc(a.question)}</div>
-          <div class="ra your"><i class="fa-solid fa-xmark"></i> Your answer: \${esc(a.your)}</div>
-          <div class="ra correct"><i class="fa-solid fa-check"></i> Correct: \${esc(a.correct)}</div>
-        </div>`).join('')}
-      </div>`:`<div style="margin-top:26px;color:var(--success);font-weight:600"><i class="fa-solid fa-trophy"></i> Perfect score — no mistakes!</div>`}
+      ${wrongHtml}
     </div>
   </div>`;
 }
@@ -1330,12 +1537,12 @@ const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''
 
 function exportSet(id){
   const s=findSet(id); if(!s) return; closeAllMenus();
-  download(`flashdeck-\${slug(s.title)}.json`, {type:'flashdeck-set',version:1,exportedAt:Date.now(),set:s});
+  download(`flashdeck-${slug(s.title)}.json`, {type:'flashdeck-set',version:1,exportedAt:Date.now(),set:s});
   toast('Set exported','ok');
 }
 function exportAll(){
   if(!state.sets.length){ toast('Nothing to export','err'); return; }
-  download(`flashdeck-backup-\${todayStr()}.json`, {type:'flashdeck-backup',version:1,exportedAt:Date.now(),sets:state.sets});
+  download(`flashdeck-backup-${todayStr()}.json`, {type:'flashdeck-backup',version:1,exportedAt:Date.now(),sets:state.sets});
   toast('Full backup exported','ok');
 }
 
@@ -1378,7 +1585,7 @@ function handleFiles(files){
       }catch(err){ toast('Failed to import '+file.name+': '+err.message,'err'); }
       if(--filesLeft===0){
         save();
-        if(imported){ toast(`Imported \${imported} set\${imported!==1?'s':''}`,'ok'); refreshCurrentView(); }
+        if(imported){ toast(`Imported ${imported} set${imported!==1?'s':''}`,'ok'); refreshCurrentView(); }
       }
     };
     reader.readAsText(file);
@@ -1450,6 +1657,15 @@ function init(){
   applyTheme(localStorage.getItem(THEME_KEY)||'light');
   if(!load() || !state.sets){ seedData(); }
   if(!Array.isArray(state.sets)) state.sets=[];
+  
+  // Clean out any preset card sets if they are in the loaded state
+  const presets = ['Spanish Essentials', 'Cell Biology Basics', 'World Capitals', 'JavaScript Fundamentals'];
+  const hasPresets = state.sets.some(s => presets.includes(s.title));
+  if(hasPresets){
+    state.sets = state.sets.filter(s => !presets.includes(s.title));
+    save();
+  }
+  
   renderDashboard();
 }
 init();
