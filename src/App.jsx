@@ -101,7 +101,6 @@ const safeStorage = {
 };
 
 const decoyOptions = [
-  { value: 'none', label: 'Off', labelLong: 'Off (Urnperiodic Tools)', icon: 'school' },
   { value: 'classroom', label: 'Classroom', labelLong: 'Google Classroom', icon: 'https://ssl.gstatic.com/classroom/favicon.png' },
   { value: 'clever', label: 'Clever', labelLong: 'Clever Login', icon: 'https://www.google.com/s2/favicons?sz=64&domain=clever.com' },
   { value: 'campus', label: 'Campus', labelLong: 'Infinite Campus', icon: 'https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png' },
@@ -326,7 +325,7 @@ export default function App() {
 
     const win = window.open('about:blank', '_blank');
     if (win) {
-      let parentTitle = "Urnperiodic Tools";
+      let parentTitle = "Urnperiodic StudyTools";
       let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
       
       if (decoyType === 'classroom') {
@@ -481,7 +480,7 @@ export default function App() {
   // Articles and Custom AI article generator states
   const [activeEduTab, setActiveEduTab] = useState('articles'); // 'articles' | 'flashcards' | 'grammar' | 'quiz'
   const [articles, setArticles] = useState(initialArticles);
-  const [selectedArticleId, setSelectedArticleId] = useState(initialArticles[0].id);
+  const [selectedArticleId, setSelectedArticleId] = useState(initialArticles[0]?.id || '');
   const [articleSearch, setArticleSearch] = useState('');
   const [selectedArticleCategory, setSelectedArticleCategory] = useState('All');
 
@@ -490,31 +489,29 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlDecoyType = params.get('decoyType');
-      if (urlDecoyType && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo'].includes(urlDecoyType)) {
+      if (urlDecoyType && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoyType)) {
         return urlDecoyType;
       }
       const urlDecoy = params.get('decoy');
       if (urlDecoy === 'true') return 'classroom';
-      if (urlDecoy === 'false') return 'none';
-      if (urlDecoy && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo'].includes(urlDecoy)) {
+      if (urlDecoy === 'false') return 'classroom';
+      if (urlDecoy && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoy)) {
         return urlDecoy;
       }
       const cached = localStorage.getItem('study-tools-decoy-type');
-      if (cached && ['none', 'classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo'].includes(cached)) {
+      if (cached && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(cached)) {
         return cached;
       }
-      const cachedLegacy = localStorage.getItem('study-tools-classroom-decoy');
-      if (cachedLegacy === 'true') return 'classroom';
     }
-    return 'none';
+    return 'classroom';
   });
 
-  const useClassroomDecoy = decoyType !== 'none';
+  const useClassroomDecoy = true;
 
   // Persist decoy state to localStorage
   useEffect(() => {
     localStorage.setItem('study-tools-decoy-type', decoyType);
-    localStorage.setItem('study-tools-classroom-decoy', String(decoyType !== 'none'));
+    localStorage.setItem('study-tools-classroom-decoy', 'true');
   }, [decoyType]);
 
   // Set white as the main starting color for articles (light mode), and black for games (dark mode)
@@ -542,7 +539,7 @@ export default function App() {
         searchParams.set('decoyType', decoyType);
         const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
         
-        let parentTitle = "Urnperiodic Tools";
+        let parentTitle = "Urnperiodic StudyTools";
         let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
         
         if (decoyType === 'classroom') {
@@ -811,9 +808,10 @@ export default function App() {
           typeVal = 'image/svg+xml';
         }
 
-        // Add standard icon element with cache buster to force immediate update
-        const cacheBuster = `?v=${Date.now()}`;
-        const finalUrl = iconUrl.includes('?') ? `${iconUrl}&v=${Date.now()}` : `${iconUrl}${cacheBuster}`;
+        // Add standard icon element with cache buster to force immediate update for regular URLs, but leave data URIs intact
+        const finalUrl = iconUrl.startsWith('data:')
+          ? iconUrl
+          : (iconUrl.includes('?') ? `${iconUrl}&v=${Date.now()}` : `${iconUrl}?v=${Date.now()}`);
 
         const newLink = doc.createElement('link');
         newLink.rel = 'icon';
@@ -842,15 +840,16 @@ export default function App() {
       }
     };
 
-    const bookSvgDataUri = "https://ssl.gstatic.com/classroom/favicon.png";
+    const customStudyFavicon = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMjggMTI4IiB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJiZy1ncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjM0I4MkY2Ii8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMUQ0RUQ4Ii8+PC9saW5lYXJHcmFkaWVudD48ZmlsdGVyIGlkPSJzaGFkb3ciIHg9Ii0xMCUiIHk9Ii0xMCUiIHdpZHRoPSIxMzAlIiBoZWlnaHQ9IjEzMCUiPjxmZURyb3BTaGFkb3cgZHg9IjAiIGR5PSI0IiBzdGREZXZpYXRpb249IjQiIGZsb29kLW9wYWNpdHk9IjAuMTUiLz48L2ZpbHRlcj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEyOCIgaGVpZ2h0PSIxMjgiIHJ4PSIyOCIgZmlsbD0idXJsKCNiZy1ncmFkKSIvPjxjaXJjbGUgY3g9IjY0IiBjeT0iNjQiIHI9IjUwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTY0IDQyIEM2NCA0MiwgNTQgMzQsIDM0IDM0IEwzNCA4MiBDNTQgODIsIDY0IDkwLCA2NCA5MCBDNjQgOTAsIDc0IDgyLCA5NCA4MiBMOTQgMzQgQzc0IDM0LCA2NCA0MiwgNjQgNDIgWiIgZmlsbD0iI0ZGRkZGRiIgZmlsdGVyPSJ1cmwoI3NoYWRvdykiLz48cGF0aCBkPSJNNjQgNDIgTDY0IDkwIiBzdHJva2U9IiMxRDFFRDgiIHN0cm9rZS13aWR0aD0iMyIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHBhdGggZD0iTTY0IDI0IEw2NiAyOSBMNzEgMjkgTDY3IDMyIEw2OSAzNyBMNjQgMzQgTDU5IDM3IEw2MSAzMiBMNTcgMjkgTDYyIDI5IFoiIGZpbGw9IiNGQkJGMjQiLz48L3N2Zz4=";
+    const classroomFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
 
     if (viewMode === 'articles') {
-      setBothTitles("Urnperiodic Tools");
-      updateFavicon(bookSvgDataUri);
+      setBothTitles("Urnperiodic StudyTools");
+      updateFavicon(customStudyFavicon);
     } else if (viewMode === 'games') {
       if (decoyType === 'classroom') {
         setBothTitles("Home - Classroom");
-        updateFavicon("https://ssl.gstatic.com/classroom/favicon.png");
+        updateFavicon(classroomFavicon);
       } else if (decoyType === 'clever') {
         setBothTitles("Clever | Log in with Clever");
         updateFavicon("https://www.google.com/s2/favicons?sz=64&domain=clever.com");
@@ -870,13 +869,13 @@ export default function App() {
         setBothTitles("IXL | Math, Language Arts, Science, Social Studies, and Spanish");
         updateFavicon("https://www.google.com/s2/favicons?sz=64&domain=ixl.com");
       } else {
-        setBothTitles("Urnperiodic Tools");
-        updateFavicon(bookSvgDataUri);
+        setBothTitles("Urnperiodic StudyTools");
+        updateFavicon(classroomFavicon);
       }
     } else {
       // Default to StudyTools for locked/welcome screens
-      setBothTitles("Urnperiodic Tools");
-      updateFavicon(bookSvgDataUri);
+      setBothTitles("Urnperiodic StudyTools");
+      updateFavicon(customStudyFavicon);
     }
   }, [viewMode, decoyType]);
 
@@ -1523,14 +1522,14 @@ export default function App() {
             <div 
               onClick={() => { setActiveEduTab('articles'); setArticleSearch(''); }}
               className="flex items-center justify-center lg:justify-start gap-3 cursor-pointer active:scale-98 transition-transform self-stretch lg:self-auto"
-              title="Urnperiodic Tools Home"
+              title="Urnperiodic StudyTools Home"
             >
               <div className="p-2 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-xl shadow-[0_2px_8.5px_var(--accent-shadow)] border border-[var(--card-border)]">
                 <School className="w-6 h-6" />
               </div>
               <div>
                 <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] sm:text-base">
-                  Urnperiodic Tools
+                  Urnperiodic StudyTools
                 </h1>
               </div>
             </div>
@@ -2136,12 +2135,28 @@ export default function App() {
           className="flex items-center gap-2.5 cursor-pointer select-none group"
           title="Go to homepage"
         >
-          <div className="p-1.5 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-lg border border-[var(--card-border)] shadow-md group-hover:rotate-12 transition-all duration-300 transform">
-            <School className="w-5 h-5" />
+          <div className="p-1.5 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-lg border border-[var(--card-border)] shadow-md group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center">
+            {viewMode === 'games' ? (
+              decoyType === 'classroom' ? (
+                <School className="w-5 h-5 text-[var(--bg-color)]" />
+              ) : (
+                <img 
+                  src={decoyOptions.find(opt => opt.value === decoyType)?.icon} 
+                  className="w-5 h-5 object-contain shrink-0 filter invert dark:brightness-200" 
+                  referrerPolicy="no-referrer" 
+                  alt="" 
+                />
+              )
+            ) : (
+              <School className="w-5 h-5" />
+            )}
           </div>
           <div>
             <h1 className="text-lg font-black tracking-tighter text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors">
-              Urnperiodic Tools
+              {viewMode === 'games'
+                ? (decoyOptions.find(opt => opt.value === decoyType)?.labelLong || "Google Classroom")
+                : "Urnperiodic StudyTools"
+              }
             </h1>
           </div>
         </div>
@@ -2228,7 +2243,7 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "Urnperiodic Tools";
+                let parentTitle = "Urnperiodic StudyTools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                 
                 if (decoyType === 'classroom') {
@@ -2345,8 +2360,17 @@ export default function App() {
                 className="flex items-center gap-1.5 cursor-pointer select-none group"
                 title="Go to homepage"
               >
-                <div className="p-1 bg-[var(--accent-color)] text-[var(--bg-color)] rounded border border-[var(--card-border)] shadow-sm group-hover:rotate-12 transition-all duration-300 transform">
-                  <School className="w-3.5 h-3.5" />
+                <div className="p-1 bg-[var(--accent-color)] text-[var(--bg-color)] rounded border border-[var(--card-border)] shadow-sm group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center">
+                  {decoyType === 'classroom' ? (
+                    <School className="w-3.5 h-3.5 text-[var(--bg-color)]" />
+                  ) : (
+                    <img 
+                      src={decoyOptions.find(opt => opt.value === decoyType)?.icon} 
+                      className="w-3.5 h-3.5 object-contain shrink-0 filter invert dark:brightness-200" 
+                      referrerPolicy="no-referrer" 
+                      alt="" 
+                    />
+                  )}
                 </div>
                 <div className="flex flex-col">
                   <span className="text-xs font-bold tracking-tight text-[var(--text-primary)] block group-hover:text-[var(--accent-color)] transition-colors leading-none">
@@ -2362,7 +2386,7 @@ export default function App() {
                       ? "Inbox" 
                       : decoyType === 'duolingo'
                       ? "Lingo"
-                      : "Urnperiodic Tools"}
+                      : "Urnperiodic StudyTools"}
                   </span>
                 </div>
               </div>
@@ -2444,7 +2468,7 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "Urnperiodic Tools";
+                let parentTitle = "Urnperiodic StudyTools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                 
                 if (decoyType === 'classroom') {
@@ -2562,7 +2586,7 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "Urnperiodic Tools";
+                let parentTitle = "Urnperiodic StudyTools";
                 let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                 
                 if (decoyType === 'classroom') {
@@ -3569,9 +3593,9 @@ export default function App() {
                         return;
                       }
 
-                      const bookSvgDataUri = "https://ssl.gstatic.com/classroom/favicon.png";
+                      const classroomFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                       let tabTitle = selectedGame.title;
-                      let tabFavicon = bookSvgDataUri;
+                      let tabFavicon = classroomFavicon;
                       if (decoyType === 'classroom') {
                         tabTitle = "Home - Classroom";
                         tabFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
