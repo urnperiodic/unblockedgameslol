@@ -239,6 +239,45 @@ function DecoyDropdown({ value, onChange, mode, compact = false, showLabel = fal
   );
 }
 
+// Helper to retrieve decoy title and favicon
+const getDecoyInfo = (type) => {
+  if (type === 'clever') {
+    return {
+      title: "Clever | Log in with Clever",
+      favicon: "https://www.google.com/s2/favicons?domain=clever.com&sz=64"
+    };
+  } else if (type === 'campus') {
+    return {
+      title: "Campus Student",
+      favicon: "https://www.google.com/s2/favicons?domain=infinitecampus.com&sz=64"
+    };
+  } else if (type === 'docs') {
+    return {
+      title: "Google Docs",
+      favicon: "https://www.google.com/s2/favicons?domain=docs.google.com&sz=64"
+    };
+  } else if (type === 'gmail') {
+    return {
+      title: "Inbox - Jersey City Public Schools",
+      favicon: "https://www.google.com/s2/favicons?domain=mail.google.com&sz=64"
+    };
+  } else if (type === 'duolingo') {
+    return {
+      title: "Duolingo - Learn a language for free",
+      favicon: "https://www.google.com/s2/favicons?domain=duolingo.com&sz=64"
+    };
+  } else if (type === 'ixl') {
+    return {
+      title: "IXL | Math, Language Arts, Science, Social Studies, and Spanish",
+      favicon: "https://www.google.com/s2/favicons?domain=ixl.com&sz=64"
+    };
+  }
+  return {
+    title: "Home - Classroom",
+    favicon: "https://www.google.com/s2/favicons?domain=classroom.google.com&sz=64"
+  };
+};
+
 export default function App() {
   // Helper to optimize and resize thumbnail URLs dynamically to Poki recommended size (512x512) for fast load & high clarity
   const getOptimizedThumbnail = (url) => {
@@ -319,39 +358,16 @@ export default function App() {
       url = window.location.origin + '?filter=lobbychat';
     } else if (currentFilter === 'proxy') {
       url = 'https://scramjet.mercurywork.shop/';
+    } else if (currentFilter === 'download') {
+      url = 'https://urnperiodic.github.io/download/';
     } else {
       url = window.location.origin;
     }
 
     const win = window.open('about:blank', '_blank');
     if (win) {
-      let parentTitle = "Urnperiodic StudyTools";
-      let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-      
-      if (decoyType === 'classroom') {
-        parentTitle = "Home - Classroom";
-        parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-      } else if (decoyType === 'clever') {
-        parentTitle = "Clever | Log in with Clever";
-        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
-      } else if (decoyType === 'campus') {
-        parentTitle = "Campus Student";
-        parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
-      } else if (decoyType === 'docs') {
-        parentTitle = "Google Docs";
-        parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
-      } else if (decoyType === 'gmail') {
-        parentTitle = "Inbox - Jersey City Public Schools";
-        parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
-      } else if (decoyType === 'duolingo') {
-        parentTitle = "Duolingo - Learn a language for free";
-        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
-      } else if (decoyType === 'ixl') {
-        parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
-        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
-      }
-
-      win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{width:100vw;height:100vh;border:none;display:block;margin:0;padding:0;}</style></head><body><iframe src="${url}" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation" allowfullscreen="true"></iframe></body></html>`);
+      const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
+      win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" type="image/png" href="${parentFavicon}"><link rel="shortcut icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{width:100vw;height:100vh;border:none;display:block;margin:0;padding:0;}</style></head><body><iframe src="${url}" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation" allowfullscreen="true"></iframe></body></html>`);
       win.document.close();
     }
   };
@@ -508,11 +524,32 @@ export default function App() {
 
   const useClassroomDecoy = true;
 
-  // Persist decoy state to localStorage
+  // Persist decoy state to localStorage & set document title/favicon
   useEffect(() => {
     localStorage.setItem('study-tools-decoy-type', decoyType);
     localStorage.setItem('study-tools-classroom-decoy', 'true');
-  }, [decoyType]);
+    if (viewMode === 'games') {
+      const info = getDecoyInfo(decoyType);
+      document.title = info.title;
+
+      const head = document.getElementsByTagName('head')[0];
+      if (head) {
+        const existingLinks = document.querySelectorAll("link[rel*='icon']");
+        existingLinks.forEach(el => head.removeChild(el));
+
+        const link1 = document.createElement('link');
+        link1.rel = 'icon';
+        link1.type = 'image/png';
+        link1.href = info.favicon;
+        head.appendChild(link1);
+
+        const link2 = document.createElement('link');
+        link2.rel = 'shortcut icon';
+        link2.href = info.favicon;
+        head.appendChild(link2);
+      }
+    }
+  }, [decoyType, viewMode]);
 
   // Set white as the main starting color for articles (light mode), and black for games (dark mode)
   useEffect(() => {
@@ -539,33 +576,9 @@ export default function App() {
         searchParams.set('decoyType', decoyType);
         const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
         
-        let parentTitle = "Urnperiodic StudyTools";
-        let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-        
-        if (decoyType === 'classroom') {
-          parentTitle = "Home - Classroom";
-          parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-        } else if (decoyType === 'clever') {
-          parentTitle = "Clever | Log in with Clever";
-          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
-        } else if (decoyType === 'campus') {
-          parentTitle = "Campus Student";
-          parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
-        } else if (decoyType === 'docs') {
-          parentTitle = "Google Docs";
-          parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
-        } else if (decoyType === 'gmail') {
-          parentTitle = "Inbox - Jersey City Public Schools";
-          parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
-        } else if (decoyType === 'duolingo') {
-          parentTitle = "Duolingo - Learn a language for free";
-          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
-        } else if (decoyType === 'ixl') {
-          parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
-          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
-        }
+        const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
 
-        win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+        win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" type="image/png" href="${parentFavicon}"><link rel="shortcut icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
         win.document.close();
       } else {
         alert("Popup blocked! Please allow popups to open the games in a cloaked tab.");
@@ -2233,6 +2246,22 @@ export default function App() {
               <span>Proxy</span>
             </motion.button>
 
+            {/* Download Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setFilter(filter === 'download' ? 'all' : 'download'); setSelectedGame(null); }}
+              className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
+                filter === 'download'
+                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)] font-bold'
+                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+              }`}
+              title="download"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>download</span>
+            </motion.button>
+
             {/* Cloak Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -2243,33 +2272,8 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "Urnperiodic StudyTools";
-                let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                
-                if (decoyType === 'classroom') {
-                  parentTitle = "Home - Classroom";
-                  parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                } else if (decoyType === 'clever') {
-                  parentTitle = "Clever | Log in with Clever";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
-                } else if (decoyType === 'campus') {
-                  parentTitle = "Campus Student";
-                  parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
-                } else if (decoyType === 'docs') {
-                  parentTitle = "Google Docs";
-                  parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
-                } else if (decoyType === 'gmail') {
-                  parentTitle = "Inbox - Jersey City Public Schools";
-                  parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
-                } else if (decoyType === 'duolingo') {
-                  parentTitle = "Duolingo - Learn a language for free";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
-                } else if (decoyType === 'ixl') {
-                  parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
-                }
-
-                win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+                const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
+                win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" type="image/png" href="${parentFavicon}"><link rel="shortcut icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
                 win.document.close();
               }}
               className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
@@ -2287,7 +2291,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy' || filter === 'download') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2319,6 +2323,8 @@ export default function App() {
                         ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
                         : filter === 'proxy'
                         ? 'https://scramjet.mercurywork.shop/'
+                        : filter === 'download'
+                        ? 'https://urnperiodic.github.io/download/'
                         : window.location.origin + '?filter=lobbychat';
                       window.open(url, '_blank');
                     }}
@@ -2457,6 +2463,18 @@ export default function App() {
                 <Globe className="w-3.5 h-3.5" />
               </button>
 
+              <button
+                onClick={() => { setFilter(filter === 'download' ? 'all' : 'download'); setSelectedGame(null); }}
+                className={`p-1 rounded-md text-xs transition-all duration-200 ${
+                  filter === 'download'
+                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-bold'
+                    : 'bg-transparent text-[var(--text-primary)] hover:text-[var(--accent-color)]'
+                }`}
+                title="download"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+
             {/* Cloak Button */}
             <button
               onClick={() => {
@@ -2468,33 +2486,8 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "Urnperiodic StudyTools";
-                let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                
-                if (decoyType === 'classroom') {
-                  parentTitle = "Home - Classroom";
-                  parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                } else if (decoyType === 'clever') {
-                  parentTitle = "Clever | Log in with Clever";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
-                } else if (decoyType === 'campus') {
-                  parentTitle = "Campus Student";
-                  parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
-                } else if (decoyType === 'docs') {
-                  parentTitle = "Google Docs";
-                  parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
-                } else if (decoyType === 'gmail') {
-                  parentTitle = "Inbox - Jersey City Public Schools";
-                  parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
-                } else if (decoyType === 'duolingo') {
-                  parentTitle = "Duolingo - Learn a language for free";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
-                } else if (decoyType === 'ixl') {
-                  parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
-                }
-
-                win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+                const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
+                win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" type="image/png" href="${parentFavicon}"><link rel="shortcut icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
                 win.document.close();
               }}
               className="p-1 rounded-md text-[var(--accent-color)] hover:bg-[var(--accent-color)]/10 transition-all"
@@ -2586,32 +2579,7 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                let parentTitle = "Urnperiodic StudyTools";
-                let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                
-                if (decoyType === 'classroom') {
-                  parentTitle = "Home - Classroom";
-                  parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                } else if (decoyType === 'clever') {
-                  parentTitle = "Clever | Log in with Clever";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
-                } else if (decoyType === 'campus') {
-                  parentTitle = "Campus Student";
-                  parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
-                } else if (decoyType === 'docs') {
-                  parentTitle = "Google Docs";
-                  parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
-                } else if (decoyType === 'gmail') {
-                  parentTitle = "Inbox - Jersey City Public Schools";
-                  parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
-                } else if (decoyType === 'duolingo') {
-                  parentTitle = "Duolingo - Learn a language for free";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
-                } else if (decoyType === 'ixl') {
-                  parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
-                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
-                }
-
+                const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
                 win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
                 win.document.close();
               }}
@@ -2626,7 +2594,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy' || filter === 'download') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2658,6 +2626,8 @@ export default function App() {
                         ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
                         : filter === 'proxy'
                         ? 'https://scramjet.mercurywork.shop/'
+                        : filter === 'download'
+                        ? 'https://urnperiodic.github.io/download/'
                         : window.location.origin + '?filter=lobbychat';
                       window.open(url, '_blank');
                     }}
@@ -2707,6 +2677,22 @@ export default function App() {
 
             {/* Unified Settings, Colors Group (Compact) */}
             <div className="relative flex items-center gap-1.5 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-lg shadow-sm">
+              {/* Download Button */}
+              <button
+                onClick={() => { setFilter(filter === 'download' ? 'all' : 'download'); setSelectedGame(null); }}
+                className={`p-1 px-1.5 rounded-md text-xs font-mono font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
+                  filter === 'download'
+                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-bold'
+                    : 'text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)]'
+                }`}
+                title="download"
+              >
+                <Download className="w-3 h-3" />
+                <span className="text-[10px] hidden sm:inline">download</span>
+              </button>
+
+              <div className="w-[1px] h-3 bg-[var(--card-border)]/80" />
+
               {/* Settings Gear Button */}
               <button
                 onClick={() => setIsGlobalSettingsOpen(!isGlobalSettingsOpen)}
@@ -2804,7 +2790,7 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-2 md:ml-auto w-full md:w-auto overflow-visible">
             {/* Go back to games back button */}
-            {(filter === 'chat' || filter === 'movies' || filter === 'proxy' || filter === 'youtube' || filter === 'lobbychat') && (
+            {(filter === 'chat' || filter === 'movies' || filter === 'proxy' || filter === 'youtube' || filter === 'lobbychat' || filter === 'download') && (
               <button
                 id="chat-back-button"
                 onClick={() => setFilter('all')}
@@ -2947,13 +2933,13 @@ export default function App() {
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
       <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative z-10 ${
-        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy')
+        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy' || filter === 'download')
           ? 'max-w-none p-0 gap-0 border-t border-[var(--card-border)]/50 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
       }`}>
         
         {/* LEFT NAV PANEL - CAT SIDEBAR */}
-        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'proxy' && (
+        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'proxy' && filter !== 'download' && (
           <aside className={`transition-all duration-300 ease-in-out shrink-0 flex flex-col gap-2 overflow-hidden ${
             sidebarOpen ? 'w-full md:w-44' : 'w-full md:w-14'
           }`}>
@@ -3322,6 +3308,23 @@ export default function App() {
                     referrerPolicy="no-referrer"
                   />
                 </motion.div>
+              ) : filter === 'download' ? (
+                <motion.div 
+                  key="download"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex flex-col w-full min-h-[550px] bg-[#0c0a09] border border-[var(--card-border)]/60 rounded-2xl overflow-hidden ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
+                >
+                  <iframe 
+                    src="https://urnperiodic.github.io/download/" 
+                    className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
+                    allow="fullscreen; clipboard-write; autoplay"
+                    title="Download Tools"
+                    referrerPolicy="no-referrer"
+                  />
+                </motion.div>
               ) : (
                 <motion.div 
                   key="games-list"
@@ -3593,38 +3596,14 @@ export default function App() {
                         return;
                       }
 
-                      const classroomFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                      let tabTitle = selectedGame.title;
-                      let tabFavicon = classroomFavicon;
-                      if (decoyType === 'classroom') {
-                        tabTitle = "Home - Classroom";
-                        tabFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                      } else if (decoyType === 'clever') {
-                        tabTitle = "Clever | Log in with Clever";
-                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
-                      } else if (decoyType === 'campus') {
-                        tabTitle = "Campus Student";
-                        tabFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
-                      } else if (decoyType === 'docs') {
-                        tabTitle = "Google Docs";
-                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=docs.google.com";
-                      } else if (decoyType === 'gmail') {
-                        tabTitle = "Inbox - Jersey City Public Schools";
-                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=mail.google.com";
-                      } else if (decoyType === 'duolingo') {
-                        tabTitle = "Duolingo - Learn a language for free";
-                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
-                      } else if (decoyType === 'ixl') {
-                        tabTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
-                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
-                      }
+                      const { title: tabTitle, favicon: tabFavicon } = getDecoyInfo(decoyType);
 
                       win.document.write(`
                         <!DOCTYPE html>
                         <html>
                         <head>
                           <title>${tabTitle}</title>
-                          <link rel="icon" href="${tabFavicon}">
+                          <link rel="icon" type="image/png" href="${tabFavicon}">
                           <link rel="shortcut icon" href="${tabFavicon}">
                           <meta charset="utf-8">
                           <style>
