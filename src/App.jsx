@@ -64,6 +64,7 @@ import {
   Download,
   Upload,
   Settings,
+  Bell,
   Check,
   X,
   Shuffle,
@@ -72,7 +73,9 @@ import {
   Mail,
   Crosshair,
   Trophy,
-  PartyPopper
+  PartyPopper,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 
 // Safe storage helper to prevent SecurityError crash in sandboxed iframes
@@ -319,6 +322,8 @@ export default function App() {
       url = window.location.origin + '?filter=lobbychat';
     } else if (currentFilter === 'proxy') {
       url = 'https://scramjet.mercurywork.shop/';
+    } else if (currentFilter === 'download') {
+      url = 'https://urnperiodic.github.io/download/';
     } else {
       url = window.location.origin;
     }
@@ -476,6 +481,52 @@ export default function App() {
   const [isShake, setIsShake] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
   const [isGlobalSettingsOpen, setIsGlobalSettingsOpen] = useState(false);
+  const [showNotices, setShowNotices] = useState(true);
+  const [noticeStep, setNoticeStep] = useState(0); // 0: Download, 1: Movies, 2: Cloak, 3: Decoy
+  const [noticeCountdown, setNoticeCountdown] = useState(20);
+
+  useEffect(() => {
+    if (!showNotices) return;
+    setNoticeCountdown(20);
+    const interval = setInterval(() => {
+      setNoticeCountdown((prev) => {
+        if (prev <= 1) {
+          setNoticeStep((step) => {
+            if (step >= 3) {
+              setShowNotices(false);
+              return 0;
+            }
+            return step + 1;
+          });
+          return 20;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [showNotices, noticeStep]);
+
+  const nextNoticeStep = () => {
+    if (noticeStep >= 3) {
+      setShowNotices(false);
+    } else {
+      setNoticeStep((prev) => prev + 1);
+      setNoticeCountdown(20);
+    }
+  };
+
+  const prevNoticeStep = () => {
+    if (noticeStep > 0) {
+      setNoticeStep((prev) => prev - 1);
+      setNoticeCountdown(20);
+    }
+  };
+
+  const reshowAllNotices = () => {
+    setNoticeStep(0);
+    setNoticeCountdown(20);
+    setShowNotices(true);
+  };
 
   // Articles and Custom AI article generator states
   const [activeEduTab, setActiveEduTab] = useState('articles'); // 'articles' | 'flashcards' | 'grammar' | 'quiz'
@@ -749,20 +800,41 @@ export default function App() {
   }, []);
 
   const downloadEntireWebsite = () => {
+    setFilter('download');
+    setSelectedGame(null);
+    if (viewMode !== 'games') {
+      setViewMode('games');
+    }
     try {
-      const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'Urnperiodic_StudyTools_Website.html';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      // Create HTML containing iframe of https://urnperiodic.github.io/download/
+      const iframeHtmlContent = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urnperiodic Study Tools</title>
+  <style>
+    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0b0c10; }
+    iframe { width: 100vw; height: 100vh; border: none; display: block; }
+  </style>
+</head>
+<body>
+  <iframe src="https://urnperiodic.github.io/download/" allow="fullscreen; autoplay; clipboard-write; encrypted-media"></iframe>
+</body>
+</html>`;
+
+      // Download the iframe HTML file
+      const blobIframe = new Blob([iframeHtmlContent], { type: 'text/html;charset=utf-8' });
+      const urlIframe = URL.createObjectURL(blobIframe);
+      const linkIframe = document.createElement('a');
+      linkIframe.href = urlIframe;
+      linkIframe.download = 'Urnperiodic_Website_Iframe.html';
+      document.body.appendChild(linkIframe);
+      linkIframe.click();
+      document.body.removeChild(linkIframe);
+      URL.revokeObjectURL(urlIframe);
     } catch (err) {
-      console.error("Failed to download website:", err);
-      alert("Downloading website... If popup is blocked, save webpage via Ctrl+S or Cmd+S.");
+      console.error("Failed to download website iframe:", err);
     }
   };
 
@@ -783,7 +855,7 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlFilter = params.get('filter');
-      if (urlFilter && ['chat', 'lobbychat', 'movies', 'youtube', 'info', 'all'].includes(urlFilter)) {
+      if (urlFilter && ['chat', 'lobbychat', 'movies', 'youtube', 'info', 'all', 'proxy', 'download'].includes(urlFilter)) {
         setFilter(urlFilter);
         // Ensure games mode is active so the user goes straight to the loaded workspace
         if (viewMode !== 'games') {
@@ -2353,13 +2425,13 @@ export default function App() {
 
       </header>
       ) : (
-        <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-1.5 px-3 md:px-4 flex flex-col md:flex-row items-center justify-between gap-2.5 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
+        <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-1.5 px-4 flex flex-col md:grid md:grid-cols-3 items-center gap-3 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
           
           {/* Left: Spacer */}
-          <div className="hidden xl:flex items-center justify-start flex-1 min-w-0" />
+          <div className="hidden md:flex items-center justify-start" />
 
           {/* Center: Navigation & Decoy Dropdown */}
-          <div className="flex items-center justify-center gap-2.5 shrink-0 max-w-full overflow-x-auto">
+          <div className="flex items-center justify-center w-full gap-3">
 
             {/* Quick Sections with backgrounds for mobile/tablet wrapped cleanly */}
             <div className="flex md:hidden items-center gap-1 bg-[var(--bg-secondary)] border border-[var(--card-border)]/50 p-0.5 rounded-lg shadow-sm">
@@ -2479,17 +2551,91 @@ export default function App() {
             {/* Middle: Section Icons with Background (Visible on medium+ screens) */}
             <div className="hidden md:flex items-center gap-1.5 bg-[var(--bg-secondary)] border border-[var(--card-border)]/50 p-1 rounded-xl shadow-sm">
               {/* Movies Button */}
-              <button
-                onClick={() => { setFilter(filter === 'movies' ? 'all' : 'movies'); setSelectedGame(null); }}
-                className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                  filter === 'movies'
-                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                    : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-                }`}
-                title="Movies Workspace"
-              >
-                <Tv className="w-3.5 h-3.5" />
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => { setFilter(filter === 'movies' ? 'all' : 'movies'); setSelectedGame(null); }}
+                  className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                    filter === 'movies'
+                      ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
+                      : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+                  } ${showNotices && noticeStep === 1 ? 'ring-2 ring-[var(--accent-color)] ring-offset-2 ring-offset-[#0d0d12] animate-pulse' : ''}`}
+                  title="Movies Workspace"
+                >
+                  <Tv className="w-3.5 h-3.5" />
+                </button>
+
+                {showNotices && noticeStep === 1 && (
+                  <div className="absolute top-full left-0 mt-3 w-80 bg-[#13111c] border-2 border-amber-500/80 text-white rounded-xl p-3.5 shadow-[0_0_30px_rgba(245,158,11,0.4)] z-[3000] animate-fade-in select-none text-left text-xs font-medium">
+                    <div className="absolute -top-2.5 left-3 w-3.5 h-3.5 bg-[#13111c] border-t-2 border-l-2 border-amber-500/80 transform rotate-45" />
+
+                    {/* IMPORTANT WARNING HEADER BANNER */}
+                    <div className="bg-amber-500/15 border border-amber-500/40 rounded-lg px-2.5 py-1.5 mb-2.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-amber-400 font-black text-[11px] uppercase tracking-wider">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
+                        <span>IMPORTANT WARNING</span>
+                      </div>
+                      <button
+                        onClick={() => setShowNotices(false)}
+                        className="px-2 py-0.5 text-[10px] text-neutral-300 hover:text-white bg-white/10 hover:bg-red-500/80 rounded-md transition-all cursor-pointer shrink-0 font-sans font-bold flex items-center gap-1 border border-white/10"
+                        title="Close Notifications"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Close</span>
+                      </button>
+                    </div>
+
+                    <div className="mb-2 text-[10px] font-bold text-amber-300 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                      <span>You need to read this only once</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[10px] text-[var(--accent-color)] font-mono font-bold uppercase tracking-wider">
+                      <Tv className="w-3.5 h-3.5" />
+                      <span>Tip 2 of 4 • Movies</span>
+                    </div>
+
+                    <p className="mt-2 text-[11px] leading-relaxed text-neutral-200 font-semibold">
+                      The movies/tv shows/anime button does not work at school as Iboss blocks all the servers from working.
+                    </p>
+
+                    <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                      <span className="flex items-center gap-1 text-amber-400 font-mono font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                        {noticeCountdown}s
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={prevNoticeStep}
+                          className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-neutral-200 transition-colors cursor-pointer font-sans"
+                        >
+                          ← Prev
+                        </button>
+                        <button
+                          onClick={() => setShowNotices(false)}
+                          className="px-2.5 py-1 rounded bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white font-bold transition-all cursor-pointer font-sans border border-red-500/40 flex items-center gap-1"
+                          title="Close notifications"
+                        >
+                          <X className="w-3 h-3" />
+                          <span>Close</span>
+                        </button>
+                        <button
+                          onClick={nextNoticeStep}
+                          className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-black font-black transition-all cursor-pointer font-sans shadow-md"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 rounded-b-xl overflow-hidden">
+                      <div
+                        className="h-full bg-amber-500 transition-all duration-1000 ease-linear"
+                        style={{ width: `${(noticeCountdown / 20) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Socratic Tutor Button */}
               <button
@@ -2547,50 +2693,194 @@ export default function App() {
               </button>
 
               {/* Cloak Button */}
-              <button
-                onClick={() => {
-                  const win = window.open("about:blank", "_blank");
-                  if (!win) { alert("Popup blocked!"); return; }
-                  const searchParams = new URLSearchParams(window.location.search);
-                  searchParams.set('decoyType', decoyType);
-                  const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                  let parentTitle = "Urnperiodic StudyTools";
-                  let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                  
-                  if (decoyType === 'classroom') {
-                    parentTitle = "Home - Classroom";
-                    parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
-                  } else if (decoyType === 'clever') {
-                    parentTitle = "Clever | Log in with Clever";
-                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
-                  } else if (decoyType === 'campus') {
-                    parentTitle = "Campus Student";
-                    parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
-                  } else if (decoyType === 'docs') {
-                    parentTitle = "Google Docs";
-                    parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
-                  } else if (decoyType === 'gmail') {
-                    parentTitle = "Inbox - Jersey City Public Schools";
-                    parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
-                  } else if (decoyType === 'duolingo') {
-                    parentTitle = "Duolingo - Learn a language for free";
-                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
-                  } else if (decoyType === 'ixl') {
-                    parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
-                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
-                  }
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    const win = window.open("about:blank", "_blank");
+                    if (!win) { alert("Popup blocked!"); return; }
+                    const searchParams = new URLSearchParams(window.location.search);
+                    searchParams.set('decoyType', decoyType);
+                    const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
+                    let parentTitle = "Urnperiodic StudyTools";
+                    let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                    
+                    if (decoyType === 'classroom') {
+                      parentTitle = "Home - Classroom";
+                      parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                    } else if (decoyType === 'clever') {
+                      parentTitle = "Clever | Log in with Clever";
+                      parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+                    } else if (decoyType === 'campus') {
+                      parentTitle = "Campus Student";
+                      parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+                    } else if (decoyType === 'docs') {
+                      parentTitle = "Google Docs";
+                      parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+                    } else if (decoyType === 'gmail') {
+                      parentTitle = "Inbox - Jersey City Public Schools";
+                      parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                    } else if (decoyType === 'duolingo') {
+                      parentTitle = "Duolingo - Learn a language for free";
+                      parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                    } else if (decoyType === 'ixl') {
+                      parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                      parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
+                    }
 
-                  win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
-                  win.document.close();
-                }}
-                className="p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer flex items-center justify-center"
-                title="Cloak in about:blank"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-              </button>
+                    win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+                    win.document.close();
+                  }}
+                  className={`p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer flex items-center justify-center ${showNotices && noticeStep === 2 ? 'ring-2 ring-[var(--accent-color)] ring-offset-2 ring-offset-[#0d0d12] animate-pulse' : ''}`}
+                  title="Cloak in about:blank"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </button>
+
+                {showNotices && noticeStep === 2 && (
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-80 bg-[#13111c] border-2 border-amber-500/80 text-white rounded-xl p-3.5 shadow-[0_0_30px_rgba(245,158,11,0.4)] z-[3000] animate-fade-in select-none text-left text-xs font-medium">
+                    <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 w-3.5 h-3.5 bg-[#13111c] border-t-2 border-l-2 border-amber-500/80 transform rotate-45" />
+
+                    {/* IMPORTANT WARNING HEADER BANNER */}
+                    <div className="bg-amber-500/15 border border-amber-500/40 rounded-lg px-2.5 py-1.5 mb-2.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-amber-400 font-black text-[11px] uppercase tracking-wider">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
+                        <span>IMPORTANT WARNING</span>
+                      </div>
+                      <button
+                        onClick={() => setShowNotices(false)}
+                        className="px-2 py-0.5 text-[10px] text-neutral-300 hover:text-white bg-white/10 hover:bg-red-500/80 rounded-md transition-all cursor-pointer shrink-0 font-sans font-bold flex items-center gap-1 border border-white/10"
+                        title="Close Notifications"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Close</span>
+                      </button>
+                    </div>
+
+                    <div className="mb-2 text-[10px] font-bold text-amber-300 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                      <span>You need to read this only once</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[10px] text-[var(--accent-color)] font-mono font-bold uppercase tracking-wider">
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Tip 3 of 4 • Cloak Screen</span>
+                    </div>
+
+                    <p className="mt-2 text-[11px] leading-relaxed text-neutral-200 font-semibold">
+                      Open in about:blank masks your screen from GoGuardian in a blank screen and masks the URL (it doesn't even appear in your search history), but can confuse older teachers and looks suspicious when multiple students have blank screens.
+                    </p>
+
+                    <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                      <span className="flex items-center gap-1 text-amber-400 font-mono font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                        {noticeCountdown}s
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={prevNoticeStep}
+                          className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-neutral-200 transition-colors cursor-pointer font-sans"
+                        >
+                          ← Prev
+                        </button>
+                        <button
+                          onClick={() => setShowNotices(false)}
+                          className="px-2.5 py-1 rounded bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white font-bold transition-all cursor-pointer font-sans border border-red-500/40 flex items-center gap-1"
+                          title="Close notifications"
+                        >
+                          <X className="w-3 h-3" />
+                          <span>Close</span>
+                        </button>
+                        <button
+                          onClick={nextNoticeStep}
+                          className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-black font-black transition-all cursor-pointer font-sans shadow-md"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 rounded-b-xl overflow-hidden">
+                      <div
+                        className="h-full bg-amber-500 transition-all duration-1000 ease-linear"
+                        style={{ width: `${(noticeCountdown / 20) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Decoy Selector */}
-              <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
+              <div className="relative">
+                <div className={showNotices && noticeStep === 3 ? 'ring-2 ring-[var(--accent-color)] ring-offset-2 ring-offset-[#0d0d12] rounded-lg animate-pulse' : ''}>
+                  <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
+                </div>
+
+                {showNotices && noticeStep === 3 && (
+                  <div className="absolute top-full left-0 mt-3 w-80 bg-[#13111c] border-2 border-amber-500/80 text-white rounded-xl p-3.5 shadow-[0_0_30px_rgba(245,158,11,0.4)] z-[3000] animate-fade-in select-none text-left text-xs font-medium">
+                    <div className="absolute -top-2.5 left-4 w-3.5 h-3.5 bg-[#13111c] border-t-2 border-l-2 border-amber-500/80 transform rotate-45" />
+
+                    {/* IMPORTANT WARNING HEADER BANNER */}
+                    <div className="bg-amber-500/15 border border-amber-500/40 rounded-lg px-2.5 py-1.5 mb-2.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-amber-400 font-black text-[11px] uppercase tracking-wider">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
+                        <span>IMPORTANT WARNING</span>
+                      </div>
+                      <button
+                        onClick={() => setShowNotices(false)}
+                        className="px-2 py-0.5 text-[10px] text-neutral-300 hover:text-white bg-white/10 hover:bg-red-500/80 rounded-md transition-all cursor-pointer shrink-0 font-sans font-bold flex items-center gap-1 border border-white/10"
+                        title="Close Notifications"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Close</span>
+                      </button>
+                    </div>
+
+                    <div className="mb-2 text-[10px] font-bold text-amber-300 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                      <span>You need to read this only once</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[10px] text-[var(--accent-color)] font-mono font-bold uppercase tracking-wider">
+                      <Shield className="w-3.5 h-3.5" />
+                      <span>Tip 4 of 4 • Decoy Mask</span>
+                    </div>
+
+                    <p className="mt-2 text-[11px] leading-relaxed text-neutral-200 font-semibold">
+                      This is the name of the website that is shown in GoGuardian, helps mask your history in GoGuardian's timeline but please make sure not everyone is on the same decoy.
+                    </p>
+
+                    <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                      <span className="flex items-center gap-1 text-amber-400 font-mono font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                        {noticeCountdown}s
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={prevNoticeStep}
+                          className="px-2 py-0.5 rounded bg-white/10 hover:bg-white/20 text-neutral-200 transition-colors cursor-pointer font-sans"
+                        >
+                          ← Prev
+                        </button>
+                        <button
+                          onClick={() => setShowNotices(false)}
+                          className="px-2.5 py-1 rounded bg-red-500 hover:bg-red-600 text-white font-black transition-all cursor-pointer font-sans shadow-md flex items-center gap-1"
+                          title="Close notifications"
+                        >
+                          <X className="w-3 h-3" />
+                          <span>Close ✓</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 rounded-b-xl overflow-hidden">
+                      <div
+                        className="h-full bg-amber-500 transition-all duration-1000 ease-linear"
+                        style={{ width: `${(noticeCountdown / 20) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
               <AnimatePresence>
@@ -2622,6 +2912,8 @@ export default function App() {
                           ? 'https://urnperiodic.github.io/p/' 
                           : filter === 'youtube'
                           ? 'https://urnperiodic.github.io/youtube1/'
+                          : filter === 'download'
+                          ? 'https://urnperiodic.github.io/download/'
                           : filter === 'chat'
                           ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
                           : filter === 'proxy'
@@ -2655,10 +2947,10 @@ export default function App() {
           </div>
 
           {/* Top Right: Theme Slider & Settings/Colors Bar */}
-          <div className="flex items-center gap-1.5 justify-end flex-1 min-w-0">
+          <div className="flex items-center gap-2 justify-end w-full md:w-auto">
 
             {/* Light/Dark slider (Compact) */}
-            <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-full shadow-sm shrink-0">
+            <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-full shadow-sm">
               <div 
                 onClick={() => setMode(prev => prev === 'light' ? 'dark' : 'light')}
                 className="relative w-[34px] h-4 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 select-none transition-all duration-300"
@@ -2675,7 +2967,7 @@ export default function App() {
             </div>
 
             {/* Unified Settings, Colors Group (Compact) */}
-            <div className="relative flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-lg shadow-sm shrink-0">
+            <div className="relative flex items-center gap-1.5 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-lg shadow-sm">
               {/* Settings Gear Button */}
               <button
                 onClick={() => setIsGlobalSettingsOpen(!isGlobalSettingsOpen)}
@@ -2685,16 +2977,85 @@ export default function App() {
                 <Settings className="w-3 h-3" />
               </button>
 
-              {/* Download the entire website button */}
-              <button
-                onClick={downloadEntireWebsite}
-                className="px-1.5 py-0.5 rounded-md text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center gap-1 shrink-0 text-[10px] font-bold"
-                title="Download the entire website"
-                aria-label="Download the entire website"
-              >
-                <Download className="w-3 h-3 text-[var(--accent-color)] shrink-0" />
-                <span className="hidden xl:inline whitespace-nowrap">Download the entire website</span>
-              </button>
+              {/* Download website button */}
+              <div className="relative">
+                <button
+                  onClick={downloadEntireWebsite}
+                  className={`p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center justify-center shrink-0 ${showNotices && noticeStep === 0 ? 'ring-2 ring-[var(--accent-color)] ring-offset-2 ring-offset-[#0d0d12] animate-pulse' : ''}`}
+                  title="Download Website"
+                  aria-label="Download Website"
+                >
+                  <Download className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+                </button>
+
+                {showNotices && noticeStep === 0 && (
+                  <div className="absolute top-full right-0 mt-3 w-80 bg-[#13111c] border-2 border-amber-500/80 text-white rounded-xl p-3.5 shadow-[0_0_30px_rgba(245,158,11,0.4)] z-[3000] animate-fade-in select-none text-left text-xs font-medium">
+                    {/* Pointer arrow pointing UP to download icon */}
+                    <div className="absolute -top-2.5 right-2.5 w-3.5 h-3.5 bg-[#13111c] border-t-2 border-l-2 border-amber-500/80 transform rotate-45" />
+
+                    {/* IMPORTANT WARNING HEADER BANNER */}
+                    <div className="bg-amber-500/15 border border-amber-500/40 rounded-lg px-2.5 py-1.5 mb-2.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-1.5 text-amber-400 font-black text-[11px] uppercase tracking-wider">
+                        <AlertTriangle className="w-4 h-4 text-amber-400 animate-bounce shrink-0" />
+                        <span>IMPORTANT WARNING</span>
+                      </div>
+                      <button
+                        onClick={() => setShowNotices(false)}
+                        className="px-2 py-0.5 text-[10px] text-neutral-300 hover:text-white bg-white/10 hover:bg-red-500/80 rounded-md transition-all cursor-pointer shrink-0 font-sans font-bold flex items-center gap-1 border border-white/10"
+                        title="Close Notifications"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                        <span>Close</span>
+                      </button>
+                    </div>
+
+                    <div className="mb-2 text-[10px] font-bold text-amber-300 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                      <span>You need to read this only once</span>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-[10px] text-[var(--accent-color)] font-mono font-bold uppercase tracking-wider">
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Tip 1 of 4 • Offline Website</span>
+                    </div>
+
+                    <p className="mt-2 text-[11px] leading-relaxed text-neutral-200 font-semibold">
+                      You can download the entire games website into a single file that go guardian can't block for everyone.
+                    </p>
+
+                    <div className="mt-3 pt-2 border-t border-white/10 flex items-center justify-between text-[10px]">
+                      <span className="flex items-center gap-1 text-amber-400 font-mono font-bold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+                        {noticeCountdown}s
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => setShowNotices(false)}
+                          className="px-2.5 py-1 rounded bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white font-bold transition-all cursor-pointer font-sans border border-red-500/40 flex items-center gap-1"
+                          title="Close notifications"
+                        >
+                          <X className="w-3 h-3" />
+                          <span>Close</span>
+                        </button>
+                        <button
+                          onClick={nextNoticeStep}
+                          className="px-2.5 py-1 rounded bg-amber-500 hover:bg-amber-400 text-black font-black transition-all cursor-pointer font-sans shadow-md"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Animated Progress bar at bottom */}
+                    <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10 rounded-b-xl overflow-hidden">
+                      <div
+                        className="h-full bg-amber-500 transition-all duration-1000 ease-linear"
+                        style={{ width: `${(noticeCountdown / 20) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
 
               {isGlobalSettingsOpen && (
                 <div className="absolute top-full right-0 mt-2 w-64 bg-[#12121a] border border-white/10 rounded-xl p-4 shadow-2xl z-[2500] select-none text-left animate-fade-in">
@@ -2729,19 +3090,33 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Download entire website row */}
-                    <div className="pt-2 border-t border-white/5">
+                    {/* Download & Notification options */}
+                    <div className="pt-2 border-t border-white/5 flex flex-col gap-1.5">
+                      <button
+                        onClick={() => {
+                          reshowAllNotices();
+                          setIsGlobalSettingsOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-[var(--accent-color)]/20 hover:border-[var(--accent-color)] border border-white/10 text-white text-xs font-semibold transition-all cursor-pointer group"
+                        title="Reshow Notifications"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Bell className="w-3.5 h-3.5 text-[var(--accent-color)] group-hover:scale-110 transition-transform" />
+                          <span>Reshow Notifications</span>
+                        </span>
+                      </button>
+
                       <button
                         onClick={() => {
                           downloadEntireWebsite();
                           setIsGlobalSettingsOpen(false);
                         }}
                         className="w-full flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-[var(--accent-color)]/20 hover:border-[var(--accent-color)] border border-white/10 text-white text-xs font-semibold transition-all cursor-pointer group"
-                        title="Download the entire website"
+                        title="Download Website"
                       >
                         <span className="flex items-center gap-2">
                           <Download className="w-3.5 h-3.5 text-[var(--accent-color)] group-hover:scale-110 transition-transform" />
-                          <span>Download the entire website</span>
+                          <span>Download Website</span>
                         </span>
                       </button>
                     </div>
@@ -2802,7 +3177,7 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-2 md:ml-auto w-full md:w-auto overflow-visible">
             {/* Go back to games back button */}
-            {(filter === 'chat' || filter === 'movies' || filter === 'proxy' || filter === 'youtube' || filter === 'lobbychat') && (
+            {(filter === 'chat' || filter === 'movies' || filter === 'proxy' || filter === 'youtube' || filter === 'lobbychat' || filter === 'download') && (
               <button
                 id="chat-back-button"
                 onClick={() => setFilter('all')}
@@ -2863,16 +3238,17 @@ export default function App() {
                 <Settings className="w-3.5 h-3.5" />
               </button>
 
-              {/* Download the entire website button */}
-              <button
-                onClick={downloadEntireWebsite}
-                className="px-2 py-1 rounded-md text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center gap-1.5 shrink-0 text-[10px] font-bold"
-                title="Download the entire website"
-                aria-label="Download the entire website"
-              >
-                <Download className="w-3.5 h-3.5 text-[var(--accent-color)] shrink-0" />
-                <span className="hidden xl:inline whitespace-nowrap">Download the entire website</span>
-              </button>
+              {/* Download website button */}
+              <div className="relative">
+                <button
+                  onClick={downloadEntireWebsite}
+                  className="p-1.5 rounded-full text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center justify-center shrink-0"
+                  title="Download Website"
+                  aria-label="Download Website"
+                >
+                  <Download className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+                </button>
+              </div>
 
               {isGlobalSettingsOpen && (
                 <div className="absolute top-full right-0 mt-2 w-64 bg-[#12121a] border border-white/10 rounded-xl p-4 shadow-2xl z-[2500] select-none text-left animate-fade-in">
@@ -2907,19 +3283,33 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Download entire website row */}
-                    <div className="pt-2 border-t border-white/5">
+                    {/* Download & Notification options */}
+                    <div className="pt-2 border-t border-white/5 flex flex-col gap-1.5">
+                      <button
+                        onClick={() => {
+                          reshowDownloadNotice();
+                          setIsGlobalSettingsOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-[var(--accent-color)]/20 hover:border-[var(--accent-color)] border border-white/10 text-white text-xs font-semibold transition-all cursor-pointer group"
+                        title="Reshow Download Notification"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Bell className="w-3.5 h-3.5 text-[var(--accent-color)] group-hover:scale-110 transition-transform" />
+                          <span>Reshow Download Notice</span>
+                        </span>
+                      </button>
+
                       <button
                         onClick={() => {
                           downloadEntireWebsite();
                           setIsGlobalSettingsOpen(false);
                         }}
                         className="w-full flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-[var(--accent-color)]/20 hover:border-[var(--accent-color)] border border-white/10 text-white text-xs font-semibold transition-all cursor-pointer group"
-                        title="Download the entire website"
+                        title="Download Website"
                       >
                         <span className="flex items-center gap-2">
                           <Download className="w-3.5 h-3.5 text-[var(--accent-color)] group-hover:scale-110 transition-transform" />
-                          <span>Download the entire website</span>
+                          <span>Download Website</span>
                         </span>
                       </button>
                     </div>
@@ -2974,13 +3364,13 @@ export default function App() {
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
       <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative z-10 ${
-        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy')
+        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy' || filter === 'download')
           ? 'max-w-none p-0 gap-0 border-t border-[var(--card-border)]/50 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
       }`}>
         
         {/* LEFT NAV PANEL - CAT SIDEBAR */}
-        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'proxy' && (
+        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'proxy' && filter !== 'download' && (
           <aside className={`transition-all duration-300 ease-in-out shrink-0 flex flex-col gap-2 overflow-hidden ${
             sidebarOpen ? 'w-full md:w-44' : 'w-full md:w-14'
           }`}>
@@ -3346,6 +3736,22 @@ export default function App() {
                     src="https://scramjet.mercurywork.shop/" 
                     className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
                     allow="fullscreen"
+                    referrerPolicy="no-referrer"
+                  />
+                </motion.div>
+              ) : filter === 'download' ? (
+                <motion.div 
+                  key="download"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className={`flex flex-col w-full min-h-[550px] bg-[#0c0a09] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
+                >
+                  <iframe 
+                    src="https://urnperiodic.github.io/download/" 
+                    className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
+                    allow="fullscreen; autoplay; clipboard-write; encrypted-media"
                     referrerPolicy="no-referrer"
                   />
                 </motion.div>
