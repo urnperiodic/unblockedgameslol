@@ -239,45 +239,6 @@ function DecoyDropdown({ value, onChange, mode, compact = false, showLabel = fal
   );
 }
 
-// Helper to retrieve decoy title and favicon
-const getDecoyInfo = (type) => {
-  if (type === 'clever') {
-    return {
-      title: "Clever | Log in with Clever",
-      favicon: "https://www.google.com/s2/favicons?domain=clever.com&sz=64"
-    };
-  } else if (type === 'campus') {
-    return {
-      title: "Campus Student",
-      favicon: "https://www.google.com/s2/favicons?domain=infinitecampus.com&sz=64"
-    };
-  } else if (type === 'docs') {
-    return {
-      title: "Google Docs",
-      favicon: "https://www.google.com/s2/favicons?domain=docs.google.com&sz=64"
-    };
-  } else if (type === 'gmail') {
-    return {
-      title: "Inbox - Jersey City Public Schools",
-      favicon: "https://www.google.com/s2/favicons?domain=mail.google.com&sz=64"
-    };
-  } else if (type === 'duolingo') {
-    return {
-      title: "Duolingo - Learn a language for free",
-      favicon: "https://www.google.com/s2/favicons?domain=duolingo.com&sz=64"
-    };
-  } else if (type === 'ixl') {
-    return {
-      title: "IXL | Math, Language Arts, Science, Social Studies, and Spanish",
-      favicon: "https://www.google.com/s2/favicons?domain=ixl.com&sz=64"
-    };
-  }
-  return {
-    title: "Home - Classroom",
-    favicon: "https://www.google.com/s2/favicons?domain=classroom.google.com&sz=64"
-  };
-};
-
 export default function App() {
   // Helper to optimize and resize thumbnail URLs dynamically to Poki recommended size (512x512) for fast load & high clarity
   const getOptimizedThumbnail = (url) => {
@@ -358,16 +319,39 @@ export default function App() {
       url = window.location.origin + '?filter=lobbychat';
     } else if (currentFilter === 'proxy') {
       url = 'https://scramjet.mercurywork.shop/';
-    } else if (currentFilter === 'download') {
-      url = 'https://urnperiodic.github.io/download/';
     } else {
       url = window.location.origin;
     }
 
     const win = window.open('about:blank', '_blank');
     if (win) {
-      const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
-      win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" type="image/png" href="${parentFavicon}"><link rel="shortcut icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{width:100vw;height:100vh;border:none;display:block;margin:0;padding:0;}</style></head><body><iframe src="${url}" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation" allowfullscreen="true"></iframe></body></html>`);
+      let parentTitle = "Urnperiodic StudyTools";
+      let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+      
+      if (decoyType === 'classroom') {
+        parentTitle = "Home - Classroom";
+        parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+      } else if (decoyType === 'clever') {
+        parentTitle = "Clever | Log in with Clever";
+        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+      } else if (decoyType === 'campus') {
+        parentTitle = "Campus Student";
+        parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+      } else if (decoyType === 'docs') {
+        parentTitle = "Google Docs";
+        parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+      } else if (decoyType === 'gmail') {
+        parentTitle = "Inbox - Jersey City Public Schools";
+        parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+      } else if (decoyType === 'duolingo') {
+        parentTitle = "Duolingo - Learn a language for free";
+        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+      } else if (decoyType === 'ixl') {
+        parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+        parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
+      }
+
+      win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;}iframe{width:100vw;height:100vh;border:none;display:block;margin:0;padding:0;}</style></head><body><iframe src="${url}" allow="fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; microphone; camera; geolocation" allowfullscreen="true"></iframe></body></html>`);
       win.document.close();
     }
   };
@@ -524,32 +508,11 @@ export default function App() {
 
   const useClassroomDecoy = true;
 
-  // Persist decoy state to localStorage & set document title/favicon
+  // Persist decoy state to localStorage
   useEffect(() => {
     localStorage.setItem('study-tools-decoy-type', decoyType);
     localStorage.setItem('study-tools-classroom-decoy', 'true');
-    if (viewMode === 'games') {
-      const info = getDecoyInfo(decoyType);
-      document.title = info.title;
-
-      const head = document.getElementsByTagName('head')[0];
-      if (head) {
-        const existingLinks = document.querySelectorAll("link[rel*='icon']");
-        existingLinks.forEach(el => head.removeChild(el));
-
-        const link1 = document.createElement('link');
-        link1.rel = 'icon';
-        link1.type = 'image/png';
-        link1.href = info.favicon;
-        head.appendChild(link1);
-
-        const link2 = document.createElement('link');
-        link2.rel = 'shortcut icon';
-        link2.href = info.favicon;
-        head.appendChild(link2);
-      }
-    }
-  }, [decoyType, viewMode]);
+  }, [decoyType]);
 
   // Set white as the main starting color for articles (light mode), and black for games (dark mode)
   useEffect(() => {
@@ -576,9 +539,33 @@ export default function App() {
         searchParams.set('decoyType', decoyType);
         const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
         
-        const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
+        let parentTitle = "Urnperiodic StudyTools";
+        let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+        
+        if (decoyType === 'classroom') {
+          parentTitle = "Home - Classroom";
+          parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+        } else if (decoyType === 'clever') {
+          parentTitle = "Clever | Log in with Clever";
+          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+        } else if (decoyType === 'campus') {
+          parentTitle = "Campus Student";
+          parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+        } else if (decoyType === 'docs') {
+          parentTitle = "Google Docs";
+          parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+        } else if (decoyType === 'gmail') {
+          parentTitle = "Inbox - Jersey City Public Schools";
+          parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+        } else if (decoyType === 'duolingo') {
+          parentTitle = "Duolingo - Learn a language for free";
+          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+        } else if (decoyType === 'ixl') {
+          parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+          parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
+        }
 
-        win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" type="image/png" href="${parentFavicon}"><link rel="shortcut icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+        win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
         win.document.close();
       } else {
         alert("Popup blocked! Please allow popups to open the games in a cloaked tab.");
@@ -760,6 +747,24 @@ export default function App() {
     window.addEventListener('keydown', handlePanic);
     return () => window.removeEventListener('keydown', handlePanic);
   }, []);
+
+  const downloadEntireWebsite = () => {
+    try {
+      const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'Urnperiodic_StudyTools_Website.html';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to download website:", err);
+      alert("Downloading website... If popup is blocked, save webpage via Ctrl+S or Cmd+S.");
+    }
+  };
 
   // Prevent accidental close or refresh only when actively inside a game
   useEffect(() => {
@@ -1531,22 +1536,7 @@ export default function App() {
         <div className="min-h-screen bg-[var(--bg-color)] text-[var(--text-primary)] flex flex-col h-screen overflow-hidden transition-colors duration-300 relative select-text p-0">
           
           {/* Decoy Legitimate Educational Header */}
-          <header className="w-full mx-auto flex flex-col lg:flex-row justify-between items-center border-b border-[var(--card-border)] gap-4 select-none max-w-none px-4 md:px-6 py-3 shrink-0">
-            <div 
-              onClick={() => { setActiveEduTab('articles'); setArticleSearch(''); }}
-              className="flex items-center justify-center lg:justify-start gap-3 cursor-pointer active:scale-98 transition-transform self-stretch lg:self-auto"
-              title="Urnperiodic StudyTools Home"
-            >
-              <div className="p-2 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-xl shadow-[0_2px_8.5px_var(--accent-shadow)] border border-[var(--card-border)]">
-                <School className="w-6 h-6" />
-              </div>
-              <div>
-                <h1 className="text-sm font-bold tracking-tight text-[var(--text-primary)] sm:text-base">
-                  Urnperiodic StudyTools
-                </h1>
-              </div>
-            </div>
-
+          <header className="w-full mx-auto flex flex-col lg:flex-row justify-center items-center border-b border-[var(--card-border)] gap-4 select-none max-w-none px-4 md:px-6 py-3 shrink-0">
             {/* HIGHLY ACCESSIBLE PRIMARY TAB SWITCHER */}
             <div className="bg-[var(--bg-secondary)] border border-[var(--card-border)] p-1 shadow-sm select-none w-full max-w-sm sm:max-w-xl lg:max-w-none lg:w-auto rounded-2xl lg:rounded-full grid grid-cols-2 sm:grid-cols-3 lg:flex lg:items-center gap-1 shrink-0">
               {[
@@ -2246,22 +2236,6 @@ export default function App() {
               <span>Proxy</span>
             </motion.button>
 
-            {/* Download Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => { setFilter(filter === 'download' ? 'all' : 'download'); setSelectedGame(null); }}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
-                filter === 'download'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)] font-bold'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="download"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>download</span>
-            </motion.button>
-
             {/* Cloak Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -2272,8 +2246,33 @@ export default function App() {
                 const searchParams = new URLSearchParams(window.location.search);
                 searchParams.set('decoyType', decoyType);
                 const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
-                win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" type="image/png" href="${parentFavicon}"><link rel="shortcut icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+                let parentTitle = "Urnperiodic StudyTools";
+                let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                
+                if (decoyType === 'classroom') {
+                  parentTitle = "Home - Classroom";
+                  parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                } else if (decoyType === 'clever') {
+                  parentTitle = "Clever | Log in with Clever";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+                } else if (decoyType === 'campus') {
+                  parentTitle = "Campus Student";
+                  parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+                } else if (decoyType === 'docs') {
+                  parentTitle = "Google Docs";
+                  parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+                } else if (decoyType === 'gmail') {
+                  parentTitle = "Inbox - Jersey City Public Schools";
+                  parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                } else if (decoyType === 'duolingo') {
+                  parentTitle = "Duolingo - Learn a language for free";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                } else if (decoyType === 'ixl') {
+                  parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                  parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
+                }
+
+                win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
                 win.document.close();
               }}
               className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer flex items-center gap-1.5 text-xs font-semibold"
@@ -2291,7 +2290,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy' || filter === 'download') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2323,8 +2322,6 @@ export default function App() {
                         ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
                         : filter === 'proxy'
                         ? 'https://scramjet.mercurywork.shop/'
-                        : filter === 'download'
-                        ? 'https://urnperiodic.github.io/download/'
                         : window.location.origin + '?filter=lobbychat';
                       window.open(url, '_blank');
                     }}
@@ -2356,47 +2353,13 @@ export default function App() {
 
       </header>
       ) : (
-        <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-1.5 pl-4 pr-14 flex flex-col md:flex-row justify-between items-center gap-3 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
+        <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-1.5 px-3 md:px-4 flex flex-col md:flex-row items-center justify-between gap-2.5 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
           
-          <div className="flex items-center justify-between w-full md:w-auto gap-3">
-            {/* Left Side: Decoy Classroom Title (Compact) */}
-            <div className="flex items-center gap-2">
-              <div 
-                onClick={() => { setFilter('all'); setSelectedGame(null); setSearchQuery(''); }}
-                className="flex items-center gap-1.5 cursor-pointer select-none group"
-                title="Go to homepage"
-              >
-                <div className="p-1 bg-[var(--accent-color)] text-[var(--bg-color)] rounded border border-[var(--card-border)] shadow-sm group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center">
-                  {decoyType === 'classroom' ? (
-                    <School className="w-3.5 h-3.5 text-[var(--bg-color)]" />
-                  ) : (
-                    <img 
-                      src={decoyOptions.find(opt => opt.value === decoyType)?.icon} 
-                      className="w-3.5 h-3.5 object-contain shrink-0 filter invert dark:brightness-200" 
-                      referrerPolicy="no-referrer" 
-                      alt="" 
-                    />
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-bold tracking-tight text-[var(--text-primary)] block group-hover:text-[var(--accent-color)] transition-colors leading-none">
-                    {decoyType === 'classroom' 
-                      ? "Home - Classroom" 
-                      : decoyType === 'clever' 
-                      ? "Clever | Log in" 
-                      : decoyType === 'campus' 
-                      ? "Campus" 
-                      : decoyType === 'docs' 
-                      ? "Docs" 
-                      : decoyType === 'gmail' 
-                      ? "Inbox" 
-                      : decoyType === 'duolingo'
-                      ? "Lingo"
-                      : "Urnperiodic StudyTools"}
-                  </span>
-                </div>
-              </div>
-            </div>
+          {/* Left: Spacer */}
+          <div className="hidden xl:flex items-center justify-start flex-1 min-w-0" />
+
+          {/* Center: Navigation & Decoy Dropdown */}
+          <div className="flex items-center justify-center gap-2.5 shrink-0 max-w-full overflow-x-auto">
 
             {/* Quick Sections with backgrounds for mobile/tablet wrapped cleanly */}
             <div className="flex md:hidden items-center gap-1 bg-[var(--bg-secondary)] border border-[var(--card-border)]/50 p-0.5 rounded-lg shadow-sm">
@@ -2463,203 +2426,239 @@ export default function App() {
                 <Globe className="w-3.5 h-3.5" />
               </button>
 
+              {/* Cloak Button */}
               <button
-                onClick={() => { setFilter(filter === 'download' ? 'all' : 'download'); setSelectedGame(null); }}
-                className={`p-1 rounded-md text-xs transition-all duration-200 ${
-                  filter === 'download'
-                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-bold'
-                    : 'bg-transparent text-[var(--text-primary)] hover:text-[var(--accent-color)]'
-                }`}
-                title="download"
+                onClick={() => {
+                  const win = window.open("about:blank", "_blank");
+                  if (!win) {
+                    alert("Popup blocked!");
+                    return;
+                  }
+                  const searchParams = new URLSearchParams(window.location.search);
+                  searchParams.set('decoyType', decoyType);
+                  const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
+                  let parentTitle = "Urnperiodic StudyTools";
+                  let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                  
+                  if (decoyType === 'classroom') {
+                    parentTitle = "Home - Classroom";
+                    parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                  } else if (decoyType === 'clever') {
+                    parentTitle = "Clever | Log in with Clever";
+                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+                  } else if (decoyType === 'campus') {
+                    parentTitle = "Campus Student";
+                    parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+                  } else if (decoyType === 'docs') {
+                    parentTitle = "Google Docs";
+                    parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+                  } else if (decoyType === 'gmail') {
+                    parentTitle = "Inbox - Jersey City Public Schools";
+                    parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                  } else if (decoyType === 'duolingo') {
+                    parentTitle = "Duolingo - Learn a language for free";
+                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                  } else if (decoyType === 'ixl') {
+                    parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
+                  }
+
+                  win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+                  win.document.close();
+                }}
+                className="p-1 rounded-md text-[var(--accent-color)] hover:bg-[var(--accent-color)]/10 transition-all"
+                title="Cloak site"
               >
-                <Download className="w-3.5 h-3.5" />
+                <ExternalLink className="w-3.5 h-3.5" />
               </button>
 
-            {/* Cloak Button */}
-            <button
-              onClick={() => {
-                const win = window.open("about:blank", "_blank");
-                if (!win) {
-                  alert("Popup blocked!");
-                  return;
-                }
-                const searchParams = new URLSearchParams(window.location.search);
-                searchParams.set('decoyType', decoyType);
-                const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
-                win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" type="image/png" href="${parentFavicon}"><link rel="shortcut icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
-                win.document.close();
-              }}
-              className="p-1 rounded-md text-[var(--accent-color)] hover:bg-[var(--accent-color)]/10 transition-all"
-              title="Cloak site"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
+              {/* Decoy Selector */}
+              <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
+            </div>
 
-            {/* Decoy Selector */}
-            <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
-          </div>
-          </div>
+            {/* Middle: Section Icons with Background (Visible on medium+ screens) */}
+            <div className="hidden md:flex items-center gap-1.5 bg-[var(--bg-secondary)] border border-[var(--card-border)]/50 p-1 rounded-xl shadow-sm">
+              {/* Movies Button */}
+              <button
+                onClick={() => { setFilter(filter === 'movies' ? 'all' : 'movies'); setSelectedGame(null); }}
+                className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                  filter === 'movies'
+                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
+                    : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+                }`}
+                title="Movies Workspace"
+              >
+                <Tv className="w-3.5 h-3.5" />
+              </button>
 
-          {/* Middle: Section Icons with Background (Visible on medium+ screens) */}
-          <div className="hidden md:flex items-center gap-1.5 bg-[var(--bg-secondary)] border border-[var(--card-border)]/50 p-1 rounded-xl shadow-sm">
-            {/* Movies Button */}
-            <button
-              onClick={() => { setFilter(filter === 'movies' ? 'all' : 'movies'); setSelectedGame(null); }}
-              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                filter === 'movies'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="Movies Workspace"
-            >
-              <Tv className="w-3.5 h-3.5" />
-            </button>
+              {/* Socratic Tutor Button */}
+              <button
+                onClick={() => { setFilter(filter === 'chat' ? 'all' : 'chat'); setSelectedGame(null); }}
+                className={`p-1.5 px-2.5 rounded-lg border text-xs font-sans font-black flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                  filter === 'chat'
+                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
+                    : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+                }`}
+                title="Chat Tutor"
+              >
+                <span>AI</span>
+              </button>
 
-            {/* Socratic Tutor Button */}
-            <button
-              onClick={() => { setFilter(filter === 'chat' ? 'all' : 'chat'); setSelectedGame(null); }}
-              className={`p-1.5 px-2.5 rounded-lg border text-xs font-sans font-black flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                filter === 'chat'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="Chat Tutor"
-            >
-              <span>AI</span>
-            </button>
+              {/* Lobby Chat Button */}
+              <button
+                onClick={() => { setFilter(filter === 'lobbychat' ? 'all' : 'lobbychat'); setSelectedGame(null); }}
+                className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                  filter === 'lobbychat'
+                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
+                    : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+                }`}
+                title="Lobby Chat"
+              >
+                <MessageSquare className="w-3.5 h-3.5" />
+              </button>
 
-            {/* Lobby Chat Button */}
-            <button
-              onClick={() => { setFilter(filter === 'lobbychat' ? 'all' : 'lobbychat'); setSelectedGame(null); }}
-              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                filter === 'lobbychat'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="Lobby Chat"
-            >
-              <MessageSquare className="w-3.5 h-3.5" />
-            </button>
+              {/* YouTube Workspace Button */}
+              <button
+                onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
+                className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                  filter === 'youtube'
+                    ? 'bg-red-600 text-white border-red-600 shadow-[0_2px_8px_rgba(220,38,38,0.5)] font-bold'
+                    : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500/50 hover:text-red-500'
+                }`}
+                title="YouTube"
+              >
+                <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
+                  <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
+                </svg>
+              </button>
 
-            {/* YouTube Workspace Button */}
-            <button
-              onClick={() => { setFilter(filter === 'youtube' ? 'all' : 'youtube'); setSelectedGame(null); }}
-              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                filter === 'youtube'
-                  ? 'bg-red-600 text-white border-red-600 shadow-[0_2px_8px_rgba(220,38,38,0.5)] font-bold'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-red-500/50 hover:text-red-500'
-              }`}
-              title="YouTube"
-            >
-              <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
-                <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
-              </svg>
-            </button>
+              {/* Proxy Button */}
+              <button
+                onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
+                className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                  filter === 'proxy'
+                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
+                    : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+                }`}
+                title="Proxy"
+              >
+                <Globe className="w-3.5 h-3.5" />
+              </button>
 
-            {/* Proxy Button */}
-            <button
-              onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
-              className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                filter === 'proxy'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="Proxy"
-            >
-              <Globe className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Cloak Button */}
-            <button
-              onClick={() => {
-                const win = window.open("about:blank", "_blank");
-                if (!win) { alert("Popup blocked!"); return; }
-                const searchParams = new URLSearchParams(window.location.search);
-                searchParams.set('decoyType', decoyType);
-                const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
-                const { title: parentTitle, favicon: parentFavicon } = getDecoyInfo(decoyType);
-                win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
-                win.document.close();
-              }}
-              className="p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer flex items-center justify-center"
-              title="Cloak in about:blank"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </button>
-
-            {/* Decoy Selector */}
-            <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
-
-            {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
-            <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy' || filter === 'download') && (
-                <motion.div 
-                  initial={{ opacity: 0, x: -10, width: 0 }}
-                  animate={{ opacity: 1, x: 0, width: 'auto' }}
-                  exit={{ opacity: 0, x: -10, width: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  className="flex items-center gap-1.5 pl-2 ml-1 border-l border-[var(--card-border)]/50 overflow-hidden whitespace-nowrap"
-                >
-                  <button
-                    onClick={() => openWorkspaceInAboutBlank(filter)}
-                    className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[#00e5b0]/30 hover:border-[#00e5b0] bg-[#00e5b0]/10 hover:bg-[#00e5b0]/20 text-[#00e5b0] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
-                    title="Open Workspace in a cloaked about:blank Page"
-                    style={{ backgroundColor: '#000000', borderColor: '#ffffff' }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5" style={{ color: '#ffffff' }}>
-                      <path d="M15 3h6v6" />
-                      <path d="M10 14 21 3" />
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    </svg>
-                    <span style={{ fontSize: '6px', fontFamily: 'Verdana', fontWeight: 'normal', color: '#ffffff', height: '10px' }}>About:blank</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      const url = filter === 'movies' 
-                        ? 'https://urnperiodic.github.io/p/' 
-                        : filter === 'youtube'
-                        ? 'https://urnperiodic.github.io/youtube1/'
-                        : filter === 'chat'
-                        ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
-                        : filter === 'proxy'
-                        ? 'https://scramjet.mercurywork.shop/'
-                        : filter === 'download'
-                        ? 'https://urnperiodic.github.io/download/'
-                        : window.location.origin + '?filter=lobbychat';
-                      window.open(url, '_blank');
-                    }}
-                    className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[var(--accent-color)]/30 hover:border-[var(--accent-color)] bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)]/20 text-[var(--accent-color)] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
-                    title="Open separately"
-                    style={{ fontSize: '10px' }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                      <path d="M15 3h6v6" />
-                      <path d="M10 14 21 3" />
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" style={{ fontSize: '8px' }} />
-                    </svg>
-                    <span style={{ fontSize: '6px', fontFamily: 'Verdana', fontWeight: 'normal' }}>Open Link</span>
-                  </button>
+              {/* Cloak Button */}
+              <button
+                onClick={() => {
+                  const win = window.open("about:blank", "_blank");
+                  if (!win) { alert("Popup blocked!"); return; }
+                  const searchParams = new URLSearchParams(window.location.search);
+                  searchParams.set('decoyType', decoyType);
+                  const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
+                  let parentTitle = "Urnperiodic StudyTools";
+                  let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                   
-                  <button
-                    onClick={() => setFilter('all')}
-                    className="p-1.5 rounded-lg border border-rose-500/40 hover:border-rose-500 bg-rose-500/10 text-rose-500 hover:text-white hover:bg-rose-500 transition-all cursor-pointer flex items-center justify-center shrink-0 group"
-                    title="Close Workspace"
+                  if (decoyType === 'classroom') {
+                    parentTitle = "Home - Classroom";
+                    parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                  } else if (decoyType === 'clever') {
+                    parentTitle = "Clever | Log in with Clever";
+                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+                  } else if (decoyType === 'campus') {
+                    parentTitle = "Campus Student";
+                    parentFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+                  } else if (decoyType === 'docs') {
+                    parentTitle = "Google Docs";
+                    parentFavicon = "https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico";
+                  } else if (decoyType === 'gmail') {
+                    parentTitle = "Inbox - Jersey City Public Schools";
+                    parentFavicon = "https://ssl.gstatic.com/ui/v1/icons/mail/images/favicon_gmail_2026_v2.ico";
+                  } else if (decoyType === 'duolingo') {
+                    parentTitle = "Duolingo - Learn a language for free";
+                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                  } else if (decoyType === 'ixl') {
+                    parentTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                    parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
+                  }
+
+                  win.document.write(`<html><head><title>${parentTitle}</title><link rel="icon" href="${parentFavicon}"><style>html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#0c0a09;}iframe{width:100vw;height:100vh;border:none;display:block;}</style></head><body><iframe src="${iframeSrc}" allow="fullscreen"></iframe></body></html>`);
+                  win.document.close();
+                }}
+                className="p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-[var(--accent-color)] hover:border-[var(--accent-color)] transition-all cursor-pointer flex items-center justify-center"
+                title="Cloak in about:blank"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+              </button>
+
+              {/* Decoy Selector */}
+              <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
+
+              {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
+              <AnimatePresence>
+                {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy') && (
+                  <motion.div 
+                    initial={{ opacity: 0, x: -10, width: 0 }}
+                    animate={{ opacity: 1, x: 0, width: 'auto' }}
+                    exit={{ opacity: 0, x: -10, width: 0 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    className="flex items-center gap-1.5 pl-2 ml-1 border-l border-[var(--card-border)]/50 overflow-hidden whitespace-nowrap"
                   >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                    <button
+                      onClick={() => openWorkspaceInAboutBlank(filter)}
+                      className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[#00e5b0]/30 hover:border-[#00e5b0] bg-[#00e5b0]/10 hover:bg-[#00e5b0]/20 text-[#00e5b0] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
+                      title="Open Workspace in a cloaked about:blank Page"
+                      style={{ backgroundColor: '#000000', borderColor: '#ffffff' }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5" style={{ color: '#ffffff' }}>
+                        <path d="M15 3h6v6" />
+                        <path d="M10 14 21 3" />
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                      </svg>
+                      <span style={{ fontSize: '6px', fontFamily: 'Verdana', fontWeight: 'normal', color: '#ffffff', height: '10px' }}>About:blank</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        const url = filter === 'movies' 
+                          ? 'https://urnperiodic.github.io/p/' 
+                          : filter === 'youtube'
+                          ? 'https://urnperiodic.github.io/youtube1/'
+                          : filter === 'chat'
+                          ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
+                          : filter === 'proxy'
+                          ? 'https://scramjet.mercurywork.shop/'
+                          : window.location.origin + '?filter=lobbychat';
+                        window.open(url, '_blank');
+                      }}
+                      className="px-2.5 py-1.5 text-[10px] font-mono font-black tracking-tight uppercase border border-[var(--accent-color)]/30 hover:border-[var(--accent-color)] bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)]/20 text-[var(--accent-color)] rounded-lg transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shrink-0"
+                      title="Open separately"
+                      style={{ fontSize: '10px' }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+                        <path d="M15 3h6v6" />
+                        <path d="M10 14 21 3" />
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" style={{ fontSize: '8px' }} />
+                      </svg>
+                      <span style={{ fontSize: '6px', fontFamily: 'Verdana', fontWeight: 'normal' }}>Open Link</span>
+                    </button>
+                    
+                    <button
+                      onClick={() => setFilter('all')}
+                      className="p-1.5 rounded-lg border border-rose-500/40 hover:border-rose-500 bg-rose-500/10 text-rose-500 hover:text-white hover:bg-rose-500 transition-all cursor-pointer flex items-center justify-center shrink-0 group"
+                      title="Close Workspace"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
 
-          {/* Right Side: Made By + Slider + Theme (Compact) */}
-          <div className="flex items-center gap-2">
+          {/* Top Right: Theme Slider & Settings/Colors Bar */}
+          <div className="flex items-center gap-1.5 justify-end flex-1 min-w-0">
 
             {/* Light/Dark slider (Compact) */}
-            <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-full shadow-sm">
+            <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-full shadow-sm shrink-0">
               <div 
                 onClick={() => setMode(prev => prev === 'light' ? 'dark' : 'light')}
                 className="relative w-[34px] h-4 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 select-none transition-all duration-300"
@@ -2676,23 +2675,7 @@ export default function App() {
             </div>
 
             {/* Unified Settings, Colors Group (Compact) */}
-            <div className="relative flex items-center gap-1.5 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-lg shadow-sm">
-              {/* Download Button */}
-              <button
-                onClick={() => { setFilter(filter === 'download' ? 'all' : 'download'); setSelectedGame(null); }}
-                className={`p-1 px-1.5 rounded-md text-xs font-mono font-bold flex items-center gap-1 cursor-pointer transition-all duration-200 ${
-                  filter === 'download'
-                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-bold'
-                    : 'text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)]'
-                }`}
-                title="download"
-              >
-                <Download className="w-3 h-3" />
-                <span className="text-[10px] hidden sm:inline">download</span>
-              </button>
-
-              <div className="w-[1px] h-3 bg-[var(--card-border)]/80" />
-
+            <div className="relative flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-lg shadow-sm shrink-0">
               {/* Settings Gear Button */}
               <button
                 onClick={() => setIsGlobalSettingsOpen(!isGlobalSettingsOpen)}
@@ -2700,6 +2683,17 @@ export default function App() {
                 title="System Settings"
               >
                 <Settings className="w-3 h-3" />
+              </button>
+
+              {/* Download the entire website button */}
+              <button
+                onClick={downloadEntireWebsite}
+                className="px-1.5 py-0.5 rounded-md text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center gap-1 shrink-0 text-[10px] font-bold"
+                title="Download the entire website"
+                aria-label="Download the entire website"
+              >
+                <Download className="w-3 h-3 text-[var(--accent-color)] shrink-0" />
+                <span className="hidden xl:inline whitespace-nowrap">Download the entire website</span>
               </button>
 
               {isGlobalSettingsOpen && (
@@ -2734,6 +2728,24 @@ export default function App() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Download entire website row */}
+                    <div className="pt-2 border-t border-white/5">
+                      <button
+                        onClick={() => {
+                          downloadEntireWebsite();
+                          setIsGlobalSettingsOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-[var(--accent-color)]/20 hover:border-[var(--accent-color)] border border-white/10 text-white text-xs font-semibold transition-all cursor-pointer group"
+                        title="Download the entire website"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Download className="w-3.5 h-3.5 text-[var(--accent-color)] group-hover:scale-110 transition-transform" />
+                          <span>Download the entire website</span>
+                        </span>
+                      </button>
+                    </div>
+
                     <div className="border-t border-white/5 pt-2 mt-1 text-center">
                       <p className="text-[9px] font-mono text-neutral-500">
                         made by urnperiodic and Grandplat2
@@ -2790,7 +2802,7 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-2 md:ml-auto w-full md:w-auto overflow-visible">
             {/* Go back to games back button */}
-            {(filter === 'chat' || filter === 'movies' || filter === 'proxy' || filter === 'youtube' || filter === 'lobbychat' || filter === 'download') && (
+            {(filter === 'chat' || filter === 'movies' || filter === 'proxy' || filter === 'youtube' || filter === 'lobbychat') && (
               <button
                 id="chat-back-button"
                 onClick={() => setFilter('all')}
@@ -2851,6 +2863,17 @@ export default function App() {
                 <Settings className="w-3.5 h-3.5" />
               </button>
 
+              {/* Download the entire website button */}
+              <button
+                onClick={downloadEntireWebsite}
+                className="px-2 py-1 rounded-md text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center gap-1.5 shrink-0 text-[10px] font-bold"
+                title="Download the entire website"
+                aria-label="Download the entire website"
+              >
+                <Download className="w-3.5 h-3.5 text-[var(--accent-color)] shrink-0" />
+                <span className="hidden xl:inline whitespace-nowrap">Download the entire website</span>
+              </button>
+
               {isGlobalSettingsOpen && (
                 <div className="absolute top-full right-0 mt-2 w-64 bg-[#12121a] border border-white/10 rounded-xl p-4 shadow-2xl z-[2500] select-none text-left animate-fade-in">
                   <div className="flex flex-col gap-3">
@@ -2883,6 +2906,24 @@ export default function App() {
                         </div>
                       </div>
                     </div>
+
+                    {/* Download entire website row */}
+                    <div className="pt-2 border-t border-white/5">
+                      <button
+                        onClick={() => {
+                          downloadEntireWebsite();
+                          setIsGlobalSettingsOpen(false);
+                        }}
+                        className="w-full flex items-center justify-between p-2 rounded-lg bg-white/5 hover:bg-[var(--accent-color)]/20 hover:border-[var(--accent-color)] border border-white/10 text-white text-xs font-semibold transition-all cursor-pointer group"
+                        title="Download the entire website"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Download className="w-3.5 h-3.5 text-[var(--accent-color)] group-hover:scale-110 transition-transform" />
+                          <span>Download the entire website</span>
+                        </span>
+                      </button>
+                    </div>
+
                     <div className="border-t border-white/5 pt-2 mt-1 text-center">
                       <p className="text-[9px] font-mono text-neutral-500">
                         made by urnperiodic and Grandplat2
@@ -2933,13 +2974,13 @@ export default function App() {
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
       <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative z-10 ${
-        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy' || filter === 'download')
+        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy')
           ? 'max-w-none p-0 gap-0 border-t border-[var(--card-border)]/50 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
       }`}>
         
         {/* LEFT NAV PANEL - CAT SIDEBAR */}
-        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'proxy' && filter !== 'download' && (
+        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'proxy' && (
           <aside className={`transition-all duration-300 ease-in-out shrink-0 flex flex-col gap-2 overflow-hidden ${
             sidebarOpen ? 'w-full md:w-44' : 'w-full md:w-14'
           }`}>
@@ -3308,23 +3349,6 @@ export default function App() {
                     referrerPolicy="no-referrer"
                   />
                 </motion.div>
-              ) : filter === 'download' ? (
-                <motion.div 
-                  key="download"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.2 }}
-                  className={`flex flex-col w-full min-h-[550px] bg-[#0c0a09] border border-[var(--card-border)]/60 rounded-2xl overflow-hidden ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
-                >
-                  <iframe 
-                    src="https://urnperiodic.github.io/download/" 
-                    className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
-                    allow="fullscreen; clipboard-write; autoplay"
-                    title="Download Tools"
-                    referrerPolicy="no-referrer"
-                  />
-                </motion.div>
               ) : (
                 <motion.div 
                   key="games-list"
@@ -3596,14 +3620,38 @@ export default function App() {
                         return;
                       }
 
-                      const { title: tabTitle, favicon: tabFavicon } = getDecoyInfo(decoyType);
+                      const classroomFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                      let tabTitle = selectedGame.title;
+                      let tabFavicon = classroomFavicon;
+                      if (decoyType === 'classroom') {
+                        tabTitle = "Home - Classroom";
+                        tabFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                      } else if (decoyType === 'clever') {
+                        tabTitle = "Clever | Log in with Clever";
+                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
+                      } else if (decoyType === 'campus') {
+                        tabTitle = "Campus Student";
+                        tabFavicon = "https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png";
+                      } else if (decoyType === 'docs') {
+                        tabTitle = "Google Docs";
+                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=docs.google.com";
+                      } else if (decoyType === 'gmail') {
+                        tabTitle = "Inbox - Jersey City Public Schools";
+                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=mail.google.com";
+                      } else if (decoyType === 'duolingo') {
+                        tabTitle = "Duolingo - Learn a language for free";
+                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=duolingo.com";
+                      } else if (decoyType === 'ixl') {
+                        tabTitle = "IXL | Math, Language Arts, Science, Social Studies, and Spanish";
+                        tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
+                      }
 
                       win.document.write(`
                         <!DOCTYPE html>
                         <html>
                         <head>
                           <title>${tabTitle}</title>
-                          <link rel="icon" type="image/png" href="${tabFavicon}">
+                          <link rel="icon" href="${tabFavicon}">
                           <link rel="shortcut icon" href="${tabFavicon}">
                           <meta charset="utf-8">
                           <style>
