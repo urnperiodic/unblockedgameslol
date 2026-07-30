@@ -14,6 +14,12 @@ const games = [...gamesData, ...slopeGames].map((game, index) => {
     };
   }
   return game;
+}).sort((a, b) => {
+  const aFeatured = a.featured === true || a.featured === 'true';
+  const bFeatured = b.featured === true || b.featured === 'true';
+  if (aFeatured && !bFeatured) return -1;
+  if (!aFeatured && bFeatured) return 1;
+  return 0;
 });
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
 import FlashcardsWorkspace from './components/FlashcardsWorkspace';
@@ -313,19 +319,19 @@ export default function App() {
   const openWorkspaceInAboutBlank = (currentFilter) => {
     let url = "";
     if (currentFilter === 'movies') {
-      url = window.location.origin + '?filter=movies';
+      url = window.location.origin + '?filter=movies&view=games';
     } else if (currentFilter === 'youtube') {
       url = 'https://urnperiodic.github.io/youtube1/';
     } else if (currentFilter === 'chat') {
       url = 'https://urnperiodic.github.io/extrastuffforwebsite/';
     } else if (currentFilter === 'lobbychat') {
-      url = window.location.origin + '?filter=lobbychat';
+      url = window.location.origin + '?filter=lobbychat&view=games';
     } else if (currentFilter === 'proxy') {
       url = 'https://scramjet.mercurywork.shop/';
     } else if (currentFilter === 'download') {
       url = 'https://urnperiodic.github.io/download/';
     } else {
-      url = window.location.origin;
+      url = window.location.origin + '?view=games';
     }
 
     const win = window.open('about:blank', '_blank');
@@ -481,9 +487,16 @@ export default function App() {
   const [isShake, setIsShake] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
   const [isGlobalSettingsOpen, setIsGlobalSettingsOpen] = useState(false);
-  const [showNotices, setShowNotices] = useState(true);
+  const [showNotices, setShowNotices] = useState(() => {
+    return safeStorage.getItem('notices-seen') !== 'true';
+  });
   const [noticeStep, setNoticeStep] = useState(0); // 0: Download, 1: Movies, 2: Cloak, 3: Decoy
   const [noticeCountdown, setNoticeCountdown] = useState(20);
+
+  const closeNotices = () => {
+    setShowNotices(false);
+    safeStorage.setItem('notices-seen', 'true');
+  };
 
   useEffect(() => {
     if (!showNotices) return;
@@ -493,7 +506,7 @@ export default function App() {
         if (prev <= 1) {
           setNoticeStep((step) => {
             if (step >= 3) {
-              setShowNotices(false);
+              closeNotices();
               return 0;
             }
             return step + 1;
@@ -508,7 +521,7 @@ export default function App() {
 
   const nextNoticeStep = () => {
     if (noticeStep >= 3) {
-      setShowNotices(false);
+      closeNotices();
     } else {
       setNoticeStep((prev) => prev + 1);
       setNoticeCountdown(20);
@@ -523,6 +536,12 @@ export default function App() {
   };
 
   const reshowAllNotices = () => {
+    setNoticeStep(0);
+    setNoticeCountdown(20);
+    setShowNotices(true);
+  };
+
+  const reshowDownloadNotice = () => {
     setNoticeStep(0);
     setNoticeCountdown(20);
     setShowNotices(true);
@@ -800,41 +819,14 @@ export default function App() {
   }, []);
 
   const downloadEntireWebsite = () => {
-    setFilter('download');
-    setSelectedGame(null);
-    if (viewMode !== 'games') {
-      setViewMode('games');
-    }
-    try {
-      // Create HTML containing iframe of https://urnperiodic.github.io/download/
-      const iframeHtmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Urnperiodic Study Tools</title>
-  <style>
-    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0b0c10; }
-    iframe { width: 100vw; height: 100vh; border: none; display: block; }
-  </style>
-</head>
-<body>
-  <iframe src="https://urnperiodic.github.io/download/" allow="fullscreen; autoplay; clipboard-write; encrypted-media"></iframe>
-</body>
-</html>`;
-
-      // Download the iframe HTML file
-      const blobIframe = new Blob([iframeHtmlContent], { type: 'text/html;charset=utf-8' });
-      const urlIframe = URL.createObjectURL(blobIframe);
-      const linkIframe = document.createElement('a');
-      linkIframe.href = urlIframe;
-      linkIframe.download = 'Urnperiodic_Website_Iframe.html';
-      document.body.appendChild(linkIframe);
-      linkIframe.click();
-      document.body.removeChild(linkIframe);
-      URL.revokeObjectURL(urlIframe);
-    } catch (err) {
-      console.error("Failed to download website iframe:", err);
+    if (filter === 'download') {
+      setFilter('all');
+    } else {
+      setFilter('download');
+      setSelectedGame(null);
+      if (viewMode !== 'games') {
+        setViewMode('games');
+      }
     }
   };
 
@@ -2207,32 +2199,19 @@ export default function App() {
         {/* Left Side: Logo & Title */}
         <div 
           onClick={() => { setFilter('all'); setSelectedGame(null); setSearchQuery(''); }}
-          className="flex items-center gap-2.5 cursor-pointer select-none group"
+          className="flex items-center gap-2 cursor-pointer select-none group shrink-0"
           title="Go to homepage"
         >
-          <div className="p-1.5 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-lg border border-[var(--card-border)] shadow-md group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center">
-            {viewMode === 'games' ? (
-              decoyType === 'classroom' ? (
-                <School className="w-5 h-5 text-[var(--bg-color)]" />
-              ) : (
-                <img 
-                  src={decoyOptions.find(opt => opt.value === decoyType)?.icon} 
-                  className="w-5 h-5 object-contain shrink-0 filter invert dark:brightness-200" 
-                  referrerPolicy="no-referrer" 
-                  alt="" 
-                />
-              )
-            ) : (
-              <School className="w-5 h-5" />
-            )}
+          <div className="p-1.5 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-lg border border-[var(--card-border)] shadow-md group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center shrink-0">
+            <School className="w-4 h-4" />
           </div>
-          <div>
-            <h1 className="text-lg font-black tracking-tighter text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors">
-              {viewMode === 'games'
-                ? (decoyOptions.find(opt => opt.value === decoyType)?.labelLong || "Google Classroom")
-                : "Urnperiodic StudyTools"
-              }
+          <div className="flex flex-row items-baseline gap-2 flex-wrap">
+            <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
+              TTM &amp; Grandplat2 Games
             </h1>
+            <span className="font-mono text-[var(--text-muted)] font-medium leading-none opacity-80" style={{ fontSize: '8px' }}>
+              Made by TTM and Grandplat2
+            </span>
           </div>
         </div>
 
@@ -2427,8 +2406,24 @@ export default function App() {
       ) : (
         <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-1.5 px-4 flex flex-col md:grid md:grid-cols-3 items-center gap-3 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
           
-          {/* Left: Spacer */}
-          <div className="hidden md:flex items-center justify-start" />
+          {/* Left: Logo & Title */}
+          <div 
+            onClick={() => { setFilter('all'); setSelectedGame(null); setSearchQuery(''); }}
+            className="flex items-center gap-2 cursor-pointer select-none group shrink-0 justify-start"
+            title="Go to homepage"
+          >
+            <div className="p-1 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-md border border-[var(--card-border)] shadow-sm group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center shrink-0">
+              <School className="w-3.5 h-3.5" />
+            </div>
+            <div className="flex flex-row items-baseline gap-1.5 flex-wrap">
+              <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
+                TTM &amp; Grandplat2 Games
+              </h1>
+              <span className="font-mono text-[var(--text-muted)] font-medium leading-none opacity-80" style={{ fontSize: '8px' }}>
+                Made by TTM and Grandplat2
+              </span>
+            </div>
+          </div>
 
           {/* Center: Navigation & Decoy Dropdown */}
           <div className="flex items-center justify-center w-full gap-3">
@@ -2508,6 +2503,7 @@ export default function App() {
                   }
                   const searchParams = new URLSearchParams(window.location.search);
                   searchParams.set('decoyType', decoyType);
+                  searchParams.set('view', 'games');
                   const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
                   let parentTitle = "Urnperiodic StudyTools";
                   let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
@@ -2575,7 +2571,7 @@ export default function App() {
                         <span>IMPORTANT WARNING</span>
                       </div>
                       <button
-                        onClick={() => setShowNotices(false)}
+                        onClick={closeNotices}
                         className="px-2 py-0.5 text-[10px] text-neutral-300 hover:text-white bg-white/10 hover:bg-red-500/80 rounded-md transition-all cursor-pointer shrink-0 font-sans font-bold flex items-center gap-1 border border-white/10"
                         title="Close Notifications"
                       >
@@ -2611,7 +2607,7 @@ export default function App() {
                           ← Prev
                         </button>
                         <button
-                          onClick={() => setShowNotices(false)}
+                          onClick={closeNotices}
                           className="px-2.5 py-1 rounded bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white font-bold transition-all cursor-pointer font-sans border border-red-500/40 flex items-center gap-1"
                           title="Close notifications"
                         >
@@ -2700,6 +2696,7 @@ export default function App() {
                     if (!win) { alert("Popup blocked!"); return; }
                     const searchParams = new URLSearchParams(window.location.search);
                     searchParams.set('decoyType', decoyType);
+                    searchParams.set('view', 'games');
                     const iframeSrc = `${window.location.origin}${window.location.pathname}?${searchParams.toString()}${window.location.hash}`;
                     let parentTitle = "Urnperiodic StudyTools";
                     let parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
@@ -2747,7 +2744,7 @@ export default function App() {
                         <span>IMPORTANT WARNING</span>
                       </div>
                       <button
-                        onClick={() => setShowNotices(false)}
+                        onClick={closeNotices}
                         className="px-2 py-0.5 text-[10px] text-neutral-300 hover:text-white bg-white/10 hover:bg-red-500/80 rounded-md transition-all cursor-pointer shrink-0 font-sans font-bold flex items-center gap-1 border border-white/10"
                         title="Close Notifications"
                       >
@@ -2783,7 +2780,7 @@ export default function App() {
                           ← Prev
                         </button>
                         <button
-                          onClick={() => setShowNotices(false)}
+                          onClick={closeNotices}
                           className="px-2.5 py-1 rounded bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white font-bold transition-all cursor-pointer font-sans border border-red-500/40 flex items-center gap-1"
                           title="Close notifications"
                         >
@@ -2826,7 +2823,7 @@ export default function App() {
                         <span>IMPORTANT WARNING</span>
                       </div>
                       <button
-                        onClick={() => setShowNotices(false)}
+                        onClick={closeNotices}
                         className="px-2 py-0.5 text-[10px] text-neutral-300 hover:text-white bg-white/10 hover:bg-red-500/80 rounded-md transition-all cursor-pointer shrink-0 font-sans font-bold flex items-center gap-1 border border-white/10"
                         title="Close Notifications"
                       >
@@ -2862,7 +2859,7 @@ export default function App() {
                           ← Prev
                         </button>
                         <button
-                          onClick={() => setShowNotices(false)}
+                          onClick={closeNotices}
                           className="px-2.5 py-1 rounded bg-red-500 hover:bg-red-600 text-white font-black transition-all cursor-pointer font-sans shadow-md flex items-center gap-1"
                           title="Close notifications"
                         >
@@ -2985,7 +2982,7 @@ export default function App() {
                   title="Download Website"
                   aria-label="Download Website"
                 >
-                  <Download className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+                  <Download className="w-3.5 h-3.5" style={{ color: '#a3a3a3' }} />
                 </button>
 
                 {showNotices && noticeStep === 0 && (
@@ -3000,7 +2997,7 @@ export default function App() {
                         <span>IMPORTANT WARNING</span>
                       </div>
                       <button
-                        onClick={() => setShowNotices(false)}
+                        onClick={closeNotices}
                         className="px-2 py-0.5 text-[10px] text-neutral-300 hover:text-white bg-white/10 hover:bg-red-500/80 rounded-md transition-all cursor-pointer shrink-0 font-sans font-bold flex items-center gap-1 border border-white/10"
                         title="Close Notifications"
                       >
@@ -3030,7 +3027,7 @@ export default function App() {
                       </span>
                       <div className="flex items-center gap-1.5">
                         <button
-                          onClick={() => setShowNotices(false)}
+                          onClick={closeNotices}
                           className="px-2.5 py-1 rounded bg-red-500/20 hover:bg-red-600 text-red-200 hover:text-white font-bold transition-all cursor-pointer font-sans border border-red-500/40 flex items-center gap-1"
                           title="Close notifications"
                         >
@@ -3242,11 +3239,15 @@ export default function App() {
               <div className="relative">
                 <button
                   onClick={downloadEntireWebsite}
-                  className="p-1.5 rounded-full text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all cursor-pointer flex items-center justify-center shrink-0"
-                  title="Download Website"
+                  className={`p-1.5 rounded-full transition-all cursor-pointer flex items-center justify-center shrink-0 ${
+                    filter === 'download' 
+                      ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_2px_8px_var(--accent-shadow)] font-bold' 
+                      : 'text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)]'
+                  }`}
+                  title={filter === 'download' ? "Back to Games" : "Download Website"}
                   aria-label="Download Website"
                 >
-                  <Download className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+                  <Download className={`w-3.5 h-3.5 ${filter === 'download' ? 'text-[var(--bg-color)]' : 'text-[var(--accent-color)]'}`} />
                 </button>
               </div>
 
@@ -3748,6 +3749,16 @@ export default function App() {
                   transition={{ duration: 0.2 }}
                   className={`flex flex-col w-full min-h-[550px] bg-[#0c0a09] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
                 >
+                  <div className="flex items-center justify-between px-3 py-1.5 bg-[#121019] border-b border-white/10 text-xs shrink-0">
+                    <button
+                      onClick={() => setFilter('all')}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-md bg-white/10 hover:bg-[var(--accent-color)] text-white hover:text-black font-bold font-mono transition-all cursor-pointer"
+                    >
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                      <span>Go back to games</span>
+                    </button>
+                    <span className="font-mono text-[11px] text-neutral-400">Download Workspace</span>
+                  </div>
                   <iframe 
                     src="https://urnperiodic.github.io/download/" 
                     className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"

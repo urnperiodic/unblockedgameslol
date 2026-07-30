@@ -19,7 +19,7 @@ export const games: Game[] = [
     url: 'https://urnperiodic.github.io/cityskylinesremake/',
     thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/58/Cities_Skylines_cover_art.jpg',
     category: 'Solo',
-    featured: true
+    featured: false
   },
   {
     title: 'Paper.Io',
@@ -228,7 +228,7 @@ export const games: Game[] = [
     url: 'https://urnperiodic.github.io/suika-game/',
     thumbnail: 'https://media.tenor.com/7vR97sAI99IAAAAe/watermelon-game-suika-game.png',
     category: 'solo',
-    featured: true
+    featured: false
   },
   {
     title: 'Pokemon Platinum',
@@ -558,7 +558,7 @@ export const games: Game[] = [
     url: 'clneonbreaker.html',
     thumbnail: '',
     category: 'Solo',
-    featured: true,
+    featured: false,
     isAiGenerated: true
   },
   {
@@ -568,7 +568,7 @@ export const games: Game[] = [
     url: 'clsynthrunner.html',
     thumbnail: '',
     category: 'Solo',
-    featured: true,
+    featured: false,
     isAiGenerated: true
   },
   {
@@ -578,7 +578,7 @@ export const games: Game[] = [
     url: 'cllightcycle.html',
     thumbnail: '',
     category: 'Solo',
-    featured: true,
+    featured: false,
     isAiGenerated: true
   },
   {
@@ -588,7 +588,7 @@ export const games: Game[] = [
     url: 'clcyberdefenders.html',
     thumbnail: '',
     category: 'Solo',
-    featured: true,
+    featured: false,
     isAiGenerated: true
   }
 ];
