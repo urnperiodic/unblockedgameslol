@@ -29,7 +29,7 @@ const FAQ_ITEMS = [
   },
   {
     question: "Can I request new games to be added?",
-    answer: "Yes! Click the button in the 'Request a Game' section made by the glorious king, Aedan. It is right here in the Information Hub to access our official submission form."
+    answer: "Yes! Click the button in the 'Request a Game' section right here in the Information Hub to access our official submission form."
   }
 ];
 
