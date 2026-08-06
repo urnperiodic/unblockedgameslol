@@ -109,6 +109,10 @@ const safeStorage = {
   }
 };
 
+const isLocalGame = (url) => {
+  return url && !url.startsWith('http://') && !url.startsWith('https://');
+};
+
 const decoyOptions = [
   { value: 'classroom', label: 'Classroom', labelLong: 'Google Classroom', icon: 'https://ssl.gstatic.com/classroom/favicon.png' },
   { value: 'clever', label: 'Clever', labelLong: 'Clever Login', icon: 'https://www.google.com/s2/favicons?sz=64&domain=clever.com' },
@@ -448,6 +452,11 @@ export default function App() {
     return saved !== 'false'; // Defaults to true
   });
 
+  const [panicKeysEnabled, setPanicKeysEnabled] = useState(() => {
+    const saved = safeStorage.getItem('unblocked-panic-keys-enabled');
+    return saved !== 'false'; // Defaults to true
+  });
+
   useEffect(() => {
     let timeoutId;
     
@@ -779,10 +788,12 @@ export default function App() {
     let lastEscapeTime = 0;
     const handlePanic = (e) => {
       if (e.key === '[' || e.key === ']') {
+        if (!panicKeysEnabled) return;
         e.preventDefault();
         setViewModeAndSave('articles');
         setSelectedGame(null); // Instantly close active game to clear screen
       } else if (e.key === '`' || e.key === '\\') {
+        if (!panicKeysEnabled) return;
         e.preventDefault();
         try {
           window.close();
@@ -794,13 +805,15 @@ export default function App() {
       } else if (e.key === 'Escape') {
         const now = Date.now();
         if (now - lastEscapeTime < 1000) {
-          e.preventDefault();
-          try {
-            window.close();
-          } catch (err) {
-            console.error(err);
+          if (panicKeysEnabled) {
+            e.preventDefault();
+            try {
+              window.close();
+            } catch (err) {
+              console.error(err);
+            }
+            window.location.href = "https://classroom.google.com";
           }
-          window.location.href = "https://classroom.google.com";
         } else {
           // If in window fullscreen, exit on single escape
           setWindowFullscreen(curr => {
@@ -816,7 +829,7 @@ export default function App() {
     };
     window.addEventListener('keydown', handlePanic);
     return () => window.removeEventListener('keydown', handlePanic);
-  }, []);
+  }, [panicKeysEnabled]);
 
   const downloadEntireWebsite = () => {
     if (filter === 'download') {
@@ -3087,6 +3100,30 @@ export default function App() {
                       </div>
                     </div>
 
+                    <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                      <span className="text-xs font-bold text-white">Emergency Panic Keys</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
+                          Enable emergency exit keys ([, ], `, \, Double Escape).
+                        </span>
+                        <div
+                          onClick={() => {
+                            const newVal = !panicKeysEnabled;
+                            setPanicKeysEnabled(newVal);
+                            safeStorage.setItem('unblocked-panic-keys-enabled', String(newVal));
+                          }}
+                          className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                          title="Toggle Emergency Panic Keys"
+                        >
+                          <div 
+                            className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                              panicKeysEnabled ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Download & Notification options */}
                     <div className="pt-2 border-t border-white/5 flex flex-col gap-1.5">
                       <button
@@ -3278,6 +3315,30 @@ export default function App() {
                           <div 
                             className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
                               autoLockOnIdle ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                      <span className="text-xs font-bold text-white">Emergency Panic Keys</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
+                          Enable emergency exit keys ([, ], `, \, Double Escape).
+                        </span>
+                        <div
+                          onClick={() => {
+                            const newVal = !panicKeysEnabled;
+                            setPanicKeysEnabled(newVal);
+                            safeStorage.setItem('unblocked-panic-keys-enabled', String(newVal));
+                          }}
+                          className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                          title="Toggle Emergency Panic Keys"
+                        >
+                          <div 
+                            className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                              panicKeysEnabled ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
                             }`}
                           />
                         </div>
@@ -3633,6 +3694,30 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+
+                  <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                    <span className="text-xs font-bold text-white">Emergency Panic Keys</span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
+                        Enable emergency exit keys ([, ], `, \, Double Escape).
+                      </span>
+                      <div
+                        onClick={() => {
+                          const newVal = !panicKeysEnabled;
+                          setPanicKeysEnabled(newVal);
+                          safeStorage.setItem('unblocked-panic-keys-enabled', String(newVal));
+                        }}
+                        className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                        title="Toggle Emergency Panic Keys"
+                      >
+                        <div 
+                          className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                            panicKeysEnabled ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                          }`}
+                        />
+                      </div>
+                    </div>
+                  </div>
                   <div className="border-t border-white/5 pt-2 mt-1 text-center">
                     <p className="text-[9px] font-mono text-neutral-500">
                       made by urnperiodic and Grandplat2
@@ -3898,23 +3983,43 @@ export default function App() {
                             </p>
                           </div>
 
-                          {game.featured ? (
-                            <button
-                              onClick={() => { setSelectedGame(game); setZoom(1); }}
-                              className="w-full mt-3 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500 hover:text-black hover:font-bold hover:shadow-[0_0_12px_rgba(245,158,11,0.5)] text-[11px] font-semibold tracking-wider text-amber-400 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-250 self-end uppercase cursor-pointer"
-                            >
-                              <Play className="w-3 h-3 fill-current" />
-                              <span>LAUNCH PORTAL</span>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => { setSelectedGame(game); setZoom(1); }}
-                              className="w-full mt-3 border border-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-black hover:font-bold hover:shadow-[0_0_12px_calc(var(--accent-color))] text-[11px] font-semibold tracking-wider text-[var(--accent-color)] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 self-end"
-                            >
-                              <Play className="w-3 h-3 fill-current" />
-                              <span>Open Article</span>
-                            </button>
-                          )}
+                          <div className="flex items-center gap-2 mt-3 w-full">
+                            {game.featured ? (
+                              <button
+                                onClick={() => { setSelectedGame(game); setZoom(1); }}
+                                className="flex-1 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500 hover:text-black hover:font-bold hover:shadow-[0_0_12px_rgba(245,158,11,0.5)] text-[11px] font-semibold tracking-wider text-amber-400 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-250 uppercase cursor-pointer"
+                              >
+                                <Play className="w-3 h-3 fill-current" />
+                                <span>LAUNCH PORTAL</span>
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => { setSelectedGame(game); setZoom(1); }}
+                                className="flex-1 border border-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-black hover:font-bold hover:shadow-[0_0_12px_calc(var(--accent-color))] text-[11px] font-semibold tracking-wider text-[var(--accent-color)] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200"
+                              >
+                                <Play className="w-3 h-3 fill-current" />
+                                <span>Open Article</span>
+                              </button>
+                            )}
+
+                            {isLocalGame(game.url) && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const link = document.createElement('a');
+                                  link.href = '/' + game.url;
+                                  link.download = game.url;
+                                  document.body.appendChild(link);
+                                  link.click();
+                                  document.body.removeChild(link);
+                                }}
+                                className="p-2 border border-[var(--card-border)] hover:border-[var(--accent-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)] bg-[var(--bg-secondary)] hover:bg-[var(--card-bg)] rounded-lg transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                                title="Download Offline Game (.html)"
+                              >
+                                <Download className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     );
@@ -4009,6 +4114,25 @@ export default function App() {
                     <RotateCcw className="w-3.5 h-3.5" />
                   </button>
 
+                  {/* Download button for local public games */}
+                  {selectedGame && isLocalGame(selectedGame.url) && (
+                    <button
+                      onClick={() => {
+                        const link = document.createElement('a');
+                        link.href = '/' + selectedGame.url;
+                        link.download = selectedGame.url;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                      }}
+                      className="flex items-center gap-1.5 border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] py-1.5 px-3 rounded-lg text-xs font-mono text-[var(--text-primary)] font-medium transition-all cursor-pointer"
+                      title="Download Offline Game (.html)"
+                    >
+                      <Download className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+                      <span className="hidden sm:inline text-[10px] font-bold text-[var(--accent-color)]">DOWNLOAD GAME</span>
+                    </button>
+                  )}
+
                   {/* Fullscreen button */}
                   <button
                     onClick={() => {
@@ -4063,21 +4187,52 @@ export default function App() {
                         tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
                       }
 
+                      const absoluteUrl = selectedGame.url.startsWith('http')
+                        ? selectedGame.url
+                        : window.location.origin + '/' + selectedGame.url;
+
                       win.document.write(`
                         <!DOCTYPE html>
                         <html>
                         <head>
                           <title>${tabTitle}</title>
-                          <link rel="icon" href="${tabFavicon}">
-                          <link rel="shortcut icon" href="${tabFavicon}">
+                          <link rel="icon" type="image/png" href="${tabFavicon}">
+                          <link rel="shortcut icon" type="image/png" href="${tabFavicon}">
                           <meta charset="utf-8">
                           <style>
                             html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #ffffff; }
                             iframe { width: 100vw; height: 100vh; border: none; display: block; }
                           </style>
+                          <script>
+                            function forceFavicon() {
+                              const head = document.head || document.getElementsByTagName('head')[0];
+                              const links = document.querySelectorAll("link[rel*='icon']");
+                              links.forEach(function(el) { el.remove(); });
+
+                              const newLink = document.createElement('link');
+                              newLink.rel = 'icon';
+                              newLink.type = 'image/png';
+                              newLink.href = '${tabFavicon}';
+                              head.appendChild(newLink);
+
+                              const shortcutLink = document.createElement('link');
+                              shortcutLink.rel = 'shortcut icon';
+                              shortcutLink.type = 'image/png';
+                              shortcutLink.href = '${tabFavicon}';
+                              head.appendChild(shortcutLink);
+
+                              document.title = "${tabTitle}";
+                            }
+
+                            forceFavicon();
+                            window.onload = forceFavicon;
+                            setTimeout(forceFavicon, 50);
+                            setTimeout(forceFavicon, 150);
+                            setTimeout(forceFavicon, 500);
+                          <\/script>
                         </head>
                         <body>
-                          <iframe src="${selectedGame.url}" allow="fullscreen" referrerpolicy="no-referrer"></iframe>
+                          <iframe src="${absoluteUrl}" allow="fullscreen" referrerpolicy="no-referrer"></iframe>
                         </body>
                         </html>
                       `);

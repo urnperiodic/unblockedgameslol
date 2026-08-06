@@ -7,8 +7,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Safe path resolution for both ESM (development) and CJS (production bundle)
+const __filename = typeof import.meta !== "undefined" && import.meta.url
+  ? fileURLToPath(import.meta.url)
+  : "";
+const __dirname = __filename ? path.dirname(__filename) : "";
 
 async function startServer() {
   const app = express();
@@ -201,9 +204,9 @@ Always focus on being genuinely useful and producing high-quality answers.`
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
-      // Find whether dev.html or index.html is available in the dist assets
-      const devHtmlExists = path.join(distPath, 'dev.html');
-      res.sendFile(devHtmlExists);
+      // Find whether index.html is available in the dist assets
+      const indexPath = path.join(distPath, 'index.html');
+      res.sendFile(indexPath);
     });
   }
 

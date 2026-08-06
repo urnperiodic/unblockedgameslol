@@ -515,7 +515,7 @@ export const games: Game[] = [
     title: '20 Questions',
     description: '...',
     url: 'https://script.google.com/macros/s/AKfycbyUrnTBOG7GX18cuwZyso8g60AeCiUJ0z0jaMFtbj1ef8NnxhjMKGSUyANQnEHIhEYj9Q/exec',
-    thumbnail: 'https://m.media-amazon.com/images/I/61mPeDyQewL._AC_UF894,1000_QL80_.jpg',
+    thumbnail: 'twenty_questions_flat.jpg',
     category: 'Multiplayer',
     featured: false
   },
@@ -523,7 +523,7 @@ export const games: Game[] = [
     title: 'Hangman',
     description: '...',
     url: 'https://script.google.com/macros/s/AKfycbwZ5rAmhbYeKMGab21sLjLKVpxYtSFEYesWc5v0R2Ya1zjsXMO6_9OzZGGqkFISiRZf/exec',
-    thumbnail: 'https://t4.ftcdn.net/jpg/14/80/76/33/360_F_1480763300_sQsVKV59fW7BEKo60WOVVPqlFDen30WS.jpg',
+    thumbnail: 'hangman_flat.jpg',
     category: 'Multiplayer',
     featured: false
   },
@@ -590,5 +590,69 @@ export const games: Game[] = [
     category: 'Solo',
     featured: false,
     isAiGenerated: true
+  },
+  {
+    title: 'AdVenture Capitalist',
+    description: 'Grow your business empire in this classic capitalist clicker!',
+    url: 'cladventurecapitalist.html',
+    thumbnail: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=300&q=80',
+    category: 'Solo',
+    featured: false
+  },
+  {
+    title: 'Cave Story',
+    description: 'The legendary action-adventure platformer. Explore the underground caves and save the Mimigas.',
+    url: 'clcavestory.html',
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/7/74/Cave_Story_cover_art.jpg',
+    category: 'Solo',
+    featured: true
+  },
+  {
+    title: 'Angry Birds',
+    description: 'Launch your birds to smash the structures and defeat the green pigs!',
+    url: 'clangrybirds.html',
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/a/a9/Angry_Birds_classic_cover_art.png',
+    category: 'Solo',
+    featured: false
+  },
+  {
+    title: 'Zelda: Ocarina of Time (N64)',
+    description: 'Travel through time to save Hyrule in the legendary Nintendo 64 masterpiece.',
+    url: 'clzeldaoot.html',
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/57/The_Legend_of_Zelda_Ocarina_of_Time.jpg',
+    category: 'Emulated',
+    featured: true
+  },
+  {
+    title: 'The Legend of Zelda (NES)',
+    description: 'The classic original NES adventure that started it all.',
+    url: 'clzeldanes.html',
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/4/41/Legend_of_Zelda_Cover.jpg',
+    category: 'Emulated',
+    featured: false
+  },
+  {
+    title: 'Chrono Trigger (SNES)',
+    description: 'Travel across time eras in this masterpiece SNES RPG by Square.',
+    url: 'clchronotrigger.html',
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Chrono_Trigger_snes_box.jpg',
+    category: 'Emulated',
+    featured: true
+  },
+  {
+    title: 'Castlevania: Aria of Sorrow (GBA)',
+    description: 'Command tactical souls and explore Dracula\'s castle in this stellar GBA Metroidvania.',
+    url: 'clcastlevaniaaos.html',
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/52/Castlevania_aria_of_sorrow_box.jpg',
+    category: 'Emulated',
+    featured: false
+  },
+  {
+    title: 'EarthBound (SNES)',
+    description: 'Join Ness and his friends in this quirky, beloved SNES RPG classic.',
+    url: 'clearthbound.html',
+    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/1/1a/EarthBound_Box_Art.jpg',
+    category: 'Emulated',
+    featured: true
   }
 ];

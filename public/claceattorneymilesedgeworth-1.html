@@ -1,18 +1,15 @@
-<!DOCTYPE html>
-
-
-<!-- Ultimate Game Stash file--> 
+<!-- Ultimate Game Stash file-->
 <!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
 
-
+<html>
   <head>
     <script>
       window.gameconfig = {
-        name: "Phoenix Wright - Ace Attorney (USA)",
-        url: "https://cdn.jsdelivr.net/gh/bubbls/ugss@e27ad66eda838f123bfb1aff7958bbda703283f5/Phoenix%20Wright%20-%20Ace%20Attorney%20(USA)/Phoenix%20Wright%20-%20Ace%20Attorney%20(USA).nds",
+        name: "Ace Attorney Investigations - Miles Edgeworth",
+        url: "https://cdn.jsdelivr.net/gh/bubblfan/emujs@main/milesedgeworth/Ace%20Attorney%20Investigations%20-%20Miles%20Edgeworth%20(USA).zip",
         core: "nds",
         min: 1,
-        max: 4,
+        max: 2,
       };
     </script>
     <script>
@@ -27,7 +24,7 @@
               return;
             }
             fetch(fileParts[index])
-              .then((response) => response.arrayBuffer())
+              .then((response) => response.rrayBuffer())
               .then((data) => {
                 buffers.push(data);
                 fetchPart(index + 1);
@@ -41,12 +38,10 @@
       function getParts(file, start, end) {
         let parts = [];
         for (let i = start; i <= end; i++) {
-          let padded = String(i).padStart((end+"").length, '0');
-          parts.push(file + ".part" + padded);
+          parts.push(file + ".part" + i);
         }
         return parts;
       }
-getParts("asd.js", 0, 100)
     </script>
     <style>
       body,
@@ -87,12 +82,13 @@ getParts("asd.js", 0, 100)
       var parts = getParts(
         window.gameconfig.url,
         window.gameconfig.min,
-        window.gameconfig.max
+        window.gameconfig.max,
       );
+      const progressElement = document.getElementById("loading-progress");
       var totalParts = parts.length;
+      progressElement.textContent = `Loading: 0/${totalParts}`;
 
       function updateLoadingProgress(loaded) {
-        const progressElement = document.getElementById("loading-progress");
         if (loaded === 0) {
           progressElement.textContent = "Loading: 0/0";
         } else {
@@ -108,6 +104,7 @@ getParts("asd.js", 0, 100)
           EJS_core = window.gameconfig.core;
           EJS_gameName = window.gameconfig.name;
           EJS_color = "#0064ff";
+          a;
           EJS_startOnLoaded = true;
           EJS_pathtodata = "https://cdn.jsdelivr.net/gh/bubblfan/emu@master/";
           EJS_gameUrl = gameUrl;
@@ -123,4 +120,4 @@ getParts("asd.js", 0, 100)
         });
     </script>
   </body>
-</html> 
+</html>
