@@ -239,6 +239,14 @@ export const games: Game[] = [
     featured: false
   },
   {
+    title: 'Super Mario 64',
+    description: 'Make sure you open in a seperate tab to play this game.',
+    url: 'clsupermario64.html',
+    thumbnail: '',
+    category: 'Emulated',
+    featured: false
+  },
+  {
     title: 'Pokemon Black 2',
     description: 'Make sure you open in a seperate tab to play this game.',
     url: 'clpokeblack2.html',
