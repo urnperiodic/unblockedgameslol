@@ -1,6 +1,6 @@
 {
-  "name": "Unblocked Games Hub",
-  "description": "Urnperiodic Tools: A portal for browser-based games, comprehensive study guides, Wikipedia, note-taking, flashcards, quizzes, and academic tools.",
+  "name": "Urnperiodic Studytools",
+  "description": "A way to study",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

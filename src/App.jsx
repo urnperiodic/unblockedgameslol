@@ -15,6 +15,11 @@ const games = [...gamesData, ...slopeGames].map((game, index) => {
   }
   return game;
 }).sort((a, b) => {
+  const aAi = a.isAiGenerated === true || a.isAiGenerated === 'true';
+  const bAi = b.isAiGenerated === true || b.isAiGenerated === 'true';
+  if (aAi && !bAi) return 1;
+  if (!aAi && bAi) return -1;
+
   const aFeatured = a.featured === true || a.featured === 'true';
   const bFeatured = b.featured === true || b.featured === 'true';
   if (aFeatured && !bFeatured) return -1;
@@ -81,7 +86,10 @@ import {
   Trophy,
   PartyPopper,
   Shield,
-  AlertTriangle
+  AlertTriangle,
+  ImageOff,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 
 // Safe storage helper to prevent SecurityError crash in sandboxed iframes
@@ -301,6 +309,15 @@ export default function App() {
     }
   });
 
+  const [gameHeaderHidden, setGameHeaderHidden] = useState(false);
+  const [autoHideHeader, setAutoHideHeader] = useState(() => {
+    const saved = safeStorage.getItem('unblocked-auto-hide-header');
+    return saved !== 'false'; // Defaults to true
+  });
+  const [toolsExpanded, setToolsExpanded] = useState(false);
+  const [altBarOpen, setAltBarOpen] = useState(true);
+  const [headerOpen, setHeaderOpen] = useState(false);
+
   useEffect(() => {
     safeStorage.setItem('unblocked-last-filter', filter);
   }, [filter]);
@@ -308,14 +325,17 @@ export default function App() {
   useEffect(() => {
     if (selectedGame) {
       safeStorage.setItem('unblocked-last-game', selectedGame.id);
+      if (autoHideHeader) {
+        setGameHeaderHidden(true);
+      } else {
+        setGameHeaderHidden(false);
+      }
     } else {
       safeStorage.removeItem('unblocked-last-game');
       setWindowFullscreen(false);
+      setGameHeaderHidden(false);
     }
-  }, [selectedGame]);
-  const [toolsExpanded, setToolsExpanded] = useState(false);
-  const [altBarOpen, setAltBarOpen] = useState(true);
-  const [headerOpen, setHeaderOpen] = useState(false);
+  }, [selectedGame, autoHideHeader]);
   const [showGithubNotice, setShowGithubNotice] = useState(() => {
     return safeStorage.getItem('academic-github-notice-dismissed') !== 'true';
   });
@@ -330,8 +350,6 @@ export default function App() {
       url = 'https://urnperiodic.github.io/extrastuffforwebsite/';
     } else if (currentFilter === 'lobbychat') {
       url = window.location.origin + '?filter=lobbychat&view=games';
-    } else if (currentFilter === 'proxy') {
-      url = 'https://scramjet.mercurywork.shop/';
     } else if (currentFilter === 'download') {
       url = 'https://urnperiodic.github.io/download/';
     } else {
@@ -860,7 +878,7 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlFilter = params.get('filter');
-      if (urlFilter && ['chat', 'lobbychat', 'movies', 'youtube', 'info', 'all', 'proxy', 'download'].includes(urlFilter)) {
+      if (urlFilter && ['chat', 'lobbychat', 'movies', 'youtube', 'info', 'all', 'download'].includes(urlFilter)) {
         setFilter(urlFilter);
         // Ensure games mode is active so the user goes straight to the loaded workspace
         if (viewMode !== 'games') {
@@ -1290,6 +1308,8 @@ export default function App() {
       if (!favorites.includes(game.id)) return false;
     } else if (filter === 'featured') {
       if (!game.featured) return false;
+    } else if (filter === 'deverrors') {
+      if (game.thumbnail && game.thumbnail.trim() !== '' && !failedThumbnails[game.id]) return false;
     } else if (filter !== 'all') {
       // Direct category filter matching
       if ((game.category || '').toLowerCase().trim() !== filter.toLowerCase().trim()) return false;
@@ -2206,8 +2226,18 @@ export default function App() {
     <div className="min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-clip">
       <CursorSpotlight active={viewMode === 'games'} />
       {/* HEADER */}
-      {headerOpen ? (
-        <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-3.5 px-4 md:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
+      <AnimatePresence initial={false}>
+        {(!gameHeaderHidden || !selectedGame) && (
+          <motion.header
+            key="main-header"
+            initial={{ height: 0, opacity: 0, overflow: "hidden" }}
+            animate={{ height: "auto", opacity: 1, transitionEnd: { overflow: "visible" } }}
+            exit={{ height: 0, opacity: 0, overflow: "hidden" }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="border-b border-[var(--card-border)] bg-[var(--header-bg)] shadow-sm sticky top-0 z-[5000] transition-colors duration-300 w-full"
+          >
+            {headerOpen ? (
+              <div className="py-3.5 px-4 md:px-6 flex flex-col sm:flex-row justify-between items-center gap-4 transition-colors duration-300">
         
         {/* Left Side: Logo & Title */}
         <div 
@@ -2284,22 +2314,6 @@ export default function App() {
               <span>YouTube</span>
             </motion.button>
 
-            {/* Proxy Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-bold flex items-center gap-1.5 cursor-pointer transition-all duration-200 ${
-                filter === 'proxy'
-                  ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)] font-bold'
-                  : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-              }`}
-              title="Proxy"
-            >
-              <Globe className="w-3.5 h-3.5" />
-              <span>Proxy</span>
-            </motion.button>
-
             {/* Cloak Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -2354,7 +2368,7 @@ export default function App() {
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
             <AnimatePresence>
-              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy') && (
+              {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat') && (
                 <motion.div 
                   initial={{ opacity: 0, x: -10, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2384,8 +2398,6 @@ export default function App() {
                         ? 'https://urnperiodic.github.io/youtube1/'
                         : filter === 'chat'
                         ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
-                        : filter === 'proxy'
-                        ? 'https://scramjet.mercurywork.shop/'
                         : window.location.origin + '?filter=lobbychat';
                       window.open(url, '_blank');
                     }}
@@ -2415,9 +2427,9 @@ export default function App() {
 
         </div>
 
-      </header>
+      </div>
       ) : (
-        <header className="border-b border-[var(--card-border)] bg-[var(--header-bg)] py-1.5 px-4 flex flex-col md:grid md:grid-cols-3 items-center gap-3 transition-colors duration-300 sticky top-0 z-[5000] shadow-sm animate-fade-in">
+        <div className="py-1.5 px-4 flex flex-col md:grid md:grid-cols-3 items-center gap-3 transition-colors duration-300">
           
           {/* Left: Logo & Title */}
           <div 
@@ -2492,18 +2504,6 @@ export default function App() {
                   <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
                   <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
                 </svg>
-              </button>
-
-              <button
-                onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
-                className={`p-1 rounded-md text-xs transition-all duration-200 ${
-                  filter === 'proxy'
-                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_1px_5px_var(--accent-shadow)] font-bold'
-                    : 'bg-transparent text-[var(--text-primary)] hover:text-[var(--accent-color)]'
-                }`}
-                title="Proxy"
-              >
-                <Globe className="w-3.5 h-3.5" />
               </button>
 
               {/* Cloak Button */}
@@ -2686,19 +2686,6 @@ export default function App() {
                   <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.11C19.517 3.545 12 3.545 12 3.545s-7.517 0-9.388.508a3.003 3.003 0 0 0-2.11 2.11C0 8.033 0 12 0 12s0 3.967.502 5.837a3.003 3.003 0 0 0 2.11 2.11c1.871.508 9.388.508 9.388.508s7.517 0 9.388-.508a3.003 3.003 0 0 0 2.11-2.11C24 15.967 24 12 24 12s0-3.967-.502-5.837z" fill={filter === 'youtube' ? "#FFFFFF" : "#FF0000"} />
                   <path d="M9.545 15.568V8.432L15.818 12l-6.273 3.568z" fill={filter === 'youtube' ? "#FF0000" : "#FFFFFF"} />
                 </svg>
-              </button>
-
-              {/* Proxy Button */}
-              <button
-                onClick={() => { setFilter(filter === 'proxy' ? 'all' : 'proxy'); setSelectedGame(null); }}
-                className={`p-1.5 rounded-lg border text-xs font-mono font-bold flex items-center justify-center cursor-pointer transition-all duration-200 ${
-                  filter === 'proxy'
-                    ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] shadow-[0_2px_8px_var(--accent-shadow)]'
-                    : 'bg-[var(--card-bg)] text-[var(--text-primary)] border-[var(--card-border)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
-                }`}
-                title="Proxy"
-              >
-                <Globe className="w-3.5 h-3.5" />
               </button>
 
               {/* Cloak Button */}
@@ -2894,7 +2881,7 @@ export default function App() {
 
               {/* Quick Exit & Open Separately buttons for Workspaces (Main) */}
               <AnimatePresence>
-                {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat' || filter === 'proxy') && (
+                {(filter === 'movies' || filter === 'chat' || filter === 'youtube' || filter === 'lobbychat') && (
                   <motion.div 
                     initial={{ opacity: 0, x: -10, width: 0 }}
                     animate={{ opacity: 1, x: 0, width: 'auto' }}
@@ -2926,8 +2913,6 @@ export default function App() {
                           ? 'https://urnperiodic.github.io/download/'
                           : filter === 'chat'
                           ? 'https://urnperiodic.github.io/extrastuffforwebsite/'
-                          : filter === 'proxy'
-                          ? 'https://scramjet.mercurywork.shop/'
                           : window.location.origin + '?filter=lobbychat';
                         window.open(url, '_blank');
                       }}
@@ -3124,6 +3109,30 @@ export default function App() {
                       </div>
                     </div>
 
+                    <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                      <span className="text-xs font-bold text-white">Auto Hide Header</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
+                          Automatically hide header when launching a game.
+                        </span>
+                        <div
+                          onClick={() => {
+                            const newVal = !autoHideHeader;
+                            setAutoHideHeader(newVal);
+                            safeStorage.setItem('unblocked-auto-hide-header', String(newVal));
+                          }}
+                          className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                          title="Toggle Auto Hide Header"
+                        >
+                          <div 
+                            className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                              autoHideHeader ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Download & Notification options */}
                     <div className="pt-2 border-t border-white/5 flex flex-col gap-1.5">
                       <button
@@ -3200,8 +3209,11 @@ export default function App() {
 
           </div>
 
-        </header>
+        </div>
       )}
+          </motion.header>
+        )}
+      </AnimatePresence>
 
       {/* ALT LINKS BAR */}
       {headerOpen && altBarOpen && (
@@ -3211,7 +3223,7 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-2 md:ml-auto w-full md:w-auto overflow-visible">
             {/* Go back to games back button */}
-            {(filter === 'chat' || filter === 'movies' || filter === 'proxy' || filter === 'youtube' || filter === 'lobbychat' || filter === 'download') && (
+            {(filter === 'chat' || filter === 'movies' || filter === 'youtube' || filter === 'lobbychat' || filter === 'download') && (
               <button
                 id="chat-back-button"
                 onClick={() => setFilter('all')}
@@ -3345,6 +3357,30 @@ export default function App() {
                       </div>
                     </div>
 
+                    <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                      <span className="text-xs font-bold text-white">Auto Hide Header</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
+                          Automatically hide header when launching a game.
+                        </span>
+                        <div
+                          onClick={() => {
+                            const newVal = !autoHideHeader;
+                            setAutoHideHeader(newVal);
+                            safeStorage.setItem('unblocked-auto-hide-header', String(newVal));
+                          }}
+                          className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                          title="Toggle Auto Hide Header"
+                        >
+                          <div 
+                            className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                              autoHideHeader ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Download & Notification options */}
                     <div className="pt-2 border-t border-white/5 flex flex-col gap-1.5">
                       <button
@@ -3425,14 +3461,14 @@ export default function App() {
 
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
-      <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative z-10 ${
-        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'proxy' || filter === 'download')
-          ? 'max-w-none p-0 gap-0 border-t border-[var(--card-border)]/50 lg:bg-[#07090e]' 
+      <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative ${windowFullscreen ? 'z-[99999]' : 'z-10'} ${
+        (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'download' || selectedGame)
+          ? 'max-w-none p-0 gap-0 border-t-0 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
       }`}>
         
         {/* LEFT NAV PANEL - CAT SIDEBAR */}
-        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'proxy' && filter !== 'download' && (
+        {filter !== 'chat' && filter !== 'movies' && filter !== 'youtube' && filter !== 'lobbychat' && filter !== 'download' && !selectedGame && (
           <aside className={`transition-all duration-300 ease-in-out shrink-0 flex flex-col gap-2 overflow-hidden ${
             sidebarOpen ? 'w-full md:w-44' : 'w-full md:w-14'
           }`}>
@@ -3649,84 +3685,21 @@ export default function App() {
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Other Websites</span>
           </motion.button>
 
+          <motion.button
+            whileHover={{ x: 6 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => { setFilter('deverrors'); setSelectedGame(null); }}
+            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
+              filter === 'deverrors' && !selectedGame
+                ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(239,68,68,0.3)] font-bold'
+                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80'
+            }`}
+          >
+            <ImageOff className="w-4.5 h-4.5 shrink-0 text-red-500" />
+            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>(Dev Errors)</span>
+          </motion.button>
+
           <div className="flex-1" />
-
-          <div className="relative w-full mt-auto">
-            <motion.button
-              whileHover={{ x: 4 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setIsGlobalSettingsOpen(!isGlobalSettingsOpen)}
-              className="w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80"
-            >
-              <Settings className="w-4.5 h-4.5 shrink-0" />
-              <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Settings</span>
-            </motion.button>
-
-            {isGlobalSettingsOpen && (
-              <div className="absolute bottom-full left-0 mb-2 w-64 bg-[#12121a] border border-white/10 rounded-xl p-4 shadow-2xl z-[2500] select-none text-left animate-fade-in">
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400">System Settings</span>
-                    <button onClick={() => setIsGlobalSettingsOpen(false)} className="text-neutral-400 hover:text-white cursor-pointer">
-                      <X className="w-3" style={{ height: '12px' }} />
-                    </button>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs font-bold text-white">Auto Lock (1 Hour)</span>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
-                        Lock workspace after 1 hour of inactivity.
-                      </span>
-                      <div
-                        onClick={() => {
-                          const newVal = !autoLockOnIdle;
-                          setAutoLockOnIdle(newVal);
-                          safeStorage.setItem('unblocked-auto-lock-on-idle', String(newVal));
-                        }}
-                        className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
-                        title="Toggle Auto Lock (1 Hour)"
-                      >
-                        <div 
-                          className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
-                            autoLockOnIdle ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
-                          }`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
-                    <span className="text-xs font-bold text-white">Emergency Panic Keys</span>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] text-neutral-400 leading-normal max-w-[150px]">
-                        Enable emergency exit keys ([, ], `, \, Double Escape).
-                      </span>
-                      <div
-                        onClick={() => {
-                          const newVal = !panicKeysEnabled;
-                          setPanicKeysEnabled(newVal);
-                          safeStorage.setItem('unblocked-panic-keys-enabled', String(newVal));
-                        }}
-                        className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
-                        title="Toggle Emergency Panic Keys"
-                      >
-                        <div 
-                          className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
-                            panicKeysEnabled ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
-                          }`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="border-t border-white/5 pt-2 mt-1 text-center">
-                    <p className="text-[9px] font-mono text-neutral-500">
-                      made by urnperiodic and Grandplat2
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
 
         </aside>
         )}
@@ -3809,22 +3782,6 @@ export default function App() {
                     referrerPolicy="no-referrer"
                   />
                 </motion.div>
-              ) : filter === 'proxy' ? (
-                <motion.div 
-                  key="proxy"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.2 }}
-                  className={`flex flex-col w-full min-h-[550px] bg-[#0c0a09] ${headerOpen ? 'h-[calc(100vh-140px)] md:h-[calc(100vh-120px)]' : 'h-[calc(100vh-100px)] md:h-[calc(100vh-80px)]'}`}
-                >
-                  <iframe 
-                    src="https://scramjet.mercurywork.shop/" 
-                    className="w-full h-full border-none flex-1 shadow-inner bg-[#0c0a09]"
-                    allow="fullscreen"
-                    referrerPolicy="no-referrer"
-                  />
-                </motion.div>
               ) : filter === 'download' ? (
                 <motion.div 
                   key="download"
@@ -3876,6 +3833,7 @@ export default function App() {
                     {filter === 'Emulated' && 'Emulated Archives'}
                     {filter === 'minecraft' && 'Minecraft Platform'}
                     {filter === 'Not Games' && 'Not Games'}
+                    {filter === 'deverrors' && '(Dev Errors)'}
                   </h2>
                   <p className="text-xs text-[var(--text-muted)] mt-0.5">
                     Showing {filteredGames.length} unblocked resources
@@ -3885,15 +3843,23 @@ export default function App() {
                 {/* Library Search Bar */}
                 <div className="relative w-full max-w-xs">
                   <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-muted)]">
-                    <Search className="h-4 w-4 text-[var(--accent-color)] animate-pulse" />
+                    <Search className="h-4 w-4 text-[var(--accent-color)]" />
                   </span>
                   <input
                     type="text"
                     placeholder="Search unblocked resources..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-xs rounded-xl py-2 pl-9 pr-4 border border-[var(--card-border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--accent-color)] placeholder:opacity-50 transition-all duration-300 shadow-sm"
+                    className="w-full text-xs rounded-xl py-2 pl-9 pr-8 border border-[var(--card-border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-color)] focus:ring-1 focus:ring-[var(--accent-color)]/30 placeholder:opacity-50 transition-all duration-300 shadow-sm"
                   />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -3987,18 +3953,18 @@ export default function App() {
                             {game.featured ? (
                               <button
                                 onClick={() => { setSelectedGame(game); setZoom(1); }}
-                                className="flex-1 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500 hover:text-black hover:font-bold hover:shadow-[0_0_12px_rgba(245,158,11,0.5)] text-[11px] font-semibold tracking-wider text-amber-400 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-250 uppercase cursor-pointer"
+                                className="flex-1 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500 hover:text-black hover:font-bold hover:shadow-[0_4px_14px_rgba(245,158,11,0.35)] text-[11px] font-semibold tracking-wider text-amber-400 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 uppercase cursor-pointer"
                               >
                                 <Play className="w-3 h-3 fill-current" />
-                                <span>LAUNCH PORTAL</span>
+                                <span>Play</span>
                               </button>
                             ) : (
                               <button
                                 onClick={() => { setSelectedGame(game); setZoom(1); }}
-                                className="flex-1 border border-[var(--accent-color)] hover:bg-[var(--accent-color)] hover:text-black hover:font-bold hover:shadow-[0_0_12px_calc(var(--accent-color))] text-[11px] font-semibold tracking-wider text-[var(--accent-color)] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200"
+                                className="flex-1 border border-[var(--accent-color)]/60 bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)] hover:text-black hover:font-bold hover:shadow-[0_4px_14px_var(--accent-shadow)] text-[11px] font-semibold tracking-wider text-[var(--accent-color)] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 uppercase cursor-pointer"
                               >
                                 <Play className="w-3 h-3 fill-current" />
-                                <span>Open Article</span>
+                                <span>Play</span>
                               </button>
                             )}
 
@@ -4030,127 +3996,141 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
-          ) : selectedGame.title === 'Bloons TD 5 Sandbox' ? (
-          <div className="flex flex-col gap-4 animate-fade-in bg-[#0c0f16]/90 p-4 md:p-6 rounded-2xl border border-zinc-800 shadow-2xl">
-            <div className="flex justify-start">
-              <button
-                onClick={() => setSelectedGame(null)}
-                className="flex items-center gap-2 border border-[var(--card-border)] hover:border-[var(--accent-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)] transition-all font-mono py-1.5 px-3.5 rounded-lg text-xs font-bold bg-[var(--bg-secondary)] leading-normal cursor-pointer"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Go back to game grid</span>
-              </button>
-            </div>
-            <BloonsSandbox onClose={() => setSelectedGame(null)} />
-          </div>
-        ) : (
+          ) : (
             /* ACTIVE GAME SCREEN */
-            <div className={`flex flex-col gap-4 animate-fade-in ${windowFullscreen ? 'fixed inset-0 z-[9999] bg-[#0c0f16] p-4 w-screen h-screen overflow-hidden' : ''}`}>
+            <div className={`flex flex-col animate-fade-in ${windowFullscreen ? 'fixed inset-0 z-[9999] bg-[#0c0f16] p-0 w-screen h-screen overflow-hidden gap-0' : 'gap-0'}`}>
               
               {/* Controls bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border border-[var(--card-border)] bg-[var(--bg-secondary)] rounded-xl py-3 px-4 gap-3 shadow-inner">
-                
-                <button
-                  onClick={() => setSelectedGame(null)}
-                  className="flex items-center gap-2 border border-[var(--card-border)] hover:border-[var(--accent-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)] transition-all font-mono py-1.5 px-3.5 rounded-lg text-xs font-bold leading-normal cursor-pointer"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5" />
-                  <span>Go back</span>
-                </button>
-
-                <div className="flex items-center gap-2.5">
-                  <span className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
-                    {selectedGame.title}
-                    <span className="text-[9px] uppercase tracking-wider font-mono px-2 py-0.5 rounded border border-[var(--card-border)] bg-[var(--bg-color)] text-[var(--accent-color)]">
-                      {selectedGame.category}
-                    </span>
-                    {selectedGame.isAiGenerated && (
-                      <span className="text-[9px] uppercase tracking-wider font-mono px-2 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-400">
-                        ✧ AI Generated
-                      </span>
-                    )}
-                  </span>
+              {windowFullscreen ? (
+                <div className="absolute top-4 right-4 z-[10000]">
+                  <button
+                    onClick={() => setWindowFullscreen(false)}
+                    className="flex items-center justify-center w-8 h-8 bg-black/40 hover:bg-black/65 border border-white/10 hover:border-white/25 text-white/85 hover:text-white transition-all rounded-lg backdrop-blur-md cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.4)] active:scale-95 animate-fade-in"
+                    title="Exit Window Fullscreen"
+                  >
+                    <Minimize2 className="w-4 h-4" />
+                  </button>
                 </div>
-
-                <div className="flex items-center gap-2 flex-wrap">
+              ) : (
+                <div className={`sticky ${gameHeaderHidden ? 'top-0' : headerOpen ? 'top-[108px] sm:top-[56px]' : 'top-[108px] md:top-[44px]'} z-[50] flex flex-col sm:flex-row sm:items-center justify-between border-b border-[var(--card-border)] bg-[var(--bg-secondary)] rounded-none py-3 px-4 gap-3 shadow-inner`}>
                   
-                  {/* Zoom controls */}
-                  <div className="flex items-center bg-[var(--bg-color)] border border-[var(--card-border)] rounded-lg overflow-hidden p-0.5">
-                    <button
-                      onClick={() => setZoom(z => Math.max(0.4, z - 0.1))}
-                      className="p-1 px-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--card-bg)] rounded transition-colors"
-                      title="Zoom Out"
-                    >
-                      <Minus className="w-3.5 h-3.5" />
-                    </button>
-                    <span className="text-[10px] px-2 font-mono text-[var(--text-primary)] font-bold select-none">
-                      {Math.round(zoom * 100)}%
+                  <button
+                    onClick={() => setSelectedGame(null)}
+                    className="flex items-center gap-2 border border-[var(--card-border)] hover:border-[var(--accent-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)] transition-all font-mono py-1.5 px-3.5 rounded-lg text-xs font-bold leading-normal cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Go back</span>
+                  </button>
+
+                  <div className="hidden xl:flex items-center gap-2.5">
+                    <span className="font-bold text-sm text-[var(--text-primary)] flex items-center gap-2">
+                      {selectedGame.title}
+                      <span className="text-[9px] uppercase tracking-wider font-mono px-2 py-0.5 rounded border border-[var(--card-border)] bg-[var(--bg-color)] text-[var(--accent-color)]">
+                        {selectedGame.category}
+                      </span>
+                      {selectedGame.isAiGenerated && (
+                        <span className="text-[9px] uppercase tracking-wider font-mono px-2 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-400">
+                          ✧ AI Generated
+                        </span>
+                      )}
                     </span>
-                    <button
-                      onClick={() => setZoom(z => Math.min(1.8, z + 0.1))}
-                      className="p-1 px-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--card-bg)] rounded transition-colors"
-                      title="Zoom In"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => setZoom(1)}
-                      className="p-1 px-1.5 text-xs text-[var(--accent-color)] font-mono hover:bg-[var(--card-bg)] rounded transition-colors"
-                      title="Reset Zoom"
-                    >
-                      Res
-                    </button>
                   </div>
 
-                  {/* Reload button */}
-                  <button
-                    onClick={() => {
-                      const iframe = document.getElementById('game-frame');
-                      if (iframe) iframe.src = iframe.src;
-                    }}
-                    className="p-1.5 border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] rounded-lg text-[var(--text-primary)] transition-all cursor-pointer"
-                    title="Reload game frame session"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                  </button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    
+                    {/* Zoom controls */}
+                    <div className="flex items-center bg-[var(--bg-color)] border border-[var(--card-border)] rounded-lg overflow-hidden p-0.5">
+                      <button
+                        onClick={() => setZoom(z => Math.max(0.4, z - 0.1))}
+                        className="p-1 px-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--card-bg)] rounded transition-colors"
+                        title="Zoom Out"
+                      >
+                        <Minus className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-[10px] px-2 font-mono text-[var(--text-primary)] font-bold select-none">
+                        {Math.round(zoom * 100)}%
+                      </span>
+                      <button
+                        onClick={() => setZoom(z => Math.min(1.8, z + 0.1))}
+                        className="p-1 px-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--card-bg)] rounded transition-colors"
+                        title="Zoom In"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => setZoom(1)}
+                        className="p-1 px-1.5 text-xs text-[var(--accent-color)] font-mono hover:bg-[var(--card-bg)] rounded transition-colors"
+                        title="Reset Zoom"
+                      >
+                        Reset
+                      </button>
+                    </div>
 
-                  {/* Download button for local public games */}
-                  {selectedGame && isLocalGame(selectedGame.url) && (
+                    {/* Reload button */}
                     <button
                       onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = '/' + selectedGame.url;
-                        link.download = selectedGame.url;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
+                        const iframe = document.getElementById('game-frame');
+                        if (iframe) iframe.src = iframe.src;
+                      }}
+                      className="p-1.5 border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] rounded-lg text-[var(--text-primary)] transition-all cursor-pointer"
+                      title="Reload game frame session"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                    </button>
+
+                    {/* Download button for local public games */}
+                    {selectedGame && isLocalGame(selectedGame.url) && (
+                      <button
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = '/' + selectedGame.url;
+                          link.download = selectedGame.url;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                        className="flex items-center gap-1.5 border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] py-1.5 px-3 rounded-lg text-xs font-mono text-[var(--text-primary)] font-medium transition-all cursor-pointer"
+                        title="Download Offline Game (.html)"
+                      >
+                        <Download className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+                        <span className="hidden sm:inline text-[10px] font-bold text-[var(--accent-color)]">DOWNLOAD GAME</span>
+                      </button>
+                    )}
+
+                    {/* Fullscreen button */}
+                    <button
+                      onClick={() => {
+                        const container = document.getElementById('frame-viewport');
+                        if (container) {
+                          if (document.fullscreenElement) {
+                            document.exitFullscreen();
+                          } else {
+                            container.requestFullscreen();
+                          }
+                        }
                       }}
                       className="flex items-center gap-1.5 border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] py-1.5 px-3 rounded-lg text-xs font-mono text-[var(--text-primary)] font-medium transition-all cursor-pointer"
-                      title="Download Offline Game (.html)"
+                      title="Toggle Fullscreen Arena"
                     >
-                      <Download className="w-3.5 h-3.5 text-[var(--accent-color)]" />
-                      <span className="hidden sm:inline text-[10px] font-bold text-[var(--accent-color)]">DOWNLOAD GAME</span>
+                      <Maximize2 className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline text-[10px] font-bold">FS</span>
                     </button>
-                  )}
 
-                  {/* Fullscreen button */}
-                  <button
-                    onClick={() => {
-                      const container = document.getElementById('frame-viewport');
-                      if (container) {
-                        if (document.fullscreenElement) {
-                          document.exitFullscreen();
-                        } else {
-                          container.requestFullscreen();
-                        }
-                      }
-                    }}
-                    className="flex items-center gap-1.5 border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] py-1.5 px-3 rounded-lg text-xs font-mono text-[var(--text-primary)] font-medium transition-all cursor-pointer"
-                    title="Toggle Fullscreen Arena"
-                  >
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline text-[10px] font-bold">FULLSCREEN</span>
-                  </button>
+                    {/* Window Fullscreen Button */}
+                    <button
+                      onClick={() => setWindowFullscreen(!windowFullscreen)}
+                      className={`flex items-center gap-1.5 border py-1.5 px-3 rounded-lg text-xs font-mono font-medium transition-all cursor-pointer ${
+                        windowFullscreen
+                          ? 'border-amber-500 bg-amber-500/15 text-amber-500 font-bold shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                          : 'border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)]'
+                      }`}
+                      title={windowFullscreen ? "Exit Window Fullscreen" : "Toggle Window Fullscreen"}
+                    >
+                      {windowFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                      <span className="hidden sm:inline text-[10px] font-bold">
+                        {windowFullscreen ? 'EXIT WINDOW FS' : 'WINDOW FS'}
+                      </span>
+                    </button>
 
                   {/* Open in New Tab button */}
                   <button
@@ -4160,7 +4140,6 @@ export default function App() {
                         alert("Popup blocked. Allow popups for this site.");
                         return;
                       }
-
                       const classroomFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
                       let tabTitle = selectedGame.title;
                       let tabFavicon = classroomFavicon;
@@ -4242,7 +4221,7 @@ export default function App() {
                     title="Open Game in New Tab"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline text-[10px] font-bold">OPEN IN NEW TAB</span>
+                    <span className="hidden sm:inline text-[10px] font-bold">OPEN IN ABOUT:BLANK</span>
                   </button>
 
                   {/* Lobby Chat Toggle Button */}
@@ -4256,16 +4235,43 @@ export default function App() {
                     title="Toggle Live Lobby Chat inside Game Arena"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline text-[10px] font-bold">
-                      {dockedChatCollapsed ? 'OPEN CHAT' : 'CLOSE CHAT'}
-                    </span>
+                    {!dockedChatCollapsed && (
+                      <span className="hidden sm:inline text-[10px] font-bold">
+                        CLOSE CHAT
+                      </span>
+                    )}
                   </button>
+
+                  {/* Hide Header Button */}
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setGameHeaderHidden(!gameHeaderHidden)}
+                    className={`flex items-center gap-1.5 border py-1.5 px-3 rounded-lg text-xs font-mono font-medium transition-all duration-300 cursor-pointer relative ${
+                      gameHeaderHidden 
+                        ? 'border-white bg-white/10 text-white font-black hover:bg-white/20' 
+                        : 'border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)]'
+                    }`}
+                    title={gameHeaderHidden ? "Show Main Website Header" : "Hide Main Website Header"}
+                  >
+                    <motion.div
+                      animate={gameHeaderHidden ? { rotate: 180, scale: 1.1 } : { rotate: 0, scale: 1 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                      className="flex items-center justify-center"
+                    >
+                      {gameHeaderHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                    </motion.div>
+                    <span className="hidden sm:inline text-[10px] font-bold">
+                      {gameHeaderHidden ? 'SHOW HEADER' : 'HIDE HEADER'}
+                    </span>
+                  </motion.button>
 
 
 
                 </div>
 
               </div>
+            )}
 
               {/* Game Arena with Side-by-Side Docked Chat */}
               <div 
@@ -4275,7 +4281,7 @@ export default function App() {
                 {/* Game Viewport Container */}
                 <div 
                   id="frame-viewport"
-                  className="flex-1 h-full rounded-2xl border border-[var(--card-border)] bg-black overflow-hidden relative shadow-lg"
+                  className="flex-1 h-full rounded-none border-t border-[var(--card-border)] bg-black overflow-hidden relative"
                 >
                   <div 
                     className="w-full h-full duration-150 transition-transform origin-top-left"
@@ -4320,7 +4326,7 @@ export default function App() {
                 {!dockedChatCollapsed && (
                   <div 
                     style={{ width: window.innerWidth >= 1024 ? `${dockedChatWidth}px` : '100%' }}
-                    className="w-full lg:h-full h-[320px] shrink-0 flex flex-col bg-[#070a11] border border-[var(--card-border)]/50 rounded-2xl overflow-hidden shadow-2xl"
+                    className="w-full lg:h-full h-[320px] shrink-0 flex flex-col bg-[#070a11] border-t lg:border-t-0 lg:border-l border-[var(--card-border)]/50 rounded-none overflow-hidden"
                   >
                     <div className="bg-[#0b0f19] px-2.5 py-1.5 border-b border-white/5 flex items-center justify-between shrink-0">
                       <span className="text-[9px] font-black text-[var(--accent-color)] uppercase tracking-wider flex items-center gap-1.5">

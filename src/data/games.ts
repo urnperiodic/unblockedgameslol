@@ -239,14 +239,6 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'Super Mario 64',
-    description: 'Make sure you open in a seperate tab to play this game.',
-    url: 'clsupermario64.html',
-    thumbnail: '',
-    category: 'Emulated',
-    featured: false
-  },
-  {
     title: 'Pokemon Black 2',
     description: 'Make sure you open in a seperate tab to play this game.',
     url: 'clpokeblack2.html',
@@ -514,7 +506,7 @@ export const games: Game[] = [
   {
     title: 'Ace Attorney - Justice For All',
     description: '...',
-    url: 'aceattorney.html',
+    url: 'clpheonixjusticeforall.html',
     thumbnail: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS_YlHon89nCvWBzs71pzFmcJWQ4O7zmvfo07Zv85mpQddjo0kLlNWmLEIRqMj1o3BSTy0zsWyLEgrjQUt8ssfh-nkPFBxhKcM216lujQ&s=10',
     category: 'Solo',
     featured: true
