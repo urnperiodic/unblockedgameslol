@@ -54,6 +54,14 @@ export const games: Game[] = [
     featured: true
   },
   {
+    title: 'The Final Earth 2 (Modded)',
+    description: 'Modded version — easier to play and has more things to do!',
+    url: 'The_Final_Earth_2_Standalone.html',
+    thumbnail: 'Modded.png',
+    category: 'Solo',
+    featured: true
+  },
+  {
     title: 'Shader Pilot',
     description: 'Game that TTM made and It looks good Ig and cool ig. ',
     url: 'https://urnperiodic.github.io/shader-piolet/',

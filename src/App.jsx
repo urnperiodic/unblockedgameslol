@@ -89,7 +89,8 @@ import {
   AlertTriangle,
   ImageOff,
   Eye,
-  EyeOff
+  EyeOff,
+  History
 } from 'lucide-react';
 
 // Safe storage helper to prevent SecurityError crash in sandboxed iframes
@@ -282,6 +283,36 @@ export default function App() {
     const initialViewMode = safeStorage.getItem('classroom-view-mode') || 'articles';
     return initialViewMode === 'games' ? 'dark' : 'light';
   });
+
+  // Classroom/Games Cloak/Decoy State
+  const [decoyType, setDecoyType] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlDecoyType = params.get('decoyType');
+      if (urlDecoyType && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoyType)) {
+        return urlDecoyType;
+      }
+      const urlDecoy = params.get('decoy');
+      if (urlDecoy === 'true') return 'classroom';
+      if (urlDecoy === 'false') return 'classroom';
+      if (urlDecoy && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoy)) {
+        return urlDecoy;
+      }
+      const cached = localStorage.getItem('study-tools-decoy-type');
+      if (cached && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(cached)) {
+        return cached;
+      }
+    }
+    return 'classroom';
+  });
+
+  const useClassroomDecoy = true;
+
+  // Persist decoy state to localStorage
+  useEffect(() => {
+    localStorage.setItem('study-tools-decoy-type', decoyType);
+    localStorage.setItem('study-tools-classroom-decoy', 'true');
+  }, [decoyType]);
   const [filter, setFilter] = useState(() => {
     try {
       const hasVisited = safeStorage.getItem('has-visited-before');
@@ -475,6 +506,51 @@ export default function App() {
     return saved !== 'false'; // Defaults to true
   });
 
+  const [historyMaskingEnabled, setHistoryMaskingEnabled] = useState(() => {
+    const saved = safeStorage.getItem('unblocked-history-masking');
+    return saved !== 'false'; // Defaults to true
+  });
+
+  // Browser History Sanitization & Masking Engine
+  // Continuously prevents game titles, sub-paths, and gaming query parameters
+  // from accumulating in your browser history stack by leveraging history.replaceState()
+  useEffect(() => {
+    if (!historyMaskingEnabled || typeof window === 'undefined') return;
+
+    try {
+      // Determine clean benign root or standard path
+      const currentUrl = window.location;
+      const cleanPath = currentUrl.pathname || '/';
+      
+      // If there are lingering gaming query parameters, sanitize them in-place
+      const searchParams = new URLSearchParams(currentUrl.search);
+      let needsSanitize = false;
+
+      // Check if URL has gaming query parameters that should be wiped from history
+      ['filter', 'view', 'unlocked', 'game', 'id', 'search'].forEach(param => {
+        if (searchParams.has(param)) {
+          searchParams.delete(param);
+          needsSanitize = true;
+        }
+      });
+
+      const sanitizedUrl = needsSanitize 
+        ? (searchParams.toString() ? `${cleanPath}?${searchParams.toString()}` : cleanPath)
+        : cleanPath;
+
+      const maskedState = {
+        disguise: 'educational_workspace',
+        app: 'Google Classroom',
+        timestamp: Date.now()
+      };
+
+      // Replace current history entry in place - NEVER pushes a new entry
+      window.history.replaceState(maskedState, document.title, sanitizedUrl);
+    } catch (e) {
+      // Gracefully handle iframe sandbox or restricted origin policies
+    }
+  }, [historyMaskingEnabled, selectedGame, filter, viewMode, decoyType]);
+
   useEffect(() => {
     let timeoutId;
     
@@ -514,6 +590,27 @@ export default function App() {
   const [isShake, setIsShake] = useState(false);
   const [errorCount, setErrorCount] = useState(0);
   const [isGlobalSettingsOpen, setIsGlobalSettingsOpen] = useState(false);
+  const [historyClearedToast, setHistoryClearedToast] = useState(false);
+
+  const handleClearHistory = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        const cleanPath = window.location.pathname || '/';
+        const maskedState = {
+          disguise: 'educational_workspace',
+          app: 'Google Classroom',
+          timestamp: Date.now()
+        };
+        window.history.replaceState(maskedState, 'Google Classroom', cleanPath);
+      }
+    } catch (e) {
+      console.warn('History replaceState failed:', e);
+    }
+    setHistoryClearedToast(true);
+    setTimeout(() => {
+      setHistoryClearedToast(false);
+    }, 2000);
+  };
   const [showNotices, setShowNotices] = useState(() => {
     return safeStorage.getItem('notices-seen') !== 'true';
   });
@@ -580,36 +677,6 @@ export default function App() {
   const [selectedArticleId, setSelectedArticleId] = useState(initialArticles[0]?.id || '');
   const [articleSearch, setArticleSearch] = useState('');
   const [selectedArticleCategory, setSelectedArticleCategory] = useState('All');
-
-  // Classroom/Games Cloak/Decoy State
-  const [decoyType, setDecoyType] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlDecoyType = params.get('decoyType');
-      if (urlDecoyType && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoyType)) {
-        return urlDecoyType;
-      }
-      const urlDecoy = params.get('decoy');
-      if (urlDecoy === 'true') return 'classroom';
-      if (urlDecoy === 'false') return 'classroom';
-      if (urlDecoy && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoy)) {
-        return urlDecoy;
-      }
-      const cached = localStorage.getItem('study-tools-decoy-type');
-      if (cached && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(cached)) {
-        return cached;
-      }
-    }
-    return 'classroom';
-  });
-
-  const useClassroomDecoy = true;
-
-  // Persist decoy state to localStorage
-  useEffect(() => {
-    localStorage.setItem('study-tools-decoy-type', decoyType);
-    localStorage.setItem('study-tools-classroom-decoy', 'true');
-  }, [decoyType]);
 
   // Set white as the main starting color for articles (light mode), and black for games (dark mode)
   useEffect(() => {
@@ -808,12 +875,16 @@ export default function App() {
       if (e.key === '[' || e.key === ']') {
         if (!panicKeysEnabled) return;
         e.preventDefault();
+        try {
+          window.history.replaceState({ disguise: 'educational_workspace' }, 'Urnperiodic StudyTools', window.location.pathname || '/');
+        } catch (err) {}
         setViewModeAndSave('articles');
         setSelectedGame(null); // Instantly close active game to clear screen
       } else if (e.key === '`' || e.key === '\\') {
         if (!panicKeysEnabled) return;
         e.preventDefault();
         try {
+          window.history.replaceState({ disguise: 'educational_workspace' }, 'Home - Classroom', window.location.pathname || '/');
           window.close();
         } catch (err) {
           console.error(err);
@@ -826,6 +897,7 @@ export default function App() {
           if (panicKeysEnabled) {
             e.preventDefault();
             try {
+              window.history.replaceState({ disguise: 'educational_workspace' }, 'Home - Classroom', window.location.pathname || '/');
               window.close();
             } catch (err) {
               console.error(err);
@@ -2223,7 +2295,7 @@ export default function App() {
 
 
   return (
-    <div className="min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-clip">
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-clip ${viewMode === 'games' ? 'games-no-select select-none' : ''}`}>
       <CursorSpotlight active={viewMode === 'games'} />
       {/* HEADER */}
       <AnimatePresence initial={false}>
@@ -2944,6 +3016,31 @@ export default function App() {
           {/* Top Right: Theme Slider & Settings/Colors Bar */}
           <div className="flex items-center gap-2 justify-end w-full md:w-auto">
 
+            {/* Clear History Button in Header */}
+            <button
+              id="header-clear-history-button"
+              onClick={handleClearHistory}
+              className={`flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-bold tracking-tight rounded-md border transition-all duration-200 cursor-pointer shadow-sm shrink-0 active:scale-95 group ${
+                historyClearedToast 
+                  ? 'border-emerald-500/60 bg-emerald-500/15 text-emerald-400' 
+                  : 'border-[var(--card-border)] bg-[var(--bg-secondary)] hover:border-[var(--accent-color)] text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)]'
+              }`}
+              title="Clear & Sanitize Browser History (replaceState)"
+              aria-label="Clear History"
+            >
+              {historyClearedToast ? (
+                <>
+                  <Check className="w-3 h-3 text-emerald-400 shrink-0" />
+                  <span className="text-emerald-400 font-bold whitespace-nowrap">Cleared!</span>
+                </>
+              ) : (
+                <>
+                  <History className="w-3 h-3 text-[var(--accent-color)] group-hover:-rotate-45 transition-transform duration-200 shrink-0" />
+                  <span className="whitespace-nowrap">Clear History</span>
+                </>
+              )}
+            </button>
+
             {/* Light/Dark slider (Compact) */}
             <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-0.5 rounded-full shadow-sm">
               <div 
@@ -3133,6 +3230,38 @@ export default function App() {
                       </div>
                     </div>
 
+                    <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                          <History className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+                          History Masking
+                        </span>
+                        <div
+                          onClick={() => {
+                            const newVal = !historyMaskingEnabled;
+                            setHistoryMaskingEnabled(newVal);
+                            safeStorage.setItem('unblocked-history-masking', String(newVal));
+                            if (newVal && typeof window !== 'undefined') {
+                              try {
+                                window.history.replaceState({ disguise: 'educational_workspace' }, document.title, window.location.pathname || '/');
+                              } catch (e) {}
+                            }
+                          }}
+                          className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                          title="Toggle Browser History Masking (replaceState)"
+                        >
+                          <div 
+                            className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                              historyMaskingEnabled ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-neutral-400 leading-normal">
+                        Prevents game titles and sub-paths from accumulating in browser history via <code className="text-[var(--accent-color)] font-mono">history.replaceState()</code>.
+                      </span>
+                    </div>
+
                     {/* Download & Notification options */}
                     <div className="pt-2 border-t border-white/5 flex flex-col gap-1.5">
                       <button
@@ -3166,7 +3295,7 @@ export default function App() {
 
                     <div className="border-t border-white/5 pt-2 mt-1 text-center">
                       <p className="text-[9px] font-mono text-neutral-500">
-                        made by urnperiodic and Grandplat2
+                        made by TTM and Grandplat2
                       </p>
                     </div>
                   </div>
@@ -3255,6 +3384,31 @@ export default function App() {
               <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase select-none">Decoy:</span>
               <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} />
             </div>
+
+            {/* Clear History Button in Alt Bar */}
+            <button
+              id="alt-bar-clear-history-button"
+              onClick={handleClearHistory}
+              className={`flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold tracking-tight rounded-full border transition-all duration-200 cursor-pointer shadow-sm shrink-0 active:scale-95 group ${
+                historyClearedToast 
+                  ? 'border-emerald-500/60 bg-emerald-500/15 text-emerald-400' 
+                  : 'border-[var(--card-border)] bg-[var(--bg-secondary)] hover:border-[var(--accent-color)] text-[var(--text-muted)] hover:text-[var(--accent-color)] hover:bg-[var(--card-bg)]'
+              }`}
+              title="Clear & Sanitize Browser History (replaceState)"
+              aria-label="Clear History"
+            >
+              {historyClearedToast ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span className="text-emerald-400 font-bold whitespace-nowrap">Cleared!</span>
+                </>
+              ) : (
+                <>
+                  <History className="w-3.5 h-3.5 text-[var(--accent-color)] group-hover:-rotate-45 transition-transform duration-200 shrink-0" />
+                  <span className="whitespace-nowrap">Clear History</span>
+                </>
+              )}
+            </button>
 
             {/* Light/Dark Mode slider */}
             <div className="flex items-center gap-1 border border-[var(--card-border)] bg-[var(--bg-secondary)] p-1 rounded-full shadow-sm">
@@ -3381,6 +3535,38 @@ export default function App() {
                       </div>
                     </div>
 
+                    <div className="flex flex-col gap-2 border-t border-white/5 pt-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                          <History className="w-3.5 h-3.5 text-[var(--accent-color)]" />
+                          History Masking
+                        </span>
+                        <div
+                          onClick={() => {
+                            const newVal = !historyMaskingEnabled;
+                            setHistoryMaskingEnabled(newVal);
+                            safeStorage.setItem('unblocked-history-masking', String(newVal));
+                            if (newVal && typeof window !== 'undefined') {
+                              try {
+                                window.history.replaceState({ disguise: 'educational_workspace' }, document.title, window.location.pathname || '/');
+                              } catch (e) {}
+                            }
+                          }}
+                          className="relative w-[50px] h-6 bg-[var(--input-fill)] border border-[var(--card-border)] rounded-full cursor-pointer flex items-center p-0.5 transition-all duration-300 shrink-0"
+                          title="Toggle Browser History Masking (replaceState)"
+                        >
+                          <div 
+                            className={`w-5 h-5 rounded-full shadow-md transition-all duration-300 ease-out transform ${
+                              historyMaskingEnabled ? 'translate-x-6 bg-[var(--accent-color)]' : 'translate-x-0 bg-neutral-500'
+                            }`}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-[10px] text-neutral-400 leading-normal">
+                        Prevents game titles and sub-paths from accumulating in browser history via <code className="text-[var(--accent-color)] font-mono">history.replaceState()</code>.
+                      </span>
+                    </div>
+
                     {/* Download & Notification options */}
                     <div className="pt-2 border-t border-white/5 flex flex-col gap-1.5">
                       <button
@@ -3414,7 +3600,7 @@ export default function App() {
 
                     <div className="border-t border-white/5 pt-2 mt-1 text-center">
                       <p className="text-[9px] font-mono text-neutral-500">
-                        made by urnperiodic and Grandplat2
+                        made by TTM and Grandplat2
                       </p>
                     </div>
                   </div>
@@ -3461,7 +3647,7 @@ export default function App() {
 
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
-      <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative ${windowFullscreen ? 'z-[99999]' : 'z-10'} ${
+      <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative select-none games-no-select ${windowFullscreen ? 'z-[99999]' : 'z-10'} ${
         (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'download' || selectedGame)
           ? 'max-w-none p-0 gap-0 border-t-0 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
@@ -3897,8 +4083,9 @@ export default function App() {
                               src={getOptimizedThumbnail(game.thumbnail)} 
                               alt={game.title} 
                               referrerPolicy="no-referrer"
+                              draggable="false"
                               onError={() => setFailedThumbnails(prev => ({ ...prev, [game.id]: true }))}
-                              className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" 
+                              className="w-full h-full object-cover transition-transform duration-500 hover:scale-110 select-none pointer-events-none" 
                             />
                           ) : (
                             renderGameArt(game)

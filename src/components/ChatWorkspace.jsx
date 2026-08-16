@@ -5,7 +5,7 @@ export default function ChatWorkspace({ onClose }) {
       <div id="chat-iframe-wrapper" className="flex-1 w-full h-full bg-black">
         <iframe
           id="chat-decoy-iframe"
-          src="https://urnperiodic.github.io/extrastuffforwebsite/"
+          src="https://grandplat2.vercel.app/"
           className="w-full h-full border-none"
           title="Extra Stuff Workspace"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
