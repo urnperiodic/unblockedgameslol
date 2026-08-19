@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<base href="https://cdn.jsdelivr.net/gh/Onex558/Capuchin@main/">
+
+<title>Capuchin</title>
+
+<link rel="shortcut icon" href="TemplateData/favicon.ico">
+<link rel="manifest" href="manifest.webmanifest">
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+html,body{
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    background:#0a0a0c;
+}
+
+#ls{
+    position:fixed;
+    inset:0;
+    z-index:100;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:28px;
+    transition:opacity .6s,visibility .6s;
+}
+
+#ls.h{
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+}
+
+#bg{
+    position:absolute;
+    inset:0;
+    background:url("TemplateData/bg.webp") center/cover no-repeat;
+}
+
+#bg::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.35);
+}
+
+#lg{
+    position:relative;
+    z-index:1;
+    height:240px;
+    max-width:80vw;
+    object-fit:contain;
+}
+
+#br{
+    position:relative;
+    z-index:1;
+    width:141px;
+    height:18px;
+    background:url("TemplateData/progress-bar-empty-dark.png") no-repeat center;
+}
+
+#fl{
+    width:0;
+    height:18px;
+    background:url("TemplateData/progress-bar-full-dark.png") no-repeat center;
+}
+
+#uc{
+    width:100vw;
+    height:100vh;
+}
+
+#cv{
+    width:100%;
+    height:100%;
+    display:block;
+    outline:none;
+}
+
+#uw{
+    position:fixed;
+    bottom:20px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:200;
+    max-width:90vw;
+}
+</style>
+</head>
+
+<body>
+
+<div id="ls">
+
+    <div id="bg"></div>
+
+    <img
+        id="lg"
+        src="TemplateData/capu.webp"
+        alt="Capuchin"
+    >
+
+    <div id="br">
+        <div id="fl"></div>
+    </div>
+
+</div>
+
+<div id="uc">
+    <canvas id="cv" tabindex="-1"></canvas>
+    <div id="uw"></div>
+</div>
+
+<script>
+"use strict";
+
+(() => {
+
+const BUILD =
+"https://cdn.jsdelivr.net/gh/Onex558/Capuchin@main/Build";
+
+const $ =
+id => document.getElementById(id);
+
+const progressBar =
+$("fl");
+
+const loadingScreen =
+$("ls");
+
+const warning =
+$("uw");
+
+
+function progress(value){
+
+    progressBar.style.width =
+        Math.min(
+            Math.round(value * 100),
+            100
+        ) + "%";
+
+}
+
+
+/*
+ * Download a normal file.
+ */
+async function getFile(url){
+
+    const response =
+        await fetch(
+            url,
+            {
+                cache:"no-store"
+            }
+        );
+
+    if(!response.ok){
+
+        throw new Error(
+            "HTTP " +
+            response.status +
+            " while loading:\n" +
+            url
+        );
+    }
+
+    return new Uint8Array(
+        await response.arrayBuffer()
+    );
+
+}
+
+
+/*
+ * Download all parts without a long
+ * JavaScript loop.
+ *
+ * DATA:
+ *  part1 - part18
+ *
+ * WASM:
+ *  part1 - part3
+ */
+async function getParts(
+    name,
+    count
+){
+
+    const requests =
+        Array.from(
+            {length:count},
+            (_,index) =>
+                getFile(
+                    BUILD +
+                    "/" +
+                    name +
+                    ".part" +
+                    (index + 1)
+                )
+        );
+
+    const parts =
+        await Promise.all(
+            requests
+        );
+
+    /*
+     * Blob combines the parts in order.
+     */
+    const combined =
+        await new Blob(parts)
+            .arrayBuffer();
+
+    return new Uint8Array(
+        combined
+    );
+
+}
+
+
+/*
+ * Turn binary data into a URL.
+ */
+function blobURL(
+    data,
+    type
+){
+
+    return URL.createObjectURL(
+        new Blob(
+            [data],
+            {type:type}
+        )
+    );
+
+}
+
+
+async function start(){
+
+    try{
+
+        progress(.02);
+
+
+        /*
+         * The repository contains:
+         *
+         * CapuchinBog.data.part1
+         * ...
+         * CapuchinBog.data.part18
+         */
+
+        const data =
+            await getParts(
+                "CapuchinBog.data",
+                18
+            );
+
+
+        progress(.55);
+
+
+        /*
+         * The repository contains:
+         *
+         * CapuchinBog.wasm.part1
+         * CapuchinBog.wasm.part2
+         * CapuchinBog.wasm.part3
+         */
+
+        const wasm =
+            await getParts(
+                "CapuchinBog.wasm",
+                3
+            );
+
+
+        progress(.75);
+
+
+        /*
+         * Framework
+         */
+
+        const framework =
+            await getFile(
+                BUILD +
+                "/CapuchinBog.framework.js"
+            );
+
+
+        progress(.82);
+
+
+        /*
+         * Create URLs for Unity.
+         */
+
+        const dataURL =
+            blobURL(
+                data,
+                "application/octet-stream"
+            );
+
+        const wasmURL =
+            blobURL(
+                wasm,
+                "application/wasm"
+            );
+
+        const frameworkURL =
+            blobURL(
+                framework,
+                "application/javascript"
+            );
+
+
+        /*
+         * Unity loader
+         */
+
+        const loader =
+            await getFile(
+                BUILD +
+                "/CapuchinBog.loader.js"
+            );
+
+
+        progress(.88);
+
+
+        /*
+         * Create the loader as a Blob URL.
+         */
+
+        const loaderURL =
+            blobURL(
+                loader,
+                "application/javascript"
+            );
+
+
+        const script =
+            document.createElement(
+                "script"
+            );
+
+        script.src =
+            loaderURL;
+
+
+        await new Promise(
+            (resolve,reject) => {
+
+                script.onload =
+                    resolve;
+
+                script.onerror =
+                    () => reject(
+                        new Error(
+                            "CapuchinBog.loader.js could not load."
+                        )
+                    );
+
+                document.body.appendChild(
+                    script
+                );
+
+            }
+        );
+
+
+        /*
+         * Make sure Unity's function exists.
+         */
+
+        if(
+            typeof createUnityInstance !==
+            "function"
+        ){
+
+            throw new Error(
+                "createUnityInstance was not found."
+            );
+
+        }
+
+
+        progress(.90);
+
+
+        /*
+         * Start Unity.
+         */
+
+        await createUnityInstance(
+            $("cv"),
+            {
+
+                dataUrl:
+                    dataURL,
+
+                frameworkUrl:
+                    frameworkURL,
+
+                codeUrl:
+                    wasmURL,
+
+                streamingAssetsUrl:
+                    "StreamingAssets",
+
+                companyName:
+                    "DuttBust",
+
+                productName:
+                    "Capuchin",
+
+                productVersion:
+                    "1.5",
+
+                showBanner(
+                    message,
+                    type
+                ){
+
+                    const div =
+                        document.createElement(
+                            "div"
+                        );
+
+                    div.innerHTML =
+                        message;
+
+                    div.style.cssText =
+                        type === "error"
+                        ?
+                        "background:red;" +
+                        "color:white;" +
+                        "padding:10px;" +
+                        "border-radius:8px;"
+                        :
+                        "background:#f5c542;" +
+                        "padding:10px;" +
+                        "border-radius:8px;";
+
+                    warning.appendChild(
+                        div
+                    );
+
+                    if(
+                        type !== "error"
+                    ){
+
+                        setTimeout(
+                            () => div.remove(),
+                            5000
+                        );
+
+                    }
+
+                }
+
+            },
+
+            value => {
+
+                progress(
+                    .90 +
+                    value * .10
+                );
+
+            }
+
+        );
+
+
+        progress(1);
+
+
+        setTimeout(
+            () => {
+
+                loadingScreen.classList.add(
+                    "h"
+                );
+
+            },
+            500
+        );
+
+
+    }catch(error){
+
+        console.error(
+            "Capuchin loader error:",
+            error
+        );
+
+        warning.innerHTML =
+            "<div style=\"" +
+            "background:#d00000;" +
+            "color:white;" +
+            "padding:15px;" +
+            "border-radius:10px;" +
+            "font-family:monospace;" +
+            "max-width:90vw;" +
+            "word-break:break-word;" +
+            "\">" +
+            "<b>Capuchin failed to load</b>" +
+            "<br><br>" +
+            error.message +
+            "</div>";
+
+    }
+
+}
+
+start();
+
+})();
+</script>
+
+</body>
+</html>

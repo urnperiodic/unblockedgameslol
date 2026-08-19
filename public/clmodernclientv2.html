@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html style="width:100%;height:100%;background-color:black;">
+	<head>
+    <base href = "https://cdn.jsdelivr.net/gh/cooldude2349/everything@main/modernclient/">
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0" />
+		
+		<meta property="og:locale" content="en-US" />
+		<meta property="og:type" content="website" />
+		
+		
+		<link rel="stylesheet" href="launcher-back.min.css" />
+		<link rel="stylesheet" href="mobile-addon.min.css" />
+        
+        <script src = "jszip.min.js"></script>
+        
+        <script>
+        
+          async function fetchAndCombineZip(binUrls) {
+    const responses = await Promise.all(binUrls.map(url => fetch(url)));
+    const buffers = await Promise.all(responses.map(res => res.arrayBuffer()));
+    let totalLength = buffers.reduce((acc, buf) => acc + buf.byteLength, 0);
+    let combined = new Uint8Array(totalLength);
+    let offset = 0;
+    for (let buf of buffers) {
+        combined.set(new Uint8Array(buf), offset);
+        offset += buf.byteLength;
+    }
+    return combined;
+}
+
+async function unzipWebpFromExternalBins(binUrls) {
+    const blobUrls = {};
+    const bytes = await fetchAndCombineZip(binUrls);
+    const zip = await JSZip.loadAsync(bytes);
+    for (const [filename, file] of Object.entries(zip.files)) {
+        if (!file.dir) {
+            let mime = '';
+            if (filename.endsWith('.js') || filename.endsWith('.mjs')) {
+                mime = 'text/javascript';
+            } else if (filename.endsWith('.css')) {
+                mime = 'text/css';
+            } else if (filename.endsWith('.html')) {
+                mime = 'text/html';
+            } else if (filename.endsWith('.webp')) {
+                mime = 'image/webp';
+            } else if (filename.endsWith('.png')) {
+                mime = 'image/png';
+            } else if (filename.endsWith('.jpg') || filename.endsWith('.jpeg')) {
+                mime = 'image/jpeg';
+            }
+            const rawBlob = await file.async("blob");
+            const blob = mime ? new Blob([rawBlob], { type: mime }) : rawBlob;
+            const blobUrl = URL.createObjectURL(blob);
+            console.log("Extracted:", filename);
+            blobUrls[filename] = blobUrl;
+        }
+    }
+    return blobUrls;
+}
+
+let blobUrlss = "";
+let binParts = [
+  "assets/part_1.bin",
+  "assets/part_2.bin"
+];
+
+unzipWebpFromExternalBins(binParts).then(blobUrls => {
+    
+    blobUrlss = blobUrls;
+    const ORIGINAL_CREATE_ELEMENT = document.createElement;
+    const ORIGINAL_SET_ATTRIBUTE = Element.prototype.setAttribute;
+
+    
+    document.createElement = function(tagName) {
+        const el = ORIGINAL_CREATE_ELEMENT.call(this, tagName);
+
+        if (tagName.toLowerCase() === 'script') {
+            Object.defineProperty(el, 'src', {
+                set(newSrc) {
+                    const filename = extractFilename(newSrc);
+                    const replacement = blobUrlss[filename];
+                    if (replacement) {
+                        
+                        ORIGINAL_SET_ATTRIBUTE.call(el, 'src', replacement);
+                    } else {
+                        ORIGINAL_SET_ATTRIBUTE.call(el, 'src', newSrc);
+                    }
+                },
+                get() {
+                    return el.getAttribute('src');
+                },
+                configurable: true
+            });
+        }
+
+        return el;
+    };
+
+    
+    Element.prototype.setAttribute = function(name, value) {
+        if (this.tagName === 'SCRIPT' && name === 'src') {
+            const filename = extractFilename(value);
+            const replacement = blobUrlss[filename];
+            if (replacement) {
+             
+                return ORIGINAL_SET_ATTRIBUTE.call(this, name, replacement);
+            }
+        }
+
+        return ORIGINAL_SET_ATTRIBUTE.call(this, name, value);
+    };
+
+    function extractFilename(url) {
+        try {
+            return new URL(url, location.href).pathname.split('/').pop();
+        } catch {
+            return url.split('/').pop(); 
+        }
+    }
+
+
+const imageSrcDescriptor = Object.getOwnPropertyDescriptor(Image.prototype, 'src');
+Object.defineProperty(Image.prototype, 'src', {
+  set(value) {
+    const newURL = rewriteURL(value);
+    imageSrcDescriptor.set.call(this, newURL);
+  },
+  get: imageSrcDescriptor.get,
+  configurable: true,
+  enumerable: true,
+});
+
+
+const scriptSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLScriptElement.prototype, 'src');
+Object.defineProperty(HTMLScriptElement.prototype, 'src', {
+  set(value) {
+    const newURL = rewriteURL(value);
+    scriptSrcDescriptor.set.call(this, newURL);
+  },
+  get: scriptSrcDescriptor.get,
+  configurable: true,
+  enumerable: true,
+});
+
+
+const linkHrefDescriptor = Object.getOwnPropertyDescriptor(HTMLLinkElement.prototype, 'href');
+Object.defineProperty(HTMLLinkElement.prototype, 'href', {
+  set(value) {
+    const newURL = rewriteURL(value);
+    linkHrefDescriptor.set.call(this, newURL);
+  },
+  get: linkHrefDescriptor.get,
+  configurable: true,
+  enumerable: true,
+});
+
+
+const mediaSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
+Object.defineProperty(HTMLMediaElement.prototype, 'src', {
+  set(value) {
+    const newURL = rewriteURL(value);
+    mediaSrcDescriptor.set.call(this, newURL);
+  },
+  get: mediaSrcDescriptor.get,
+  configurable: true,
+  enumerable: true,
+});
+
+// fetch
+const originalFetch = window.fetch;
+window.fetch = function(resource, init) {
+
+  if (typeof resource === "string") {
+  //console.log(resource)
+    resource = rewriteURL(resource);
+  } else if (resource instanceof Request) {
+    resource = new Request(rewriteURL(resource.url), resource);
+  }
+  return originalFetch.call(this, resource, init);
+};
+
+// XMLHttpRequest
+const originalOpen = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function(method, url, ...rest) {
+  const newURL = rewriteURL(url);
+  return originalOpen.call(this, method, newURL, ...rest);
+};
+
+
+const OriginalAudio = window.Audio;
+window.Audio = function(src) {
+  const audio = new OriginalAudio();
+  if (src) {
+    audio.src = rewriteURL(src);
+  }
+  return audio;
+};
+window.Audio.prototype = OriginalAudio.prototype;
+
+
+function rewriteURL(original) {
+  var trimmed = original.split("/").pop();
+  //console.log(trimmed)
+  if (trimmed.includes("?")) trimmed = trimmed.split("?")[0]
+  return blobUrlss[trimmed] || original;
+}
+        var scriptPaths = ["mobile-addon.min.js", "launcher-back.min.js", "loading-background.min.js", "boot1.min.js"];
+        
+        let loaded = 0;
+
+scriptPaths.forEach(src => {
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => {
+        loaded++;
+        if (loaded === scriptPaths.length) {
+            window.start3();
+        }
+    };
+    document.head.appendChild(script);
+});
+        
+        
+        });
+        </script>
+        
+        
+        
+        
+		
+	</head>
+	<body style="margin:0px;width:100%;height:100%;overflow:hidden;background-color:black;" id="game_frame"></body>
+</html>
