@@ -1,31 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { games as gamesData } from './data/games';
-import { slopeGames } from './data/slopeGames';
-
-// Merge curated catalog with the 1090 Slope-3 Classroom6x games, then
-// ensure every entry has a stable unique id (used for keys & favorites).
-const games = [...gamesData, ...slopeGames].map((game, index) => {
-  if (!game.id) {
-    const slug = (game.title || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    return {
-      ...game,
-      id: `game-gen-${index}-${slug}`
-    };
-  }
-  return game;
-}).sort((a, b) => {
-  const aAi = a.isAiGenerated === true || a.isAiGenerated === 'true';
-  const bAi = b.isAiGenerated === true || b.isAiGenerated === 'true';
-  if (aAi && !bAi) return 1;
-  if (!aAi && bAi) return -1;
-
-  const aFeatured = a.featured === true || a.featured === 'true';
-  const bFeatured = b.featured === true || b.featured === 'true';
-  if (aFeatured && !bFeatured) return -1;
-  if (!aFeatured && bFeatured) return 1;
-  return 0;
-});
+import { useGameDataChunks } from './data/chunkLoader';
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
 import FlashcardsWorkspace from './components/FlashcardsWorkspace';
 import QuizWorkspace from './components/QuizWorkspace';
@@ -262,14 +237,35 @@ function DecoyDropdown({ value, onChange, mode, compact = false, showLabel = fal
 }
 
 export default function App() {
-  // Helper to optimize and resize thumbnail URLs dynamically to Poki recommended size (512x512) for fast load & high clarity
+  // Progressive dynamic JSON chunk loader for 2,800+ resources
+  const { games, loadedChunksCount, totalChunksCount } = useGameDataChunks();
+
+  // Helper to optimize and resize thumbnail URLs dynamically with WebP/AVIF & CDN query options for fast load & high clarity
   const getOptimizedThumbnail = (url) => {
     if (!url) return '';
+    
+    // Poki CDN webp optimization
     if (url.includes('img.poki-cdn.com')) {
-      return url
-        .replace('width=1200', 'width=512')
-        .replace('height=1200', 'height=512');
+      let optUrl = url
+        .replace(/width=\d+/, 'width=400')
+        .replace(/height=\d+/, 'height=225');
+      if (!optUrl.includes('format=')) {
+        optUrl += (optUrl.includes('?') ? '&' : '?') + 'format=webp';
+      }
+      return optUrl;
     }
+
+    // Unsplash webp
+    if (url.includes('images.unsplash.com')) {
+      const clean = url.split('?')[0];
+      return `${clean}?w=400&h=225&fit=crop&fm=webp&q=80`;
+    }
+
+    // Cloudinary webp
+    if (url.includes('cloudinary.com')) {
+      return url.replace('/upload/', '/upload/w_400,h_225,c_fill,f_webp,q_auto/');
+    }
+
     return url;
   };
 
@@ -327,6 +323,16 @@ export default function App() {
     }
   });
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // RAM Optimization & Batch Loading State (Loads 50 games at a time and unloads previous batch to preserve browser memory)
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 50;
+
+  // Reset page to 1 whenever filter or search query changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter, searchQuery]);
+
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedGame, setSelectedGame] = useState(() => {
     try {
@@ -353,6 +359,8 @@ export default function App() {
     safeStorage.setItem('unblocked-last-filter', filter);
   }, [filter]);
 
+  const gameFrameRef = useRef(null);
+
   useEffect(() => {
     if (selectedGame) {
       safeStorage.setItem('unblocked-last-game', selectedGame.id);
@@ -366,6 +374,17 @@ export default function App() {
       setWindowFullscreen(false);
       setGameHeaderHidden(false);
     }
+
+    return () => {
+      // Strict WebGL & Iframe Garbage Collection: clear iframe src to release GPU & canvas memory
+      if (gameFrameRef.current) {
+        try {
+          gameFrameRef.current.src = 'about:blank';
+        } catch (e) {
+          // Gracefully catch security/cross-origin iframe unload notices
+        }
+      }
+    };
   }, [selectedGame, autoHideHeader]);
   const [showGithubNotice, setShowGithubNotice] = useState(() => {
     return safeStorage.getItem('academic-github-notice-dismissed') !== 'true';
@@ -1370,33 +1389,47 @@ export default function App() {
     return ['social', 'sport', 'multiplayer', 'fast', 'party', 'puzzle', 'shooter'].some(kw => c.includes(kw)) || c.includes('or');
   };
 
-  // Filter games based on category sidebar, matching search query
-  const filteredGames = games.filter(game => {
-    if (filter === 'single') {
-      if (!isSinglePlayerCategory(game.category)) return false;
-    } else if (filter === 'multiplayer') {
-      if (!isMultiplayerCategory(game.category)) return false;
-    } else if (filter === 'favorites') {
-      if (!favorites.includes(game.id)) return false;
-    } else if (filter === 'featured') {
-      if (!game.featured) return false;
-    } else if (filter === 'deverrors') {
-      if (game.thumbnail && game.thumbnail.trim() !== '' && !failedThumbnails[game.id]) return false;
-    } else if (filter !== 'all') {
-      // Direct category filter matching
-      if ((game.category || '').toLowerCase().trim() !== filter.toLowerCase().trim()) return false;
-    }
+  // Pre-computed search indexing for ultra-fast filtering across 2,800+ games
+  const indexedGames = useMemo(() => {
+    return games.map(game => ({
+      ...game,
+      _searchTokens: `${game.title || ''} ${game.description || ''} ${game.category || ''}`.toLowerCase()
+    }));
+  }, [games]);
 
-    if (searchQuery.trim() !== '') {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = (game.title || '').toLowerCase().includes(q);
-      const matchDesc = (game.description || '').toLowerCase().includes(q);
-      const matchCat = (game.category || '').toLowerCase().includes(q);
-      return matchTitle || matchDesc || matchCat;
-    }
+  // Filter games based on category sidebar, matching search query (Memoized)
+  const filteredGames = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
 
-    return true;
-  });
+    return indexedGames.filter(game => {
+      if (filter === 'single') {
+        if (!isSinglePlayerCategory(game.category)) return false;
+      } else if (filter === 'multiplayer') {
+        if (!isMultiplayerCategory(game.category)) return false;
+      } else if (filter === 'favorites') {
+        if (!favorites.includes(game.id)) return false;
+      } else if (filter === 'featured') {
+        if (!game.featured) return false;
+      } else if (filter === 'deverrors') {
+        if (game.thumbnail && game.thumbnail.trim() !== '' && !failedThumbnails[game.id]) return false;
+      } else if (filter !== 'all') {
+        // Direct category filter matching
+        if ((game.category || '').toLowerCase().trim() !== filter.toLowerCase().trim()) return false;
+      }
+
+      if (q !== '') {
+        return game._searchTokens.includes(q);
+      }
+
+      return true;
+    });
+  }, [indexedGames, filter, searchQuery, favorites, failedThumbnails]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredGames.length / pageSize));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(filteredGames.length, safeCurrentPage * pageSize);
+  const paginatedGames = filteredGames.slice(startIndex, endIndex);
 
 
 
@@ -4022,7 +4055,7 @@ export default function App() {
                     {filter === 'deverrors' && '(Dev Errors)'}
                   </h2>
                   <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                    Showing {filteredGames.length} unblocked resources
+                    Showing {filteredGames.length === 0 ? 0 : `${startIndex + 1}-${endIndex}`} of {filteredGames.length} unblocked resources
                   </p>
                 </div>
 
@@ -4049,6 +4082,66 @@ export default function App() {
                 </div>
               </div>
 
+              {/* Top Pagination Bar */}
+              {filteredGames.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-secondary)] border border-[var(--card-border)] rounded-xl p-3 shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[var(--text-muted)] font-mono">
+                      {`Showing items ${startIndex + 1}-${endIndex} of ${filteredGames.length}`}
+                    </span>
+                  </div>
+
+                  {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                      <button
+                        disabled={safeCurrentPage <= 1}
+                        onClick={() => {
+                          setCurrentPage(prev => Math.max(1, prev - 1));
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-xs font-mono font-bold text-[var(--text-primary)] hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+                        title="Load Previous 50 Games (Unloads current batch)"
+                      >
+                        <ChevronLeft className="w-3.5 h-3.5" />
+                        <span>Prev 50</span>
+                      </button>
+
+                      <div className="flex items-center gap-1 text-xs font-mono font-bold text-[var(--text-primary)] px-1">
+                        <span>Page</span>
+                        <select
+                          value={safeCurrentPage}
+                          onChange={(e) => {
+                            setCurrentPage(Number(e.target.value));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded px-2 py-0.5 text-xs text-[var(--accent-color)] font-mono cursor-pointer focus:outline-none focus:border-[var(--accent-color)]"
+                        >
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                            <option key={p} value={p}>
+                              {p}
+                            </option>
+                          ))}
+                        </select>
+                        <span>of {totalPages}</span>
+                      </div>
+
+                      <button
+                        disabled={safeCurrentPage >= totalPages}
+                        onClick={() => {
+                          setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }}
+                        className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-xs font-mono font-bold text-[var(--text-primary)] hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+                        title="Load Next 50 Games (Unloads current batch)"
+                      >
+                        <span>Next 50</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {filteredGames.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 border border-dashed border-[var(--card-border)] rounded-2xl bg-[var(--bg-secondary)]">
                   <Gamepad2 className="w-16 h-16 text-[var(--text-muted)] stroke-1 opacity-40 animate-pulse" />
@@ -4056,127 +4149,181 @@ export default function App() {
                   <p className="text-xs text-[var(--text-muted)] mt-1">Try searching a different keyword or resetting filters.</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredGames.map(game => {
-                    const isFav = favorites.includes(game.id);
-                    return (
-                      <motion.div 
-                        key={game.id}
-                        layout
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -15 }}
-                        whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.2 } }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => { setSelectedGame(game); setZoom(1); }}
-                        className={`custom-card flex flex-col rounded-xl overflow-hidden cursor-pointer h-full transition-all duration-300 ${
-                          game.featured 
-                            ? 'border-amber-500/20 hover:border-amber-500/50 shadow-md hover:shadow-amber-500/5' 
-                            : ''
-                        }`}
-                        style={{ contentVisibility: 'auto' }}
-                      >
-                        {/* Artwork container */}
-                        <div className="relative aspect-video w-full bg-neutral-950 flex-shrink-0 flex items-center justify-center border-b border-[var(--card-border)] overflow-hidden">
-                          {game.thumbnail && !failedThumbnails[game.id] ? (
-                            <img 
-                              src={getOptimizedThumbnail(game.thumbnail)} 
-                              alt={game.title} 
-                              referrerPolicy="no-referrer"
-                              draggable="false"
-                              onError={() => setFailedThumbnails(prev => ({ ...prev, [game.id]: true }))}
-                              className="w-full h-full object-cover transition-transform duration-500 hover:scale-110 select-none pointer-events-none" 
-                            />
-                          ) : (
-                            renderGameArt(game)
-                          )}
-
-                          {game.featured && (
-                            <span className="absolute top-2.5 left-2.5 text-[12px] font-black uppercase tracking-widest bg-black/85 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-md inline-block z-10 shadow-sm font-mono">
-                              ★ FEATURED
-                            </span>
-                          )}
-
-                          <span className="absolute top-2.5 right-2.5 text-[8px] font-bold uppercase tracking-widest bg-black/75 backdrop-blur-sm text-white border border-white/10 px-2.5 py-0.5 rounded-full inline-block z-10">
-                            {game.category}
-                          </span>
-
-                          <button
-                            onClick={(e) => toggleFavorite(e, game.id)}
-                            className={`absolute top-2.5 ${game.featured ? 'left-[120px]' : 'left-2.5'} p-1.5 rounded-full bg-black/40 hover:bg-black/80 text-white/90 border border-white/10 hover:text-rose-500 hover:scale-110 active:scale-95 transition-all duration-200 z-10`}
-                            title={isFav ? "Remove Bookmark" : "Add Bookmark"}
-                          >
-                            <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-rose-500 text-rose-500' : ''}`} />
-                          </button>
-
-                          {game.isAiGenerated && (
-                            <span className="absolute bottom-2.5 left-2.5 text-[8px] font-extrabold tracking-widest bg-purple-950/85 backdrop-blur-sm text-purple-400 border border-purple-500/40 px-2 py-0.5 rounded-full inline-block z-10 shadow-sm font-mono uppercase">
-                              ✧ AI Generated
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Title and descriptions */}
-                        <div className="p-4 flex-1 flex flex-col justify-between">
-                          <div className="space-y-1.5">
-                            <h3 className={`text-sm font-black line-clamp-1 leading-snug transition-colors flex items-center gap-1.5 ${
-                              game.featured 
-                                ? 'text-[var(--text-primary)] group-hover:text-amber-400' 
-                                : 'text-[var(--text-primary)] group-hover:text-[var(--accent-color)]'
-                            }`}>
-                              <span>{game.title}</span>
-                              {game.isAiGenerated && (
-                                <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 whitespace-nowrap">
-                                  AI
-                                </span>
-                              )}
-                            </h3>
-                            <p className="text-xs text-[var(--text-muted)] line-clamp-3 leading-relaxed">
-                              {game.description}
-                            </p>
-                          </div>
-
-                          <div className="flex items-center gap-2 mt-3 w-full">
-                            {game.featured ? (
-                              <button
-                                onClick={() => { setSelectedGame(game); setZoom(1); }}
-                                className="flex-1 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500 hover:text-black hover:font-bold hover:shadow-[0_4px_14px_rgba(245,158,11,0.35)] text-[11px] font-semibold tracking-wider text-amber-400 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 uppercase cursor-pointer"
-                              >
-                                <Play className="w-3 h-3 fill-current" />
-                                <span>Play</span>
-                              </button>
+                <div className="flex flex-col gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {paginatedGames.map(game => {
+                      const isFav = favorites.includes(game.id);
+                      return (
+                        <motion.div 
+                          key={game.id}
+                          layout
+                          initial={{ opacity: 0, y: 15 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -15 }}
+                          whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.2 } }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => { setSelectedGame(game); setZoom(1); }}
+                          className={`custom-card flex flex-col rounded-xl overflow-hidden cursor-pointer h-full transition-all duration-300 ${
+                            game.featured 
+                              ? 'border-amber-500/20 hover:border-amber-500/50 shadow-md hover:shadow-amber-500/5' 
+                              : ''
+                          }`}
+                          style={{ contentVisibility: 'auto' }}
+                        >
+                          {/* Artwork container */}
+                          <div className="relative aspect-video w-full bg-neutral-950 flex-shrink-0 flex items-center justify-center border-b border-[var(--card-border)] overflow-hidden">
+                            {game.thumbnail && !failedThumbnails[game.id] ? (
+                              <img 
+                                src={getOptimizedThumbnail(game.thumbnail)} 
+                                alt={game.title} 
+                                loading="lazy"
+                                decoding="async"
+                                referrerPolicy="no-referrer"
+                                draggable="false"
+                                onError={() => setFailedThumbnails(prev => ({ ...prev, [game.id]: true }))}
+                                className="w-full h-full object-cover transition-transform duration-500 hover:scale-110 select-none pointer-events-none" 
+                              />
                             ) : (
-                              <button
-                                onClick={() => { setSelectedGame(game); setZoom(1); }}
-                                className="flex-1 border border-[var(--accent-color)]/60 bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)] hover:text-black hover:font-bold hover:shadow-[0_4px_14px_var(--accent-shadow)] text-[11px] font-semibold tracking-wider text-[var(--accent-color)] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 uppercase cursor-pointer"
-                              >
-                                <Play className="w-3 h-3 fill-current" />
-                                <span>Play</span>
-                              </button>
+                              renderGameArt(game)
                             )}
 
-                            {isLocalGame(game.url) && (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const link = document.createElement('a');
-                                  link.href = '/' + game.url;
-                                  link.download = game.url;
-                                  document.body.appendChild(link);
-                                  link.click();
-                                  document.body.removeChild(link);
-                                }}
-                                className="p-2 border border-[var(--card-border)] hover:border-[var(--accent-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)] bg-[var(--bg-secondary)] hover:bg-[var(--card-bg)] rounded-lg transition-all flex items-center justify-center shrink-0 cursor-pointer"
-                                title="Download Offline Game (.html)"
-                              >
-                                <Download className="w-4 h-4" />
-                              </button>
+                            {game.featured && (
+                              <span className="absolute top-2.5 left-2.5 text-[12px] font-black uppercase tracking-widest bg-black/85 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-md inline-block z-10 shadow-sm font-mono">
+                                ★ FEATURED
+                              </span>
+                            )}
+
+                            <span className="absolute top-2.5 right-2.5 text-[8px] font-bold uppercase tracking-widest bg-black/75 backdrop-blur-sm text-white border border-white/10 px-2.5 py-0.5 rounded-full inline-block z-10">
+                              {game.category}
+                            </span>
+
+                            <button
+                              onClick={(e) => toggleFavorite(e, game.id)}
+                              className={`absolute top-2.5 ${game.featured ? 'left-[120px]' : 'left-2.5'} p-1.5 rounded-full bg-black/40 hover:bg-black/80 text-white/90 border border-white/10 hover:text-rose-500 hover:scale-110 active:scale-95 transition-all duration-200 z-10`}
+                              title={isFav ? "Remove Bookmark" : "Add Bookmark"}
+                            >
+                              <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-rose-500 text-rose-500' : ''}`} />
+                            </button>
+
+                            {game.isAiGenerated && (
+                              <span className="absolute bottom-2.5 left-2.5 text-[8px] font-extrabold tracking-widest bg-purple-950/85 backdrop-blur-sm text-purple-400 border border-purple-500/40 px-2 py-0.5 rounded-full inline-block z-10 shadow-sm font-mono uppercase">
+                                ✧ AI Generated
+                              </span>
                             )}
                           </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+
+                          {/* Title and descriptions */}
+                          <div className="p-4 flex-1 flex flex-col justify-between">
+                            <div className="space-y-1.5">
+                              <h3 className={`text-sm font-black line-clamp-1 leading-snug transition-colors flex items-center gap-1.5 ${
+                                game.featured 
+                                  ? 'text-[var(--text-primary)] group-hover:text-amber-400' 
+                                  : 'text-[var(--text-primary)] group-hover:text-[var(--accent-color)]'
+                              }`}>
+                                <span>{game.title}</span>
+                                {game.isAiGenerated && (
+                                  <span className="text-[8px] font-mono font-bold px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-400 border border-purple-500/30 whitespace-nowrap">
+                                    AI
+                                  </span>
+                                )}
+                              </h3>
+                              <p className="text-xs text-[var(--text-muted)] line-clamp-3 leading-relaxed">
+                                {game.description}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-2 mt-3 w-full">
+                              {game.featured ? (
+                                <button
+                                  onClick={() => { setSelectedGame(game); setZoom(1); }}
+                                  className="flex-1 border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500 hover:text-black hover:font-bold hover:shadow-[0_4px_14px_rgba(245,158,11,0.35)] text-[11px] font-semibold tracking-wider text-amber-400 py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 uppercase cursor-pointer"
+                                >
+                                  <Play className="w-3 h-3 fill-current" />
+                                  <span>Play</span>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => { setSelectedGame(game); setZoom(1); }}
+                                  className="flex-1 border border-[var(--accent-color)]/60 bg-[var(--accent-color)]/10 hover:bg-[var(--accent-color)] hover:text-black hover:font-bold hover:shadow-[0_4px_14px_var(--accent-shadow)] text-[11px] font-semibold tracking-wider text-[var(--accent-color)] py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 uppercase cursor-pointer"
+                                >
+                                  <Play className="w-3 h-3 fill-current" />
+                                  <span>Play</span>
+                                </button>
+                              )}
+
+                              {isLocalGame(game.url) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const link = document.createElement('a');
+                                    link.href = '/' + game.url;
+                                    link.download = game.url;
+                                    document.body.appendChild(link);
+                                    link.click();
+                                    document.body.removeChild(link);
+                                  }}
+                                  className="p-2 border border-[var(--card-border)] hover:border-[var(--accent-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)] bg-[var(--bg-secondary)] hover:bg-[var(--card-bg)] rounded-lg transition-all flex items-center justify-center shrink-0 cursor-pointer"
+                                  title="Download Offline Game (.html)"
+                                >
+                                  <Download className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Bottom RAM Optimization Pagination Bar */}
+                  {totalPages > 1 && (
+                    <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-secondary)] border border-[var(--card-border)] rounded-xl p-3 shadow-sm mt-2">
+                      <span className="text-xs text-[var(--text-muted)] font-mono">
+                        {`Page ${safeCurrentPage} of ${totalPages} (${filteredGames.length} games total)`}
+                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          disabled={safeCurrentPage <= 1}
+                          onClick={() => {
+                            setCurrentPage(prev => Math.max(1, prev - 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-xs font-mono font-bold text-[var(--text-primary)] hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+                        >
+                          <ChevronLeft className="w-3.5 h-3.5" />
+                          <span>Prev 50</span>
+                        </button>
+
+                        <select
+                          value={safeCurrentPage}
+                          onChange={(e) => {
+                            setCurrentPage(Number(e.target.value));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="bg-[var(--card-bg)] border border-[var(--card-border)] rounded px-2 py-1 text-xs text-[var(--accent-color)] font-mono cursor-pointer focus:outline-none focus:border-[var(--accent-color)]"
+                        >
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                            <option key={p} value={p}>
+                              Page {p}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          disabled={safeCurrentPage >= totalPages}
+                          onClick={() => {
+                            setCurrentPage(prev => Math.min(totalPages, prev + 1));
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                          }}
+                          className="px-3 py-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--card-bg)] text-xs font-mono font-bold text-[var(--text-primary)] hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] disabled:opacity-30 disabled:pointer-events-none transition-all cursor-pointer flex items-center gap-1"
+                        >
+                          <span>Next 50</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -4479,6 +4626,7 @@ export default function App() {
                     }}
                   >
                     <iframe 
+                      ref={gameFrameRef}
                       id="game-frame"
                       src={selectedGame.url} 
                       className="w-full h-full flex-1 border-none block m-0 p-0"
