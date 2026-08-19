@@ -63,7 +63,7 @@ export const games: Game[] = [
   },
   {
     title: 'Shader Pilot',
-    description: 'Game that TTM made and It looks good Ig and cool ig. ',
+    description: 'Game that Urnperiodic made and It looks good Ig and cool ig. ',
     url: 'https://urnperiodic.github.io/shader-piolet/',
     thumbnail: 'https://i.ytimg.com/vi/cpsY9WQxh5U/maxresdefault.jpg',
     category: 'Solo',

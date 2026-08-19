@@ -2295,7 +2295,7 @@ export default function App() {
 
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-clip ${viewMode === 'games' ? 'games-no-select select-none' : ''}`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-clip ${viewMode === 'games' ? 'games-no-select select-none' : ''} ${selectedGame ? 'h-screen overflow-hidden' : ''}`}>
       <CursorSpotlight active={viewMode === 'games'} />
       {/* HEADER */}
       <AnimatePresence initial={false}>
@@ -2322,10 +2322,10 @@ export default function App() {
           </div>
           <div className="flex flex-row items-baseline gap-2 flex-wrap">
             <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
-              TTM &amp; Grandplat2 Games
+              Urnperiodic &amp; Grandplat2 Games
             </h1>
             <span className="font-mono text-[var(--text-muted)] font-medium leading-none opacity-80" style={{ fontSize: '8px' }}>
-              Made by TTM and Grandplat2
+              Made by Urnperiodic and Grandplat2
             </span>
           </div>
         </div>
@@ -2514,10 +2514,10 @@ export default function App() {
             </div>
             <div className="flex flex-row items-baseline gap-1.5 flex-wrap">
               <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
-                TTM &amp; Grandplat2 Games
+                Urnperiodic &amp; Grandplat2 Games
               </h1>
               <span className="font-mono text-[var(--text-muted)] font-medium leading-none opacity-80" style={{ fontSize: '8px' }}>
-                Made by TTM and Grandplat2
+                Made by Urnperiodic and Grandplat2
               </span>
             </div>
           </div>
@@ -3295,7 +3295,7 @@ export default function App() {
 
                     <div className="border-t border-white/5 pt-2 mt-1 text-center">
                       <p className="text-[9px] font-mono text-neutral-500">
-                        made by TTM and Grandplat2
+                        made by Urnperiodic and Grandplat2
                       </p>
                     </div>
                   </div>
@@ -3600,7 +3600,7 @@ export default function App() {
 
                     <div className="border-t border-white/5 pt-2 mt-1 text-center">
                       <p className="text-[9px] font-mono text-neutral-500">
-                        made by TTM and Grandplat2
+                        made by Urnperiodic and Grandplat2
                       </p>
                     </div>
                   </div>
@@ -3893,7 +3893,7 @@ export default function App() {
 
 
         {/* MAIN BODY DISPLAY */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 flex flex-col h-full min-h-0">
           
           {!selectedGame ? (
             <AnimatePresence mode="wait">
@@ -4185,7 +4185,7 @@ export default function App() {
         </AnimatePresence>
           ) : (
             /* ACTIVE GAME SCREEN */
-            <div className={`flex flex-col animate-fade-in ${windowFullscreen ? 'fixed inset-0 z-[9999] bg-[#0c0f16] p-0 w-screen h-screen overflow-hidden gap-0' : 'gap-0'}`}>
+            <div className={`flex flex-col flex-1 h-full min-h-0 animate-fade-in ${windowFullscreen ? 'fixed inset-0 z-[9999] bg-[#0c0f16] p-0 w-screen h-screen overflow-hidden gap-0' : 'gap-0 flex-1 h-full min-h-0'}`}>
               
               {/* Controls bar */}
               {windowFullscreen ? (
@@ -4463,15 +4463,15 @@ export default function App() {
               {/* Game Arena with Side-by-Side Docked Chat */}
               <div 
                 id="game-arena-container"
-                className={`flex flex-col lg:flex-row gap-0 w-full relative ${windowFullscreen ? 'flex-1 min-h-0' : 'h-[65vh] min-h-[500px]'}`}
+                className="flex flex-col lg:flex-row gap-0 w-full relative flex-1 min-h-0 h-full overflow-hidden"
               >
                 {/* Game Viewport Container */}
                 <div 
                   id="frame-viewport"
-                  className="flex-1 h-full rounded-none border-t border-[var(--card-border)] bg-black overflow-hidden relative"
+                  className="flex-1 w-full h-full rounded-none border-t border-[var(--card-border)] bg-black overflow-hidden relative flex flex-col min-h-0"
                 >
                   <div 
-                    className="w-full h-full duration-150 transition-transform origin-top-left"
+                    className="w-full h-full duration-150 transition-transform origin-top-left flex-1 flex flex-col"
                     style={{ 
                       transform: `scale(${zoom})`,
                       width: `${100 / zoom}%`,
@@ -4481,7 +4481,7 @@ export default function App() {
                     <iframe 
                       id="game-frame"
                       src={selectedGame.url} 
-                      className="w-full h-full border-none"
+                      className="w-full h-full flex-1 border-none block m-0 p-0"
                       title={selectedGame.title}
                       allowFullScreen
                       referrerPolicy="no-referrer"
