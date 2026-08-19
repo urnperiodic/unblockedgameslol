@@ -1,84 +1,48 @@
 import { useState, useEffect } from 'react';
 import { Game } from '../types';
-import { games as fallbackGamesData } from './games';
-
-// Helper to format fallback static games if JSON fetch is offline
-const fallbackGames = fallbackGamesData.map((game, index) => {
-  if (!game.id) {
-    const slug = (game.title || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    return {
-      ...game,
-      id: `game-gen-${index}-${slug}`
-    };
-  }
-  return game;
-});
+import { chunk0 } from './chunks/chunk0';
 
 export function useGameDataChunks() {
-  const [loadedGames, setLoadedGames] = useState<Game[]>([]);
-  const [isLoadingChunks, setIsLoadingChunks] = useState(true);
-  const [loadedChunksCount, setLoadedChunksCount] = useState(0);
-  const [totalChunksCount, setTotalChunksCount] = useState(1);
+  // Start immediately with chunk0 (500 curated games) so there is NEVER a blank screen
+  const [loadedGames, setLoadedGames] = useState<Game[]>(chunk0);
+  const [loadedChunksCount, setLoadedChunksCount] = useState(1);
+  const totalChunksCount = 6;
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadChunks() {
-      try {
-        // Step 1: Fetch chunk_0.json for fast initial render
-        const initialRes = await fetch('/data/chunks/chunk_0.json');
-        if (!initialRes.ok) throw new Error('Failed to load initial chunk_0');
-        const chunk0Data: Game[] = await initialRes.json();
+    async function loadRemainingChunks() {
+      // Dynamic ES imports for progressive background loading
+      const chunkLoaders = [
+        () => import('./chunks/chunk1'),
+        () => import('./chunks/chunk2'),
+        () => import('./chunks/chunk3'),
+        () => import('./chunks/chunk4'),
+        () => import('./chunks/chunk5')
+      ];
 
-        if (isMounted) {
-          setLoadedGames(chunk0Data);
-          setLoadedChunksCount(1);
-        }
+      for (let i = 0; i < chunkLoaders.length; i++) {
+        if (!isMounted) break;
 
-        // Step 2: Fetch manifest to discover remaining chunks
-        const manifestRes = await fetch('/data/chunks/manifest.json');
-        if (!manifestRes.ok) return;
-        const manifest = await manifestRes.json();
+        // Yield to main UI thread briefly before loading next chunk
+        await new Promise(res => setTimeout(res, 200));
 
-        if (isMounted) {
-          setTotalChunksCount(manifest.totalChunks || 1);
-        }
+        try {
+          const mod = await chunkLoaders[i]();
+          const chunkKey = `chunk${i + 1}` as keyof typeof mod;
+          const chunkData = mod[chunkKey] as Game[];
 
-        // Step 3: Progressive background fetch for remaining chunks (chunks 1 to N)
-        for (let i = 1; i < manifest.totalChunks; i++) {
-          if (!isMounted) break;
-
-          // Yield to main thread briefly between chunk fetches
-          await new Promise(res => setTimeout(res, 150));
-
-          try {
-            const chunkRes = await fetch(`/data/chunks/chunk_${i}.json`);
-            if (chunkRes.ok) {
-              const chunkData: Game[] = await chunkRes.json();
-              if (isMounted) {
-                setLoadedGames(prev => [...prev, ...chunkData]);
-                setLoadedChunksCount(i + 1);
-              }
-            }
-          } catch (err) {
-            console.warn(`Failed to background fetch chunk_${i}`, err);
+          if (isMounted && Array.isArray(chunkData)) {
+            setLoadedGames(prev => [...prev, ...chunkData]);
+            setLoadedChunksCount(i + 2);
           }
-        }
-      } catch (err) {
-        console.warn('Chunk loader falling back to static bundled game catalog:', err);
-        if (isMounted) {
-          setLoadedGames(fallbackGames);
-          setLoadedChunksCount(1);
-          setTotalChunksCount(1);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoadingChunks(false);
+        } catch (err) {
+          console.warn(`Failed to dynamically load chunk ${i + 1}:`, err);
         }
       }
     }
 
-    loadChunks();
+    loadRemainingChunks();
 
     return () => {
       isMounted = false;
@@ -87,7 +51,6 @@ export function useGameDataChunks() {
 
   return {
     games: loadedGames,
-    isLoadingChunks,
     loadedChunksCount,
     totalChunksCount
   };
