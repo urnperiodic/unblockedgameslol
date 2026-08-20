@@ -1,62 +1,57 @@
-import fs from 'fs';
-import path from 'path';
-import { games } from '../src/data/games.ts';
+import { useState, useEffect } from 'react';
+import { Game } from '../types';
+import { chunk0 } from './chunks/chunk0';
 
-const CHUNK_SIZE = 500;
-const outputDir = path.join(process.cwd(), 'public', 'data', 'chunks');
+export function useGameDataChunks() {
+  // Start immediately with chunk0 (500 curated games) so there is NEVER a blank screen
+  const [loadedGames, setLoadedGames] = useState<Game[]>(chunk0);
+  const [loadedChunksCount, setLoadedChunksCount] = useState(1);
+  const totalChunksCount = 6;
 
-if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir, { recursive: true });
-}
+  useEffect(() => {
+    let isMounted = true;
 
-// Process and add stable IDs & flags
-const processedGames = games.map((game, index) => {
-  if (!game.id) {
-    const slug = (game.title || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    return {
-      ...game,
-      id: `game-gen-${index}-${slug}`
+    async function loadRemainingChunks() {
+      // Dynamic ES imports for progressive background loading
+      const chunkLoaders = [
+        () => import('./chunks/chunk1'),
+        () => import('./chunks/chunk2'),
+        () => import('./chunks/chunk3'),
+        () => import('./chunks/chunk4'),
+        () => import('./chunks/chunk5')
+      ];
+
+      for (let i = 0; i < chunkLoaders.length; i++) {
+        if (!isMounted) break;
+
+        // Yield to main UI thread briefly before loading next chunk
+        await new Promise(res => setTimeout(res, 200));
+
+        try {
+          const mod = await chunkLoaders[i]();
+          const chunkKey = `chunk${i + 1}` as keyof typeof mod;
+          const chunkData = mod[chunkKey] as Game[];
+
+          if (isMounted && Array.isArray(chunkData)) {
+            setLoadedGames(prev => [...prev, ...chunkData]);
+            setLoadedChunksCount(i + 2);
+          }
+        } catch (err) {
+          console.warn(`Failed to dynamically load chunk ${i + 1}:`, err);
+        }
+      }
+    }
+
+    loadRemainingChunks();
+
+    return () => {
+      isMounted = false;
     };
-  }
-  return game;
-}).sort((a, b) => {
-  const aAi = a.isAiGenerated === true || a.isAiGenerated === 'true';
-  const bAi = b.isAiGenerated === true || b.isAiGenerated === 'true';
-  if (aAi && !bAi) return 1;
-  if (!aAi && bAi) return -1;
+  }, []);
 
-  const aFeatured = a.featured === true || a.featured === 'true';
-  const bFeatured = b.featured === true || b.featured === 'true';
-  if (aFeatured && !bFeatured) return -1;
-  if (!aFeatured && bFeatured) return 1;
-  return 0;
-});
-
-const totalChunks = Math.ceil(processedGames.length / CHUNK_SIZE);
-console.log(`Splitting ${processedGames.length} games into ${totalChunks} chunks of ${CHUNK_SIZE}...`);
-
-const chunkManifest = [];
-
-for (let i = 0; i < totalChunks; i++) {
-  const start = i * CHUNK_SIZE;
-  const end = Math.min(processedGames.length, (i + 1) * CHUNK_SIZE);
-  const chunkData = processedGames.slice(start, end);
-  const fileName = `chunk_${i}.json`;
-  const filePath = path.join(outputDir, fileName);
-
-  fs.writeFileSync(filePath, JSON.stringify(chunkData));
-  chunkManifest.push({
-    index: i,
-    fileName,
-    count: chunkData.length,
-    path: `/data/chunks/${fileName}`
-  });
-  console.log(`Wrote ${fileName} with ${chunkData.length} games (${(fs.statSync(filePath).size / 1024).toFixed(1)} KB)`);
+  return {
+    games: loadedGames,
+    loadedChunksCount,
+    totalChunksCount
+  };
 }
-
-fs.writeFileSync(
-  path.join(outputDir, 'manifest.json'),
-  JSON.stringify({ totalGames: processedGames.length, totalChunks, chunks: chunkManifest }, null, 2)
-);
-
-console.log('Successfully generated JSON game data chunks and manifest!');
