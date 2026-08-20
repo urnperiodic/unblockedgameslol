@@ -2,12 +2,13 @@
 <!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
 <!-- Made by Genizy -->
 <!-- This game runs at about 2/3 speed in any 3D section. It is recommended to download the ROM and play it on a different emulator if possible. You can download the game at https://files.catbox.moe/2uun2v.7z -->
+
 <html>
   <head>
     <script>
       window.gameconfig = {
         name: "Tomodachi Collection",
-        url: "https://cdn.jsdelivr.net/gh/genizy/emujs@main/tomodachi-collection/tomodashi-collection-english.7z",
+        url: "https://cdn.jsdelivr.net/gh/bubblfan/emujs@main/tomodachi-collection/tomodashi-collection-english.7z",
         core: "nds",
         min: 1,
         max: 2,
@@ -44,7 +45,6 @@
         return parts;
       }
     </script>
-
     <style>
       body,
       html {
@@ -72,26 +72,6 @@
         border-radius: 8px;
         display: inline-block;
       }
-
-      /* Unlock hint overlay */
-      #pointer-lock-hint {
-        display: none;
-        position: fixed;
-        bottom: 16px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.65);
-        color: #fff;
-        font-size: 13px;
-        padding: 6px 14px;
-        border-radius: 20px;
-        pointer-events: none;
-        z-index: 9999;
-        white-space: nowrap;
-      }
-      #pointer-lock-hint.visible {
-        display: block;
-      }
     </style>
   </head>
   <body>
@@ -100,35 +80,11 @@
       <div id="loading-progress">Loading: 0/0</div>
       <div id="first-time">First-time loading may take longer...</div>
     </div>
-
-    <div id="pointer-lock-hint">Press Esc to release cursor</div>
-
-    <script>
-      // ── Intercept iframe creation to inject allow-pointer-lock BEFORE
-      //    EmulatorJS appends its sandboxed iframe to the DOM ──────────────
-      const _origCreateElement = document.createElement.bind(document);
-      document.createElement = function (tag) {
-        const el = _origCreateElement(tag);
-        if (tag.toLowerCase() === "iframe") {
-          // Use a MutationObserver on the element itself to catch when
-          // EmulatorJS sets the sandbox attribute, then add allow-pointer-lock
-          const iframeObserver = new MutationObserver(() => {
-            const sandbox = el.getAttribute("sandbox");
-            if (sandbox !== null && !sandbox.includes("allow-pointer-lock")) {
-              el.setAttribute("sandbox", sandbox + " allow-pointer-lock");
-            }
-          });
-          iframeObserver.observe(el, { attributes: true, attributeFilter: ["sandbox"] });
-        }
-        return el;
-      };
-    </script>
-
     <script>
       var parts = getParts(
         window.gameconfig.url,
         window.gameconfig.min,
-        window.gameconfig.max
+        window.gameconfig.max,
       );
       var totalParts = parts.length;
 
@@ -145,28 +101,17 @@
         .then(([gameUrl]) => {
           document.getElementById("loading-progress").remove();
           document.getElementById("first-time").remove();
-
           EJS_player = "#game";
           EJS_core = window.gameconfig.core;
           EJS_gameName = window.gameconfig.name;
           EJS_color = "#0064ff";
           EJS_startOnLoaded = true;
-          EJS_pathtodata = "https://cdn.jsdelivr.net/gh/genizy/emu@master/";
+          EJS_pathtodata = "https://cdn.jsdelivr.net/gh/bubblfan/emu@master/";
           EJS_gameUrl = gameUrl;
-
           const script = document.createElement("script");
           script.src =
-            "https://cdn.jsdelivr.net/gh/genizy/emu@master/loader.js";
+            "https://cdn.jsdelivr.net/gh/bubblfan/emu@master/loader.js";
           document.body.appendChild(script);
-
-          // ── Show/hide hint when pointer lock state changes ────────────
-          const hint = document.getElementById("pointer-lock-hint");
-          document.addEventListener("pointerlockchange", () => {
-            hint.classList.toggle("visible", !!document.pointerLockElement);
-          });
-          document.addEventListener("mozpointerlockchange", () => {
-            hint.classList.toggle("visible", !!document.mozPointerLockElement);
-          });
         })
         .catch((error) => {
           console.error(error);

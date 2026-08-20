@@ -1,0 +1,53 @@
+ <!DOCTYPE html>
+
+
+<!-- Ultimate Game Stash file--> 
+<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+
+
+
+<html>
+<base href="https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@main/eugene-life/">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Eugene's Life</title>
+    <script>
+      window.fileMergerConfig = {
+        files: [
+          { name: 'x6.data.unityweb', parts: 2 },
+        ],
+        basePath: 'Build/',
+        debug: true
+      };  
+      </script>
+    <script src="https://cdn.jsdelivr.net/gh/bubbls/UGS-Assets@latest/merge.js"></script>
+  <script>
+    window.config = {
+      loader: 'unity',
+      debug: false,
+      maxRatio: 16 / 9,
+      minRatio: 9 / 16,
+
+      title: 'Eugene\u0027s Life',
+      thumbnail: 'fe5663d6fd623e7e1e4fe91d4aafe33e.png',
+      numScreenshots: 4,
+
+      unityVersion: '2019.2.8f1',
+      unityWebglBuildUrl: 'Build\/x6.json',
+
+      fileSize: 27,
+      cachedDecompressedFileSizes: {
+        'x6.data.unityweb': 21841180,
+        'x6.wasm.code.unityweb': 5780780,
+        'x6.wasm.framework.unityweb': 89664,
+      },
+    };
+  </script>
+</head>
+
+<body>
+  <script src="sdkv3/master-loader.js"></script>
+</body>
+
+</html>

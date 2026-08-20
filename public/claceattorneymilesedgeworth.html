@@ -1,15 +1,12 @@
-
-
-<!-- Ultimate Game Stash file--> 
+<!-- Ultimate Game Stash file-->
 <!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
-
 
 <html>
   <head>
     <script>
       window.gameconfig = {
         name: "Ace Attorney Investigations - Miles Edgeworth",
-        url: "https://cdn.jsdelivr.net/gh/genizy/emujs@main/milesedgeworth/Ace%20Attorney%20Investigations%20-%20Miles%20Edgeworth%20(USA).zip",
+        url: "https://cdn.jsdelivr.net/gh/bubblfan/emujs@main/milesedgeworth/Ace%20Attorney%20Investigations%20-%20Miles%20Edgeworth%20(USA).zip",
         core: "nds",
         min: 1,
         max: 2,
@@ -85,7 +82,7 @@
       var parts = getParts(
         window.gameconfig.url,
         window.gameconfig.min,
-        window.gameconfig.max
+        window.gameconfig.max,
       );
       const progressElement = document.getElementById("loading-progress");
       var totalParts = parts.length;
@@ -106,13 +103,14 @@
           EJS_player = "#game";
           EJS_core = window.gameconfig.core;
           EJS_gameName = window.gameconfig.name;
-          EJS_color = "#0064ff";a
+          EJS_color = "#0064ff";
+          a;
           EJS_startOnLoaded = true;
-          EJS_pathtodata = "https://cdn.jsdelivr.net/gh/genizy/emu@master/";
+          EJS_pathtodata = "https://cdn.jsdelivr.net/gh/bubblfan/emu@master/";
           EJS_gameUrl = gameUrl;
           const script = document.createElement("script");
           script.src =
-            "https://cdn.jsdelivr.net/gh/genizy/emu@master/loader.js";
+            "https://cdn.jsdelivr.net/gh/bubblfan/emu@master/loader.js";
           document.body.appendChild(script);
         })
         .catch((error) => {

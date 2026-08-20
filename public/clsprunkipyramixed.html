@@ -1,0 +1,424 @@
+<!-- Ultimate Game Stash file--> 
+<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Incredibox - Sprunki (Pyramixed) 2CD BIG UPDATE</title>
+
+<style>
+    canvas:focus {
+      outline: none;
+    }
+
+    html, body {
+      padding: 0;
+      margin: 0;
+      overflow: hidden;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: rgba(0,0,0,0);
+      /* Ставим высоту на 100% */
+      height: 100%;
+    }
+  </style>
+<style>
+    body {
+      color: #ffff19;
+      font-family: sans-serif;
+      overflow: hidden;
+      margin: 0;
+      padding: 0;
+    }
+    :root, body.is-fullscreen {
+      background-color: #000000;
+    }
+    [hidden] {
+      display: none !important;
+    }
+    h1 {
+      font-weight: normal;
+    }
+    a {
+      color: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    #app, #loading, #error, #launch {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .screen {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: default;
+      user-select: none;
+      -webkit-user-select: none;
+      background-color: #000000;
+    }
+    #launch {
+      background-color: rgba(0, 0, 0, 0.7);
+      cursor: pointer;
+    }
+    .green-flag {
+      width: 80px;
+      height: 80px;
+      padding: 16px;
+      border-radius: 100%;
+      background: rgba(255, 255, 255, 0.75);
+      border: 3px solid hsla(0, 100%, 100%, 1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+    }
+    #loading {
+      
+    }
+    .progress-bar-outer {
+      border: 1px solid currentColor;
+      height: 10px;
+      width: 200px;
+      max-width: 200px;
+    }
+    .progress-bar-inner {
+      height: 100%;
+      width: 0;
+      background-color: currentColor;
+    }
+    .loading-text, noscript {
+      font-weight: normal;
+      font-size: 36px;
+      margin: 0 0 16px;
+    }
+    .loading-image {
+      margin: 0 0 16px;
+    }
+    #error-message, #error-stack {
+      font-family: monospace;
+      max-width: 600px;
+      white-space: pre-wrap;
+      user-select: text;
+      -webkit-user-select: text;
+    }
+    #error-stack {
+      text-align: left;
+      max-height: 200px;
+      overflow: auto;
+    }
+    .control-button {
+      width: 2rem;
+      height: 2rem;
+      padding: 0.375rem;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+      user-select: none;
+      -webkit-user-select: none;
+      cursor: pointer;
+      border: 0;
+      border-radius: 4px;
+    }
+    .control-button:hover {
+      background: #ff4c4c26;
+    }
+    .control-button.active {
+      background: #ff4c4c59;
+    }
+    .fullscreen-button {
+      background: white !important;
+    }
+    .standalone-fullscreen-button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      border-radius: 0 0 0 4px;
+      padding: 4px;
+      cursor: pointer;
+    }
+    .sc-canvas {
+      cursor: auto;
+    }
+    .sc-monitor-root[data-opcode^="data_"] .sc-monitor-value-color {
+      background-color: #ff8c1a;
+    }
+    .sc-monitor-row-value-outer {
+      background-color: #fc662c;
+    }
+    .sc-monitor-row-value-editing .sc-monitor-row-value-outer {
+      background-color: #e25b27;
+    }
+    
+  </style>
+<meta name="theme-color" content="#000000"/>
+</head>
+<body>
+<div id="app"></div>
+<div id="launch" class="screen" hidden="" title="Click to start">
+<div class="green-flag">
+<svg viewbox="0 0 16.63 17.5" width="42" height="44">
+<defs><style>.cls-1,.cls-2{fill:#4cbf56;stroke:#45993d;stroke-linecap:round;stroke-linejoin:round;}.cls-2{stroke-width:1.5px;}</style></defs>
+<path class="cls-1" d="M.75,2A6.44,6.44,0,0,1,8.44,2h0a6.44,6.44,0,0,0,7.69,0V12.4a6.44,6.44,0,0,1-7.69,0h0a6.44,6.44,0,0,0-7.69,0"></path>
+<line class="cls-2" x1="0.75" y1="16.75" x2="0.75" y2="0.75"></line>
+</svg>
+</div>
+</div>
+<div id="loading" class="screen">
+<noscript>Enable JavaScript</noscript>
+<div class="progress-bar-outer"><div class="progress-bar-inner" id="loading-inner"></div></div>
+</div>
+<div id="error" class="screen" hidden="">
+<h1>Error</h1>
+<details>
+<summary id="error-message"></summary>
+<p id="error-stack"></p>
+</details>
+</div>
+<script>
+(function() {
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/gh/UGBONTOP/ugs-crunch-files@main/pyramixed/script.js';
+  s.onload = function() {
+    window.__scaffoldingReady = true;
+    if (window.__scaffoldingReadyCallback) window.__scaffoldingReadyCallback();
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script>
+(function() {
+  function runAll() {
+
+    function addOnBlurListener(onBlurCallback, onFocusCallback) {
+
+      var hidden, visibilityState, visibilityChange; // check the visiblility of the page
+
+      if (typeof document.hidden !== "undefined") {
+
+        hidden = "hidden"; visibilityChange = "visibilitychange"; visibilityState = "visibilityState";
+
+      } else if (typeof document.mozHidden !== "undefined") {
+
+        hidden = "mozHidden"; visibilityChange = "mozvisibilitychange"; visibilityState = "mozVisibilityState";
+
+      } else if (typeof document.msHidden !== "undefined") {
+
+        hidden = "msHidden"; visibilityChange = "msvisibilitychange"; visibilityState = "msVisibilityState";
+
+      } else if (typeof document.webkitHidden !== "undefined") {
+
+        hidden = "webkitHidden"; visibilityChange = "webkitvisibilitychange"; visibilityState = "webkitVisibilityState";
+
+      }
+
+      if (typeof document.addEventListener === "undefined" || typeof hidden === "undefined") {
+
+// not supported
+
+      } else {
+
+        document.addEventListener(visibilityChange, function() {
+
+          switch (document[visibilityState]) {
+
+            case "visible":
+
+              if (onFocusCallback) onFocusCallback();
+
+              break;
+
+            case "hidden":
+
+              if (onBlurCallback) onBlurCallback();
+
+              break;
+
+          }
+
+        }, false);
+
+      }
+
+    }
+
+    function muteAudio() {
+
+      scaffolding.audioEngine.audioContext.suspend()
+
+    }
+
+    function unMuteAudio() {
+
+      scaffolding.audioEngine.audioContext.resume()
+
+    }
+
+    addOnBlurListener(muteAudio, unMuteAudio);
+
+    console.log(this.audioPlayer);
+  
+
+    const appElement = document.getElementById('app');
+    const launchScreen = document.getElementById('launch');
+    const loadingScreen = document.getElementById('loading');
+    const loadingInner = document.getElementById('loading-inner');
+    const errorScreen = document.getElementById('error');
+    const errorScreenMessage = document.getElementById('error-message');
+    const errorScreenStack = document.getElementById('error-stack');
+
+    const handleError = (error) => {
+      console.error(error);
+      if (!errorScreen.hidden) return;
+      errorScreen.hidden = false;
+      errorScreenMessage.textContent = '' + error;
+      let debug = error && error.stack || 'no stack';
+      debug += '\nUser agent: ' + navigator.userAgent;
+      errorScreenStack.textContent = debug;
+    };
+    const setProgress = (progress) => {
+      if (loadingInner) loadingInner.style.width = progress * 100 + '%';
+    };
+    const interpolate = (a, b, t) => a + t * (b - a);
+
+    try {
+      setProgress(0.1);
+
+      const scaffolding = new Scaffolding.Scaffolding();
+      scaffolding.width = 640;
+      scaffolding.height = 360;
+      scaffolding.resizeMode = "stretch";
+      scaffolding.editableLists = false;
+      scaffolding.usePackagedRuntime = true;
+      scaffolding.setup();
+      scaffolding.appendTo(appElement);
+
+      const vm = scaffolding.vm;
+      window.scaffolding = scaffolding;
+      window.vm = scaffolding.vm;
+      window.Scratch = {
+        vm,
+        renderer: vm.renderer,
+        audioEngine: vm.runtime.audioEngine,
+        bitmapAdapter: vm.runtime.v2BitmapAdapter,
+        videoProvider: vm.runtime.ioDevices.video.provider
+      };
+
+      scaffolding.setUsername("player####".replace(/#/g, () => Math.floor(Math.random() * 10)));
+      scaffolding.setAccentColor("#ff4c4c");
+
+      try {
+        scaffolding.addCloudProvider(new Scaffolding.Cloud.LocalStorageProvider("cloudvariables:p4-@Incredibox - Sprunki (Pyramixed) 2CD BIG UPDATE.sb3"));
+      } catch (error) {
+        console.error(error);
+      }
+
+      vm.setTurboMode(false);
+      if (vm.setInterpolation) vm.setInterpolation(false);
+      if (vm.setFramerate) vm.setFramerate(30);
+      if (vm.renderer.setUseHighQualityRender) vm.renderer.setUseHighQualityRender(false);
+      if (vm.setRuntimeOptions) vm.setRuntimeOptions({
+        fencing: true,
+        miscLimits: true,
+        maxClones: 300,
+      });
+      if (vm.setCompilerOptions) vm.setCompilerOptions({
+        enabled: true,
+        warpTimer: false
+      });
+      if (vm.renderer.setMaxTextureDimension) vm.renderer.setMaxTextureDimension(2048);
+
+      if (typeof ScaffoldingAddons !== 'undefined') {
+        ScaffoldingAddons.run(scaffolding, {"gamepad":false,"pointerlock":false,"specialCloudBehaviors":false,"unsafeCloudBehaviors":false,"pause":false});
+      }
+
+      scaffolding.setExtensionSecurityManager({
+        getSandboxMode: () => 'unsandboxed',
+        canLoadExtensionFromProject: () => true
+      });
+      for (const extension of ["data:application/javascript,(function%20(Scratch)%20%7B%0A%20%20'use%20strict'%3B%0A%20%20class%20YaGamesSDKExtension%20%7B%0A%20%20%20%20getInfo()%20%7B%0A%20%20%20%20%20%20console.log(%22NES%20Games%20SDK%20Extension%22)%3B%0A%20%20%20%20%20%20return%20%7B%0A%20%20%20%20%20%20%20%20id%3A%20'yagames'%2C%0A%20%20%20%20%20%20%20%20name%3A%20'Yandex%20Games%20SDK'%2C%0A%20%20%20%20%20%20%20%20color1%3A%20'%23FF0000'%2C%0A%20%20%20%20%20%20%20%20blocks%3A%20%5B%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'initsdk'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%98%D0%BD%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D0%B8%D0%B7%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D1%82%D1%8C%20YaGames%20SDK'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'setdebug'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%92%D0%BA%D0%BB%D1%8E%D1%87%D0%B8%D1%82%D1%8C%20%D1%80%D0%B5%D0%B6%D0%B8%D0%BC%20%D1%80%D0%B0%D0%B7%D1%80%D0%B0%D0%B1%D0%BE%D1%82%D1%87%D0%B8%D0%BA%D0%B0'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'getsavedvar'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.REPORTER%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9F%D0%BE%D0%BB%D1%83%D1%87%D0%B8%D1%82%D1%8C%20%D1%81%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B5%D0%BD%D0%BD%D1%83%D1%8E%20%D0%BF%D0%B5%D1%80%D0%B5%D0%BC%D0%B5%D0%BD%D0%BD%D1%83%D1%8E%20%5BNAME%5D%20%D1%81%20%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D0%B5%D0%BC%20%D0%BF%D0%BE%20%D1%83%D0%BC%D0%BE%D0%BB%D1%87%D0%B0%D0%BD%D0%B8%D1%8E%20%5BDEFVAL%5D'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20arguments%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20NAME%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20defaultValue%3A%20'money'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.STRING%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20DEFVAL%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20defaultValue%3A%20'100'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.STRING%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'setsavedvar'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8%D1%82%D1%8C%20%D1%81%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B5%D0%BD%D0%BD%D1%83%D1%8E%20%D0%BF%D0%B5%D1%80%D0%B5%D0%BC%D0%B5%D0%BD%D0%BD%D1%83%D1%8E%20%5BNAME%5D%20%D1%81%D0%BE%20%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D0%B5%D0%BC%20%5BVALUE%5D'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20arguments%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20NAME%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20defaultValue%3A%20'money'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.STRING%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20VALUE%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20defaultValue%3A%20'100'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.STRING%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%09%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'setleaderboardvalue'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%B8%D1%82%D1%8C%20%D0%B7%D0%BD%D0%B0%D1%87%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%9B%D0%B8%D0%B4%D0%B5%D1%80%20%D0%91%D0%BE%D1%80%D0%B4%D0%B0%5BVALUE%5D'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20arguments%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20VALUE%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20defaultValue%3A%20'1'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20type%3A%20Scratch.ArgumentType.STRING%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'sdkenabled'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'SDK%20%D0%B2%D0%BA%D0%BB%D1%8E%D1%87%D0%B5%D0%BD%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'dataloaded'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%94%D0%B0%D0%BD%D0%BD%D1%8B%D0%B5%20%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B6%D0%B5%D0%BD%D1%8B%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'savevars'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%A1%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B8%D1%82%D1%8C%20%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B5%D1%81%D1%81'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'loadvars'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%97%D0%B0%D0%B3%D1%80%D1%83%D0%B7%D0%B8%D1%82%D1%8C%20%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B5%D1%81%D1%81'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'resetprogress'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%A1%D0%B1%D1%80%D0%BE%D1%81%D0%B8%D1%82%D1%8C%20%D0%BF%D1%80%D0%BE%D0%B3%D1%80%D0%B5%D1%81%D1%81'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'showfullscreen'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9F%D0%BE%D0%BA%D0%B0%D0%B7%D0%B0%D1%82%D1%8C%20%D0%BF%D0%BE%D0%BB%D0%BD%D0%BE%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%BD%D1%8B%D0%B9%20%D1%80%D0%B5%D0%BA%D0%BB%D0%B0%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%B1%D0%BB%D0%BE%D0%BA'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'whenFullscreenClosed'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.HAT%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20func%3A%20'isFullscreenClosed'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9A%D0%BE%D0%B3%D0%B4%D0%B0%20%D0%B7%D0%B0%D0%BA%D1%80%D1%8B%D0%B2%D0%B0%D0%B5%D1%82%D1%81%D1%8F%20%D0%BF%D0%BE%D0%BB%D0%BD%D0%BE%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%BD%D1%8B%D0%B9%20%D1%80%D0%B5%D0%BA%D0%BB%D0%B0%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%B1%D0%BB%D0%BE%D0%BA'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'fullscreenClosed'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9F%D0%BE%D0%BB%D0%BD%D0%BE%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%BD%D1%8B%D0%B9%20%D1%80%D0%B5%D0%BA%D0%BB%D0%B0%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%B1%D0%BB%D0%BE%D0%BA%20%D0%B7%D0%B0%D0%BA%D1%80%D1%8B%D1%82%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'showrewarded'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9F%D0%BE%D0%BA%D0%B0%D0%B7%D0%B0%D1%82%D1%8C%20%D1%80%D0%B5%D0%BA%D0%BB%D0%B0%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%B1%D0%BB%D0%BE%D0%BA%20%D1%81%20%D0%B2%D0%BE%D0%B7%D0%BD%D0%B0%D0%B3%D1%80%D0%B0%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5%D0%BC'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'whenRewardedWatched'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.HAT%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20func%3A%20'isRewardedWatched'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9A%D0%BE%D0%B3%D0%B4%D0%B0%20%D0%BF%D0%BE%D0%BA%D0%B0%D0%B7%D0%B0%D0%BD%20%D1%80%D0%B5%D0%BA%D0%BB%D0%B0%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%B1%D0%BB%D0%BE%D0%BA%20%D1%81%20%D0%B2%D0%BE%D0%B7%D0%BD%D0%B0%D0%B3%D1%80%D0%B0%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5%D0%BC'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'rewardedRewarded'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9F%D0%BE%D0%BB%D1%83%D1%87%D0%B5%D0%BD%D0%BE%20%D0%B2%D0%BE%D0%B7%D0%BD%D0%B0%D0%B3%D1%80%D0%B0%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5%20%D0%B7%D0%B0%20%D1%80%D0%B5%D0%BA%D0%BB%D0%B0%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%B1%D0%BB%D0%BE%D0%BA%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'canRateGame'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9C%D0%BE%D0%B6%D0%BD%D0%BE%20%D0%BE%D1%86%D0%B5%D0%BD%D0%B8%D1%82%D1%8C%20%D0%B8%D0%B3%D1%80%D1%83%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'openRatePopup'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.COMMAND%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%9E%D1%82%D0%BA%D1%80%D1%8B%D1%82%D1%8C%20%D0%B2%D1%81%D0%BF%D0%BB%D1%8B%D0%B2%D0%B0%D1%8E%D1%89%D0%B5%D0%B5%20%D0%BE%D0%BA%D0%BD%D0%BE%20%D0%BE%D1%86%D0%B5%D0%BD%D0%BA%D0%B8'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'getDeviceType'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.REPORTER%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%A2%D0%B8%D0%BF%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B0'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'isDesktop'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%98%D0%B3%D1%80%D0%B0%D0%B5%D1%82%D1%81%D1%8F%20%D0%BD%D0%B0%20%D0%BA%D0%BE%D0%BC%D0%BF%D1%8C%D1%8E%D1%82%D0%B5%D1%80%D0%B5%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'isMobile'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%98%D0%B3%D1%80%D0%B0%D0%B5%D1%82%D1%81%D1%8F%20%D0%BD%D0%B0%20%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D1%8C%D0%BD%D0%BE%D0%BC%20%D1%83%D1%81%D1%82%D1%80%D0%BE%D0%B9%D1%81%D1%82%D0%B2%D0%B5%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%09%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'isRu'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%98%D0%B3%D1%80%D0%B0%D0%B5%D1%82%D1%81%D1%8F%20%D0%BD%D0%B0%20%D1%80%D1%83%D1%81%D1%81%D0%BA%D0%BE%D0%BC%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%09%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'isEn'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%98%D0%B3%D1%80%D0%B0%D0%B5%D1%82%D1%81%D1%8F%20%D0%BD%D0%B0%20%D0%B0%D0%BD%D0%B3%D0%BB%D0%B8%D0%B9%D1%81%D0%BA%D0%BE%D0%BC%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'isTablet'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%98%D0%B3%D1%80%D0%B0%D0%B5%D1%82%D1%81%D1%8F%20%D0%BD%D0%B0%20%D0%BF%D0%BB%D0%B0%D0%BD%D1%88%D0%B5%D1%82%D0%B5%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20opcode%3A%20'isTV'%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20blockType%3A%20Scratch.BlockType.BOOLEAN%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20text%3A%20'%D0%98%D0%B3%D1%80%D0%B0%D0%B5%D1%82%D1%81%D1%8F%20%D0%BD%D0%B0%20%D1%82%D0%B5%D0%BB%D0%B5%D0%B2%D0%B8%D0%B7%D0%BE%D1%80%D0%B5%3F'%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%5D%0A%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%7D%0A%20%20%20%20getDeviceType()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20return%20'%D0%BA%D0%BE%D0%BC%D0%BF%D1%8C%D1%8E%D1%82%D0%B5%D1%80'%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20ysdk.deviceInfo.type%3B%0A%20%20%20%20%7D%0A%20%20%20%20isDesktop()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20return%20true%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20ysdk.deviceInfo.isDesktop()%3B%0A%20%20%20%20%7D%0A%20%20%20%20isMobile()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20return%20false%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20ysdk.deviceInfo.isMobile()%3B%0A%20%20%20%20%7D%0A%20%20%20%20isRu()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20return%20true%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20ysdk.environment.i18n.lang%20%3D%3D%20%22ru%22%3B%0A%20%20%20%20%7D%0A%20%20%20%20isEn()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20return%20true%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20ysdk.environment.i18n.lang%20%3D%3D%20%22en%22%3B%0A%20%20%20%20%7D%0A%20%20%20%20isTablet()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20return%20false%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20ysdk.deviceInfo.isTablet()%3B%0A%20%20%20%20%7D%0A%20%20%20%20isTV()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20return%20false%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20ysdk.deviceInfo.isTV()%3B%0A%20%20%20%20%7D%0A%20%20%20%20canRateGame()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20return%20!(window.alreadyrated%20%3D%3D%20true)%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20var%20can%3B%0A%20%20%20%20%20%20ysdk.feedback.canReview().then((%7B%20value%2C%20reason%20%7D)%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20can%20%3D%20value%3B%0A%20%20%20%20%20%20%7D)%3B%0A%20%20%20%20%20%20return%20can%3B%0A%20%20%20%20%7D%0A%20%20%20%20openRatePopup()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20window.alreadyrated%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20alert('DEBUG%20%D0%9E%D1%86%D0%B5%D0%BD%D0%B8%D1%82%D0%B5%20%D0%BD%D0%B0%D1%88%D1%83%20%D0%B8%D0%B3%D1%80%D1%83')%3B%0A%20%20%20%20%20%20%20%20return%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20ysdk.feedback.requestReview()%3B%0A%20%20%20%20%7D%0A%20%20%20%20whenRewardedWatched()%20%7B%0A%20%20%20%20%20%20console.log(%22%D0%BF%D1%80%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B5%D0%BD%D0%BE!%22)%3B%0A%20%20%20%20%7D%0A%20%20%20%20rewardedRewarded()%20%7B%0A%20%20%20%20%20%20return%20(window.isrewarded%20%3D%3D%20true)%3B%0A%20%20%20%20%7D%0A%20%20%20%20triggerIRW()%20%7B%0A%20%20%20%20%20%20window.triggerIRW%20%3D%20true%3B%0A%20%20%20%20%7D%0A%20%20%20%20triggerIFC()%20%7B%0A%20%20%20%20%20%20this.undeafAE()%3B%0A%20%20%20%20%20%20window.triggerIFC%20%3D%20true%3B%0A%20%20%20%20%7D%0A%20%20%20%20isRewardedWatched()%20%7B%0A%20%20%20%20%20%20if%20(window.triggerIRW)%20%7B%0A%20%20%20%20%20%20%20%20window.triggerIRW%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20return%20true%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20false%3B%0A%20%20%20%20%7D%0A%20%20%20%20isFullscreenClosed()%20%7B%0A%20%20%20%20%20%20if%20(window.triggerIFC)%20%7B%0A%20%20%20%20%20%20%20%20window.triggerIFC%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20return%20true%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%20false%3B%0A%20%20%20%20%7D%0A%20%20%20%20fullscreenClosed()%20%7B%0A%20%20%20%20%20%20return%20(window.isfullscreenclosed%20%3D%3D%20true)%3B%0A%20%20%20%20%7D%0A%20%20%20%20initsdk()%20%7B%0A%20%20%20%20%20%20function%20onBlur()%20%7B%0A%20%20%20%20%20%20%20%20if(window.isAdOpened%20%3D%3D%20false)%7B%0A%20%20%20%20%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%200%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%20%20function%20onFocus()%7B%0A%20%20%20%20%20%20%20%20if(window.isAdOpened%20%3D%3D%20false)%7B%0A%20%20%20%20%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%201%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%3B%0A%20%20%20%20%20%20window.onfocus%20%3D%20onFocus%3B%0A%20%20%20%20%20%20window.onblur%20%3D%20onBlur%3B%0A%20%20%20%20%20%20window.isAdOpened%20%3D%20false%3B%0A%20%20%20%20%20%20document.addEventListener('visibilitychange'%2C%20function%20()%20%7B%0A%20%20%20%20%20%20%20%20if(window.isAdOpened%20%3D%3D%20false)%7B%0A%20%20%20%20%20%20%20%20%20%20if%20(document.hidden)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%200%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%201%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%2C%20false)%3B%0A%20%20%20%20%20%20window.savedData%20%3D%20%22%22%3B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20window.ysdk%20%3D%20%7B%7D%3B%0A%20%20%20%20%20%20%20%20window.ysdkplayer%20%3D%20%7B%7D%3B%0A%20%20%20%20%20%20%20%20return%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20var%20script%20%3D%20document.createElement(%22script%22)%3B%0A%20%20%20%20%20%20script.src%20%3D%20%22https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2FUGBONTOP%2Fugs-crunch-files%40main%2Fpyramixed%2Fassets%2Fsdk.js%22%3B%0A%20%20%20%20%20%20document.head.appendChild(script)%3B%0A%20%20%20%20%20%20script.onload%20%3D%20async%20function%20()%20%7B%0A%20%20%20%20%20%20%20%20console.log(YaGames)%3B%0A%20%20%20%20%20%20%20%20await%20YaGames.init().then(ysdk%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20window.ysdk%20%3D%20ysdk%3B%0A%20%20%20%20%20%20%20%20%20%20ysdk.features.LoadingAPI.ready()%3B%0A%20%20%20%20%20%20%20%20%20%20ysdk.getPlayer(%7Bscopes%3A%20false%7D).then(_player%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20var%20player%20%3D%20_player%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.ysdkplayer%20%3D%20player%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20console.log(window.ysdkplayer)%3B%0A%20%20%20%20%20%20%20%20%20%20%7D).catch((err)%20%3D%3E%20%7B%0A%0A%20%20%20%20%20%20%20%20%20%20%7D)%3B%0A%09%20%20ysdk.getLeaderboards().then(_lb%20%3D%3E%20%7Bwindow.lb%20%3D%20_lb%3B%20console.log(%22%D0%9B%D0%B8%D0%B4%D0%B5%D1%80%20%D0%B1%D0%BE%D1%80%D0%B4%20%D0%BF%D0%BE%D0%BB%D1%83%D1%87%D0%B5%D0%BD%22)%3B%7D)%3B%0A%20%20%20%20%20%20%20%20%7D)%3B%0A%20%20%20%20%20%20%20%20console.log(%22%D0%98%D0%BD%D0%B8%D1%86%D0%B8%D0%B0%D0%BB%D0%B8%D0%B7%D0%B8%D1%80%D0%BE%D0%B2%D0%B0%D0%BD%D0%BE%20YaGames!%22)%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20async%20loadvars()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20!%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20if%20(window.ysdkplayer%20!%3D%20undefined)%20%7B%0A%20%20%20%20%20%20%20%20%20%20var%20data%20%3D%20await%20window.ysdkplayer.getData()%3B%0A%20%20%20%20%20%20%20%20%20%20window.ysdkdata%20%3D%20data%3B%0A%20%20%20%20%20%20%20%20%20%20console.log(%22%D0%94%D0%B0%D0%BD%D0%BD%D1%8B%D0%B5%20%D1%83%D1%81%D0%BF%D0%B5%D1%88%D0%BD%D0%BE%20%D0%B7%D0%B0%D0%B3%D1%80%D1%83%D0%B6%D0%B5%D0%BD%D1%8B!%22)%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D%20else%20%7B%0A%20%20%20%20%20%20%20%20window.ysdkdata%20%3D%20%7B%7D%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20setdebug()%20%7B%0A%20%20%20%20%20%20window.alreadyrated%20%3D%20false%3B%0A%20%20%20%20%20%20window.ysdkdebug%20%3D%20true%3B%0A%20%20%20%20%7D%0A%20%20%20%20setsavedvar(args)%20%7B%0A%20%20%20%20%20%20window.ysdkdata%5Bargs.NAME%5D%20%3D%20args.VALUE%3B%0A%20%20%20%20%20%20return%3B%0A%20%20%20%20%7D%0A%20%20%20%20setleaderboardvalue(args)%20%7B%0A%20%20%20%20%20%20if%20(window.ysdk%20!%3D%20undefined)%0A%20%20%20%20%20%20%7B%0A%09%20%20if%20(window.lb%20!%3D%20undefined)%0A%09%20%20%7B%0A%09%09console.log(%22%D0%9E%D1%82%D0%BF%D1%80%D0%B0%D0%B2%D0%BB%D1%8F%D1%8E%20%D0%B4%D0%B0%D0%BD%D0%BD%D1%8B%D0%B5%20%D0%BB%D0%B8%D0%B4%D0%B5%D1%80%D0%B1%D0%BE%D1%80%D0%B4%D1%83%3A%20%22%20%2B%20args.VALUE)%3B%0A%09%20%09window.lb.setLeaderboardScore(%22id1%22%2C%20parseInt(args.VALUE))%3B%0A%09%20%20%7D%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20return%3B%0A%20%20%20%20%7D%0A%20%20%20%20getsavedvar(args)%20%7B%0A%20%20%20%20%20%20return%20window.ysdkdata%5Bargs.NAME%5D%20%7C%7C%20args.DEFVAL%3B%0A%20%20%20%20%7D%0A%20%20%20%20savevars()%20%7B%0A%20%20%20%20%20%20if%20(window.ysdkplayer%20!%3D%20undefined%20%26%26%20window.ysdkdata%20!%3D%20undefined%20%26%26%20window.savedData%20!%3D%3D%20JSON.stringify(window.ysdkdata))%0A%20%20%20%20%20%20%20%20window.ysdkplayer.setData(window.ysdkdata%2C%20true).then(()%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20window.savedData%20%3D%20JSON.stringify(window.ysdkdata)%3B%0A%20%20%20%20%20%20%20%20%20%20console.log(%22%D0%94%D0%B0%D0%BD%D0%BD%D1%8B%D0%B5%20%D1%83%D1%81%D0%BF%D0%B5%D1%88%D0%BD%D0%BE%20%D1%81%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B5%D0%BD%D1%8B!%22)%3B%0A%20%20%20%20%20%20%20%20%7D)%3B%0A%20%20%20%20%7D%0A%20%20%20%20resetprogress()%20%7B%0A%20%20%20%20%20%20window.ysdkdata%20%3D%20%7B%7D%3B%0A%20%20%20%20%20%20if%20(window.ysdkplayer%20!%3D%20undefined%20%26%26%20window.ysdkdata%20!%3D%20undefined%20%26%26%20window.savedData%20!%3D%3D%20JSON.stringify(window.ysdkdata))%0A%20%20%20%20%20%20%20%20window.ysdkplayer.setData(window.ysdkdata%2C%20true).then(()%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20window.savedData%20%3D%20JSON.stringify(window.ysdkdata)%3B%0A%20%20%20%20%20%20%20%20%20%20console.log(%22%D0%94%D0%B0%D0%BD%D0%BD%D1%8B%D0%B5%20%D1%83%D1%81%D0%BF%D0%B5%D1%88%D0%BD%D0%BE%20%D1%81%D0%BE%D1%85%D1%80%D0%B0%D0%BD%D0%B5%D0%BD%D1%8B!%22)%3B%0A%20%20%20%20%20%20%20%20%7D)%3B%0A%20%20%20%20%7D%0A%20%20%20%20sdkenabled()%20%7B%0A%20%20%20%20%20%20return%20(window.ysdk%20!%3D%20undefined)%3B%0A%20%20%20%20%7D%0A%20%20%20%20dataloaded()%20%7B%0A%20%20%20%20%20%20return%20((window.ysdkplayer%20!%3D%20undefined)%20%26%26%20window.ysdkdata%20!%3D%20undefined)%3B%0A%20%20%20%20%7D%0A%20%20%20%20deafAE()%20%7B%0A%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%200%3B%0A%20%20%20%20%7D%0A%20%20%20%20undeafAE()%20%7B%0A%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%201%3B%0A%20%20%20%20%7D%0A%20%20%20%20showfullscreen()%20%7B%0A%20%20%20%20%20%20window.isfullscreenclosed%20%3D%20false%3B%0A%20%20%20%20%20%20window.isAdOpened%20%3D%20true%3B%0A%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%200%3B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20alert(%22%D0%9F%D0%BE%D0%BB%D0%BD%D0%BE%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%BD%D1%8B%D0%B9%20%D1%80%D0%B5%D0%BA%D0%BB%D0%B0%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%B1%D0%BB%D0%BE%D0%BA!%22)%3B%0A%20%20%20%20%20%20%20%20window.isfullscreenclosed%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%201%3B%0A%20%20%20%20%20%20%20%20window.triggerIFC%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20window.isAdOpened%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20return%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20if%20(window.ysdk%20!%3D%20undefined)%20%7B%0A%20%20%20%20%20%20%20%20window.ysdk.adv.showFullscreenAdv(%7B%0A%20%20%20%20%20%20%20%20%20%20callbacks%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20onClose%3A%20function%20(wasShown)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20window.isfullscreenclosed%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20window.triggerIFC%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20window.isAdOpened%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20Scratch.vm.runtime.audioEngine.inputNode.gain.value%20%3D%201%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20%20%20onError%3A%20function%20(error)%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20window.isfullscreenclosed%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20window.triggerIFC%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20window.isAdOpened%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D)%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%7D%0A%20%20%20%20showrewarded()%20%7B%0A%20%20%20%20%20%20window.isrewardedwatched%20%3D%20false%3B%0A%20%20%20%20%20%20window.isrewarded%20%3D%20false%3B%0A%20%20%20%20%20%20window.isAdOpened%20%3D%20true%3B%0A%20%20%20%20%20%20this.deafAE()%3B%0A%20%20%20%20%20%20if%20(window.ysdkdebug%20%3D%3D%20true)%20%7B%0A%20%20%20%20%20%20%20%20var%20pr%20%3D%20prompt('DEBUG%20%D0%A0%D0%B5%D0%BA%D0%BB%D0%B0%D0%BC%D0%BD%D1%8B%D0%B9%20%D0%B1%D0%BB%D0%BE%D0%BA%20%D1%81%20%D0%B2%D0%BE%D0%B7%D0%BD%D0%B0%D0%B3%D1%80%D0%B0%D0%B6%D0%B4%D0%B5%D0%BD%D0%B8%D0%B5%D0%BC!%20%D0%9D%D0%B0%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%20%22C%22%2C%20%D1%87%D1%82%D0%BE%D0%B1%D1%8B%20%D0%B7%D0%B0%D0%BA%D1%80%D1%8B%D1%82%D1%8C%20%D0%B5%D0%B3%D0%BE%2C%20%D0%BD%D0%B0%D0%BF%D0%B8%D1%88%D0%B8%D1%82%D0%B5%20%22R%22%2C%20%D1%87%D1%82%D0%BE%D0%B1%D1%8B%20%D0%BF%D0%BE%D0%BB%D1%83%D1%87%D0%B8%D1%82%D1%8C%20%D0%BD%D0%B0%D0%B3%D1%80%D0%B0%D0%B4%D1%83.')%3B%0A%20%20%20%20%20%20%20%20if%20(pr.toLowerCase()%20%3D%3D%20'c')%20%7B%0A%20%20%20%20%20%20%20%20%20%20window.isrewardedwatched%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20%20%20window.isrewarded%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%7D%20else%20if%20(pr.toLowerCase()%20%3D%3D%20'r')%20%7B%0A%20%20%20%20%20%20%20%20%20%20window.isrewardedwatched%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20%20%20window.isrewarded%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20window.isAdOpened%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20this.triggerIRW()%3B%0A%20%20%20%20%20%20%20%20return%3B%0A%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20window.ysdk.adv.showRewardedVideo(%7B%0A%20%20%20%20%20%20%20%20callbacks%3A%20%7B%0A%20%20%20%20%20%20%20%20%20%20onOpen%3A%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isrewardedwatched%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isrewarded%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20onRewarded%3A%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isrewarded%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isAdOpened%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20this.triggerIRW()%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20onClose%3A%20()%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isrewardedwatched%20%3D%20true%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isAdOpened%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20this.undeafAE()%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20this.triggerIRW()%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%2C%0A%20%20%20%20%20%20%20%20%20%20onError%3A%20(e)%20%3D%3E%20%7B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isrewardedwatched%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isrewarded%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%20%20window.isAdOpened%20%3D%20false%3B%0A%20%20%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%20%20%7D%0A%20%20%20%20%20%20%7D)%3B%0A%20%20%20%20%7D%0A%20%20%7D%0A%20%20Scratch.extensions.register(new%20YaGamesSDKExtension())%3B%0A%7D)(Scratch)%3B"]) {
+        vm.extensionManager.loadExtensionURL(extension);
+      }
+
+    } catch (e) {
+      handleError(e);
+    }
+  
+
+      const getProjectData = (function() {
+        const storage = scaffolding.storage;
+        storage.onprogress = (total, loaded) => {
+          setProgress(interpolate(0.2, 0.98, loaded / total));
+        };
+        
+        storage.addWebStore(
+          [
+            storage.AssetType.ImageVector,
+            storage.AssetType.ImageBitmap,
+            storage.AssetType.Sound,
+            storage.AssetType.Font
+          ].filter(i => i),
+          (asset) => 'https://cdn.jsdelivr.net/gh/UGBONTOP/ugs-crunch-files@main/pyramixed/assets/' + asset.assetId + '.' + asset.dataFormat
+        );
+        return () => new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = () => {
+          resolve(xhr.response);
+        };
+        xhr.onerror = () => {
+          reject(new Error('Request to load project data failed.'));
+        };
+        xhr.onprogress = (e) => {
+          if (e.lengthComputable) {
+            setProgress(interpolate(0.1, 0.2, e.loaded / e.total));
+          }
+        };
+        xhr.responseType = 'arraybuffer';
+        xhr.open('GET', 'https://cdn.jsdelivr.net/gh/UGBONTOP/ugs-crunch-files@main/pyramixed/assets/project.json');
+        xhr.send();
+      });
+      })();
+    
+
+    const run = async () => {
+      const projectData = await getProjectData();
+      await scaffolding.loadProject(projectData);
+      setProgress(1);
+      loadingScreen.hidden = true;
+      if (true) {
+        scaffolding.start();
+      } else {
+        launchScreen.hidden = false;
+        launchScreen.addEventListener('click', () => {
+          launchScreen.hidden = true;
+          scaffolding.start();
+        });
+        launchScreen.focus();
+      }
+    };
+    run().catch(handleError);
+  
+  }
+  if (window.__scaffoldingReady) {
+    runAll();
+  } else {
+    window.__scaffoldingReadyCallback = runAll;
+  }
+})();
+</script>
+
+</body>
+</html>

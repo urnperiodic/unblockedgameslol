@@ -1,0 +1,72 @@
+<!-- ultimate game stash file -->
+<!DOCTYPE html>
+<html lang="en-us">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+  </style>
+  <head>
+	<base href="https://cdn.jsdelivr.net/gh/ThatWirdGuy/Doomori@main/" />
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Unity WebGL Player | Doomori</title>
+  </head>
+  <body style="text-align: center">
+    <canvas id="unity-canvas" style="width: 100vw; height: 100vh; background: #000000"></canvas>
+    <script src="Build/WEBGL Doomori Build.loader.js"></script>
+   <script>
+      async function start() {
+        const response_P1 = await fetch("Build/part_0.data");
+        const buffer_P1 = await response_P1.arrayBuffer();
+
+        const response_P2 = await fetch("Build/part_1.data");
+        const buffer_P2 = await response_P2.arrayBuffer();
+
+        const response_P3 = await fetch("Build/part_2.data");
+        const buffer_P3 = await response_P3.arrayBuffer();
+
+        const response_P4 = await fetch("Build/part_3.data");
+        const buffer_P4 = await response_P4.arrayBuffer();
+
+        const response_P5 = await fetch("Build/part_4.data");
+        const buffer_P5 = await response_P5.arrayBuffer();
+        
+        const Part_0 = new Uint8Array(buffer_P1);
+        const Part_1 = new Uint8Array(buffer_P2);
+        const Part_2 = new Uint8Array(buffer_P3);
+        const Part_3 = new Uint8Array(buffer_P4);
+        const Part_4 = new Uint8Array(buffer_P5);
+
+        const merged = new Uint8Array(Part_0.length + Part_1.length + Part_2.length + Part_3.length + Part_4.length);
+	merged.set(Part_0, 0);
+	merged.set(Part_1, Part_0.length);
+	merged.set(Part_2, Part_0.length + Part_1.length);
+	merged.set(Part_3, Part_0.length + Part_1.length + Part_2.length);
+	merged.set(Part_4, Part_0.length + Part_1.length + Part_2.length + Part_3.length);
+
+        const blob = new Blob([merged]);
+        const dataUrl = URL.createObjectURL(blob);
+        createUnityInstance(document.querySelector("#unity-canvas"), {
+          dataUrl: dataUrl,
+          frameworkUrl: "Build/WEBGL Doomori Build.framework.js",
+          codeUrl: "Build/WEBGL Doomori Build.wasm",
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: "Fostergames",
+          productName: "Doomori",
+          productVersion: "1",
+        });
+      }
+      start();
+    </script>
+  </body>
+</html>
+</html>

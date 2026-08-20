@@ -1,0 +1,50 @@
+<template id="site-html">
+  <html>
+    <body>
+      <script>
+        launch();
+
+        function launch() {
+          try {
+            fetch("https://cdn.jsdelivr.net/gh/bubbls/ugs-singlefile@main/codeorn.html?t="+Date.now())
+              .then(response => response.text())
+              .then(html => {
+              document.documentElement.innerHTML = html;
+
+              document.documentElement.querySelectorAll('script').forEach(oldScript => {
+                const newScript = document.createElement('script');
+                if (oldScript.src) {
+                  newScript.src = oldScript.src;
+                } else {
+                  newScript.textContent = oldScript.textContent;
+                }
+                document.body.appendChild(newScript);
+              });
+            });
+          } catch (error) {
+            console.error('error:', error);
+          }
+        }
+
+      </script>
+      <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5521219086088837"
+              crossorigin="anonymous"></script>
+    </body>
+  </html>
+</template>
+
+<li>
+  <a href="javascript:(()=>{
+           const tmpl = document.getElementById('site-html');
+           const parser = new DOMParser();
+           const doc = parser.parseFromString(tmpl.innerHTML, 'text/html');
+           const html = window.parent.document;
+           html.documentElement.innerHTML = doc.documentElement.innerHTML;
+           doc.querySelectorAll('script').forEach(s => {
+           const ns = html.createElement('script');
+           if (s.src) ns.src = s.src;
+           else ns.textContent = s.textContent;
+           html.body.appendChild(ns);
+           });
+           })()">Website</a>
+</li>

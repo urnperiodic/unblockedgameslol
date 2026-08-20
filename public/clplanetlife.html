@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Planet Life</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #000; }
+    iframe { width: 100vw; height: 100vh; border: none; display: block; }
+    #loading { color: #fff; font-family: monospace; font-size: 16px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+  </style>
+</head>
+<body>
+  <div id="loading">Loading Planet Life... Ripped by airbender~UGS</div>
+  <iframe id="game" sandbox="allow-scripts allow-pointer-lock allow-forms"></iframe>
+
+  <script>
+    const REPO = 'AZURE2077/Planet-Life-Rip';
+    const BRANCHES = ['main', 'master'];
+
+    async function tryFetch(branch) {
+      const cdnBase = `https://cdn.jsdelivr.net/gh/${REPO}@${branch}/`;
+      const response = await fetch(cdnBase + 'index.html');
+      if (!response.ok) throw new Error(`Branch "${branch}" failed: ${response.status}`);
+      let html = await response.text();
+      html = html.replace('<head>', `<head><base href="${cdnBase}">`);
+      return html;
+    }
+
+    (async () => {
+      for (const branch of BRANCHES) {
+        try {
+          const html = await tryFetch(branch);
+          const iframe = document.getElementById('game');
+          iframe.srcdoc = html;
+          iframe.onload = () => document.getElementById('loading').style.display = 'none';
+          return;
+        } catch(error) {
+          console.warn(error.message);
+        }
+      }
+      document.getElementById('loading').textContent = 'Could not load game.';
+    })();
+  </script>
+</body>
+</html>

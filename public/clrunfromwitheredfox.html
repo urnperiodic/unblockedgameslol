@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+  <meta charset="utf-8">
+  <base href="https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/unity/wither/">
+  <title>Withered Foxy</title>
+  <link rel="stylesheet" href="TemplateData/style.css">
+  <script src="TemplateData/UnityProgress.js"></script>
+  <script src="Build/UnityLoader.js"></script>
+  <script>
+    const realOpen = XMLHttpRequest.prototype.open;
+    const realSend = XMLHttpRequest.prototype.send;
+    function mergeParts(base, type, cb) {
+      const parts = [1,2].map(i =>
+        fetch(`Build/${base}.${type}.unityweb.part${i}`).then(r => r.arrayBuffer())
+      );
+      Promise.all(parts).then(buffers => {
+        let total = 0;
+        buffers.forEach(b => total += b.byteLength);
+        const merged = new Uint8Array(total);
+        let offset = 0;
+        buffers.forEach(b => {
+          merged.set(new Uint8Array(b), offset);
+          offset += b.byteLength;
+        });
+        cb(merged);
+      });
+    }
+    XMLHttpRequest.prototype.open = function(method, url) {
+      this._url = url;
+      return realOpen.apply(this, arguments);
+    };
+    XMLHttpRequest.prototype.send = function() {
+      const url = this._url;
+      if (url.includes("withered foxy.data.unityweb")) {
+        mergeParts("withered%20foxy", "data", (data) => {
+          Object.defineProperty(this, "response", { value: data.buffer });
+          Object.defineProperty(this, "responseType", { value: "arraybuffer" });
+          this.onload && this.onload();
+        });
+        return;
+      }
+      if (url.includes("withered foxy.wasm.code.unityweb")) {
+        mergeParts("withered%20foxy", "wasm.code", (data) => {
+          Object.defineProperty(this, "response", { value: data.buffer });
+          Object.defineProperty(this, "responseType", { value: "arraybuffer" });
+          this.onload && this.onload();
+        });
+        return;
+      }
+      return realSend.apply(this, arguments);
+    };
+    function startGame() {
+      UnityLoader.instantiate(
+        "gameContainer",
+        "Build/withered foxy.json",
+        { onProgress: UnityProgress }
+      );
+    }
+
+    window.onload = startGame;
+  </script>
+</head>
+
+<body>
+  <div class="webgl-content">
+    <div id="gameContainer" style="width: 1920px; height: 1080px"></div>
+  </div>
+</body>
+</html>
