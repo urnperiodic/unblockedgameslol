@@ -27,6 +27,10 @@ const prepareGameHtml = (html, baseUrl) => {
   }
   return `${baseTag}${runtimeShim}${html}`;
 };
+
+const createGameLoadErrorDocument = (url) => ({
+  srcDoc: `<html><body style="margin:0;background:#080b12;color:#e5e7eb;font:16px sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center"><main><h2>Game could not be loaded</h2><p>The remote game file did not respond.</p><a href="${url}" target="_blank" rel="noreferrer" style="color:#60a5fa">Open source file</a></main></body></html>`
+});
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
 const FlashcardsWorkspace = lazy(() => import('./components/FlashcardsWorkspace'));
 const QuizWorkspace = lazy(() => import('./components/QuizWorkspace'));
@@ -388,7 +392,7 @@ export default function App() {
         setGameFrame(frame);
       })
       .catch((error) => {
-        if (error.name !== 'AbortError') setGameFrame({ src: selectedGame.url });
+        if (error.name !== 'AbortError') setGameFrame(createGameLoadErrorDocument(selectedGame.url));
       });
 
     return () => controller.abort();
@@ -4524,7 +4528,7 @@ export default function App() {
                           if (!win.closed) frame.srcdoc = srcDoc;
                         })
                         .catch(() => {
-                          if (!win.closed) frame.src = selectedGame.url;
+                          if (!win.closed) frame.srcdoc = createGameLoadErrorDocument(selectedGame.url).srcDoc;
                         });
                     }}
                     className="flex items-center gap-1.5 border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] py-1.5 px-3 rounded-lg text-xs font-mono text-[var(--text-primary)] font-medium transition-all cursor-pointer"
