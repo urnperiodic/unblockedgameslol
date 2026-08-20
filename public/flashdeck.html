@@ -1,0 +1,1674 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlashDeck — Flashcard Study App</title>
+<meta name="description" content="A clean, modern flashcard study app. Create, study, quiz, import & export your own flashcards.">
+
+<!-- Inter font -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+
+<style>
+/* ===================================================================
+   THEME TOKENS / VARIABLES
+=================================================================== */
+:root{
+  --bg:#f4f6fb;
+  --bg-elev:#ffffff;
+  --bg-soft:#eef1f8;
+  --text:#1c2230;
+  --text-soft:#5b6478;
+  --text-mute:#8b94a8;
+  --border:#e4e8f2;
+  --primary:#6366f1;
+  --primary-dark:#4f46e5;
+  --primary-soft:#eef0ff;
+  --accent:#0ea5e9;
+  --success:#10b981;
+  --success-soft:#e6f7f1;
+  --warn:#f59e0b;
+  --warn-soft:#fef3e2;
+  --danger:#ef4444;
+  --danger-soft:#fdeaea;
+  --shadow:0 6px 24px rgba(30,40,80,.08);
+  --shadow-lg:0 18px 50px rgba(30,40,80,.16);
+  --radius:18px;
+  --radius-sm:12px;
+  --radius-lg:26px;
+  --trans:.28s cubic-bezier(.4,.2,.2,1);
+}
+[data-theme="dark"]{
+  --bg:#0e1220;
+  --bg-elev:#171c2e;
+  --bg-soft:#1f2740;
+  --text:#eef1f8;
+  --text-soft:#aeb6cc;
+  --text-mute:#78829e;
+  --border:#2a3252;
+  --primary:#818cf8;
+  --primary-dark:#6366f1;
+  --primary-soft:#242b4a;
+  --accent:#38bdf8;
+  --success:#34d399;
+  --success-soft:#173a30;
+  --warn:#fbbf24;
+  --warn-soft:#3a2f16;
+  --danger:#f87171;
+  --danger-soft:#3a1f22;
+  --shadow:0 6px 24px rgba(0,0,0,.35);
+  --shadow-lg:0 18px 50px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  transition:background var(--trans),color var(--trans);
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit;font-size:14px}
+a{color:inherit}
+::selection{background:var(--primary);color:#fff}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:20px}
+::-webkit-scrollbar-thumb:hover{background:var(--text-mute)}
+
+/* ===================================================================
+   LAYOUT
+=================================================================== */
+.app{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{
+  width:250px;flex-shrink:0;
+  background:var(--bg-elev);
+  border-right:1px solid var(--border);
+  padding:22px 16px;
+  display:flex;flex-direction:column;gap:6px;
+  position:sticky;top:0;height:100vh;
+  transition:transform var(--trans),background var(--trans);
+  z-index:60;
+}
+.brand{display:flex;align-items:center;gap:11px;padding:6px 10px 20px;font-weight:800;font-size:20px}
+.brand .logo{
+  width:38px;height:38px;border-radius:12px;
+  background:linear-gradient(135deg,var(--primary),var(--accent));
+  display:grid;place-items:center;color:#fff;font-size:18px;
+  box-shadow:0 6px 16px rgba(99,102,241,.4);
+}
+.nav-item{
+  display:flex;align-items:center;gap:13px;
+  padding:11px 14px;border-radius:12px;
+  color:var(--text-soft);font-weight:500;font-size:14.5px;
+  transition:var(--trans);width:100%;text-align:left;
+}
+.nav-item i{width:20px;text-align:center;font-size:16px}
+.nav-item:hover{background:var(--bg-soft);color:var(--text)}
+.nav-item.active{background:var(--primary);color:#fff;box-shadow:0 6px 16px rgba(99,102,241,.35)}
+.sidebar-foot{margin-top:auto;display:flex;flex-direction:column;gap:6px}
+.theme-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 14px;border-radius:12px;background:var(--bg-soft);
+  color:var(--text-soft);font-weight:500;font-size:14px;
+}
+.theme-toggle .switch{
+  width:44px;height:24px;border-radius:20px;background:var(--border);
+  position:relative;transition:var(--trans);flex-shrink:0;
+}
+.theme-toggle .switch::after{
+  content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;
+  border-radius:50%;background:#fff;transition:var(--trans);box-shadow:0 1px 3px rgba(0,0,0,.3);
+}
+[data-theme="dark"] .theme-toggle .switch{background:var(--primary)}
+[data-theme="dark"] .theme-toggle .switch::after{transform:translateX(20px)}
+
+/* Main */
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:color-mix(in srgb,var(--bg) 85%,transparent);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  padding:14px 26px;display:flex;align-items:center;gap:16px;
+}
+.hamburger{display:none;font-size:20px;color:var(--text-soft)}
+.search-box{
+  flex:1;max-width:520px;position:relative;
+}
+.search-box i{position:absolute;left:15px;top:50%;transform:translateY(-50%);color:var(--text-mute)}
+.search-box input{
+  width:100%;padding:11px 15px 11px 42px;border-radius:12px;
+  border:1px solid var(--border);background:var(--bg-elev);color:var(--text);
+  outline:none;transition:var(--trans);
+}
+.search-box input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.topbar-actions{margin-left:auto;display:flex;gap:10px}
+
+.content{padding:26px;flex:1}
+.view{display:none;animation:fade .4s}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:8px;justify-content:center;
+  padding:11px 18px;border-radius:12px;font-weight:600;font-size:14px;
+  transition:var(--trans);white-space:nowrap;
+}
+.btn i{font-size:14px}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 6px 16px rgba(99,102,241,.3)}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-2px)}
+.btn-ghost{background:var(--bg-elev);color:var(--text-soft);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--bg-soft);color:var(--text)}
+.btn-soft{background:var(--primary-soft);color:var(--primary)}
+.btn-soft:hover{background:var(--primary);color:#fff}
+.btn-danger{background:var(--danger-soft);color:var(--danger)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-success{background:var(--success);color:#fff}
+.btn-success:hover{filter:brightness(1.08);transform:translateY(-2px)}
+.btn-sm{padding:8px 12px;font-size:13px;border-radius:10px}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
+
+/* Page header */
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.page-head h1{font-size:26px;font-weight:800;letter-spacing:-.5px}
+.page-head p{color:var(--text-soft);font-size:14.5px;margin-top:4px}
+.head-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* ===================================================================
+   DASHBOARD
+=================================================================== */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:26px}
+.stat-card{
+  background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);transition:var(--trans);
+}
+.stat-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.stat-ic{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:22px;flex-shrink:0}
+.stat-ic.i1{background:var(--primary-soft);color:var(--primary)}
+.stat-ic.i2{background:var(--success-soft);color:var(--success)}
+.stat-ic.i3{background:var(--warn-soft);color:var(--warn)}
+.stat-ic.i4{background:var(--danger-soft);color:var(--danger)}
+.stat-num{font-size:26px;font-weight:800;line-height:1}
+.stat-lbl{color:var(--text-soft);font-size:13px;margin-top:5px}
+
+.dash-cols{display:grid;grid-template-columns:1.4fr 1fr;gap:20px}
+.panel{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
+.panel h3{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:9px}
+.panel h3 i{color:var(--primary)}
+.activity-item{display:flex;align-items:center;gap:13px;padding:11px 0;border-bottom:1px solid var(--border)}
+.activity-item:last-child{border-bottom:none}
+.activity-ic{width:38px;height:38px;border-radius:10px;background:var(--bg-soft);display:grid;place-items:center;color:var(--primary);flex-shrink:0}
+.activity-item .t{font-weight:600;font-size:14px}
+.activity-item .s{color:var(--text-mute);font-size:12.5px}
+.activity-item .time{margin-left:auto;color:var(--text-mute);font-size:12px;white-space:nowrap}
+.empty-mini{color:var(--text-mute);font-size:13.5px;text-align:center;padding:20px 0}
+
+/* ===================================================================
+   SETS GRID
+=================================================================== */
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+.chip{
+  padding:8px 15px;border-radius:20px;background:var(--bg-elev);border:1px solid var(--border);
+  color:var(--text-soft);font-size:13px;font-weight:600;transition:var(--trans);
+}
+.chip:hover{border-color:var(--primary);color:var(--primary)}
+.chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+.sets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+.set-card{
+  background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow);transition:var(--trans);
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
+}
+.set-card bg-color{content:"";position:absolute;top:0;left:0;right:0;height:5px;background:var(--cat-color,var(--primary))}
+.set-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+.set-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;margin-top:4px}
+.set-cat{
+  display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
+  padding:4px 11px;border-radius:20px;background:var(--bg-soft);color:var(--cat-color,var(--primary));
+  text-transform:uppercase;letter-spacing:.4px;
+}
+.pin-btn{color:var(--text-mute);font-size:16px;transition:var(--trans);padding:4px}
+.pin-btn:hover{color:var(--warn)}
+.pin-btn.pinned{color:var(--warn)}
+.set-card h3{font-size:18px;font-weight:700;margin-bottom:6px;line-height:1.3}
+.set-desc{color:var(--text-soft);font-size:13.5px;flex:1;margin-bottom:14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.set-meta{display:flex;align-items:center;gap:14px;color:var(--text-mute);font-size:12.5px;margin-bottom:14px}
+.set-meta span{display:inline-flex;align-items:center;gap:5px}
+.progress-line{height:7px;border-radius:20px;background:var(--bg-soft);overflow:hidden;margin-bottom:14px}
+.progress-line span{display:block;height:100%;background:linear-gradient(90deg,var(--success),var(--accent));border-radius:20px;transition:width .5s}
+.set-actions{display:flex;gap:8px}
+.set-actions .btn{flex:1}
+.icon-btn{
+  width:36px;height:36px;border-radius:10px;background:var(--bg-soft);color:var(--text-soft);
+  display:grid;place-items:center;transition:var(--trans);flex-shrink:0;
+}
+.icon-btn:hover{background:var(--primary);color:#fff}
+.menu-wrap{position:relative}
+.menu{
+  position:absolute;right:0;top:calc(100% + 6px);background:var(--bg-elev);border:1px solid var(--border);
+  border-radius:12px;box-shadow:var(--shadow-lg);padding:6px;min-width:172px;z-index:30;display:none;
+}
+.menu.open{display:block;animation:fade .18s}
+.menu button{display:flex;align-items:center;gap:11px;width:100%;padding:9px 12px;border-radius:8px;font-size:13.5px;font-weight:500;color:var(--text-soft);transition:var(--trans);text-align:left}
+.menu button i{width:16px;text-align:center}
+.menu button:hover{background:var(--bg-soft);color:var(--text)}
+.menu button.danger:hover{background:var(--danger-soft);color:var(--danger)}
+
+/* Empty state */
+.empty{text-align:center;padding:70px 20px;color:var(--text-soft)}
+.empty i{font-size:56px;color:var(--border);margin-bottom:18px}
+.empty h3{font-size:20px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.empty p{margin-bottom:22px;max-width:420px;margin-left:auto;margin-right:auto}
+
+/* ===================================================================
+   MODALS
+=================================================================== */
+.overlay{
+  position:fixed;inset:0;background:rgba(15,20,40,.55);backdrop-filter:blur(4px);
+  z-index:200;display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;
+}
+.overlay.open{display:flex;animation:fade .25s}
+.modal{
+  background:var(--bg-elev);border-radius:var(--radius-lg);width:100%;max-width:640px;
+  box-shadow:var(--shadow-lg);animation:pop .3s;margin:auto 0;
+}
+.modal.wide{max-width:920px}
+@keyframes pop{from{opacity:0;transform:scale(.94) translateY(12px)}to{opacity:1;transform:none}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:22px 26px;border-bottom:1px solid var(--border)}
+.modal-head h2{font-size:20px;font-weight:700}
+.modal-close{width:38px;height:38px;border-radius:10px;background:var(--bg-soft);color:var(--text-soft);display:grid;place-items:center;transition:var(--trans)}
+.modal-close:hover{background:var(--danger-soft);color:var(--danger)}
+.modal-body{padding:24px 26px;max-height:70vh;overflow-y:auto}
+.modal-foot{padding:18px 26px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+
+.field{margin-bottom:16px}
+.field label{display:block;font-weight:600;font-size:13.5px;margin-bottom:7px;color:var(--text-soft)}
+.field input,.field textarea,.field select{
+  width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border);
+  background:var(--bg);color:var(--text);outline:none;transition:var(--trans);
+}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.field textarea{resize:vertical;min-height:70px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* Card editor rows */
+.cards-editor{display:flex;flex-direction:column;gap:16px}
+.card-row{
+  border:1.5px solid var(--border);
+  border-radius:18px;
+  padding:24px;
+  background:var(--bg-elev);
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  transition:transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  box-shadow:0 2px 8px rgba(0,0,0,0.02);
+}
+[data-theme="dark"] .card-row{
+  background:var(--bg-soft);
+}
+.card-row:hover{
+  border-color:color-mix(in srgb, var(--primary) 40%, var(--border));
+  box-shadow:0 4px 14px rgba(0,0,0,0.04);
+}
+.card-row:focus-within{
+  border-color:var(--primary);
+  box-shadow:var(--shadow-lg);
+  transform:translateY(-2px);
+}
+.card-row-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px dashed var(--border);
+  padding-bottom:12px;
+  margin-bottom:4px;
+}
+.card-row-head .num{
+  font-weight:700;
+  font-size:15px;
+  color:var(--text);
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.card-row-head .num i{
+  font-size:15px;
+  color:var(--primary);
+}
+.card-row-head .actions{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+.card-row-head button{
+  color:var(--text-mute);
+  width:32px;
+  height:32px;
+  border-radius:8px;
+  transition:var(--trans);
+  display:grid;
+  place-items:center;
+  font-size:14.5px;
+}
+.card-row-head button:hover:not(:disabled){
+  background:var(--bg-soft);
+  color:var(--text);
+}
+.card-row-head .dup:hover:not(:disabled){color:var(--primary)!important;background:var(--primary-soft)!important}
+.card-row-head .del:hover:not(:disabled){color:var(--danger)!important;background:var(--danger-soft)!important}
+.card-row-head button:disabled{
+  opacity:0.3;
+  cursor:not-allowed;
+}
+.action-divider{
+  width:1px;
+  height:18px;
+  background:var(--border);
+  margin:0 4px;
+}
+
+/* Custom Input Groups & Labels */
+.input-group{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  position:relative;
+}
+.input-label{
+  font-size:11px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.8px;
+  color:var(--text-soft);
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-left:2px;
+}
+.input-label i{
+  font-size:11px;
+  color:var(--text-mute);
+}
+
+/* Card completeness status badge */
+.card-status{
+  font-size:11px;
+  font-weight:600;
+  padding:3px 8px;
+  border-radius:20px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  margin-left:10px;
+  transition:var(--trans);
+}
+.card-status.complete{
+  background:var(--success-soft);
+  color:var(--success);
+}
+.card-status.incomplete{
+  background:var(--bg-soft);
+  color:var(--text-mute);
+}
+
+.card-row .grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+  position:relative;
+}
+.card-row textarea, .card-row input{
+  width:100%;
+  padding:12px 14px;
+  border-radius:10px;
+  border:1.5px solid var(--border);
+  background:var(--bg-elev);
+  color:var(--text);
+  outline:none;
+  transition:var(--trans);
+  font-family:inherit;
+  font-size:14px;
+}
+.card-row textarea:focus, .card-row input:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px var(--primary-soft);
+}
+.card-row textarea{
+  min-height:90px;
+  resize:vertical;
+  line-height:1.5;
+}
+.card-row .opt-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+.card-row .opt-row input{margin:0}
+
+/* Swap button */
+.swap-btn{
+  position:absolute;
+  left:calc(50% - 16px);
+  top:calc(50% + 1px);
+  width:32px;
+  height:32px;
+  border-radius:50%;
+  background:var(--bg-elev);
+  border:1.5px solid var(--border);
+  color:var(--text-soft);
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  transition:var(--trans);
+  z-index:10;
+  box-shadow:0 3px 8px rgba(0,0,0,0.06);
+}
+.swap-btn:hover{
+  color:var(--primary);
+  border-color:var(--primary);
+  transform:scale(1.1) rotate(180deg);
+  box-shadow:0 4px 12px rgba(99,102,241,0.15);
+}
+@media(max-width:768px){
+  .swap-btn{display:none}
+}
+
+.card-thumb{max-width:120px;max-height:80px;object-fit:cover;border-radius:10px;margin-top:6px;border:1.5px solid var(--border);box-shadow:0 2px 6px rgba(0,0,0,0.05)}
+
+/* ===================================================================
+   STUDY MODE
+=================================================================== */
+.study-wrap{max-width:760px;margin:0 auto}
+.study-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:8px;flex-wrap:wrap}
+.study-head h2{font-size:22px;font-weight:800}
+.study-head .sub{color:var(--text-soft);font-size:14px}
+.study-progress-bar{height:9px;border-radius:20px;background:var(--bg-soft);overflow:hidden;margin:18px 0 6px}
+.study-progress-bar span{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .4s}
+.study-counter{text-align:center;color:var(--text-soft);font-size:13.5px;margin-bottom:20px}
+.study-counter b{color:var(--text)}
+
+/* Flip card */
+.flashcard{
+  perspective:1600px;width:100%;height:400px;margin-bottom:22px;cursor:pointer;
+}
+.flashcard-inner{
+  position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.4,.2,.2,1);
+  transform-style:preserve-3d;
+}
+.flashcard.flipped .flashcard-inner{transform:rotateY(180deg)}
+.face{
+  position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  border-radius:var(--radius-lg);padding:38px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;box-shadow:var(--shadow-lg);border:1px solid var(--border);overflow:auto;
+}
+.face-front{background:var(--bg-elev)}
+.face-back{background:linear-gradient(160deg,var(--primary),var(--primary-dark));color:#fff;transform:rotateY(180deg);border:none}
+.face .tag{position:absolute;top:18px;left:22px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:.6}
+.face .txt{font-size:26px;font-weight:700;line-height:1.35}
+.face img{max-height:150px;border-radius:12px;margin-bottom:16px;object-fit:contain}
+.face .flip-hint{position:absolute;bottom:18px;font-size:12.5px;opacity:.55;display:flex;align-items:center;gap:6px}
+.hint-box{
+  position:absolute;bottom:52px;left:50%;transform:translateX(-50%);
+  background:var(--warn-soft);color:var(--warn);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;
+  display:none;align-items:center;gap:7px;max-width:80%;
+}
+.hint-box.show{display:inline-flex;animation:fade .3s}
+.card-status-badge{position:absolute;top:18px;right:22px;font-size:20px;display:none}
+.card-status-badge.learned{color:var(--success);display:block}
+.card-status-badge.practice{color:var(--warn);display:block}
+
+.study-controls{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px}
+.nav-circle{
+  width:52px;height:52px;border-radius:50%;background:var(--bg-elev);border:1px solid var(--border);
+  color:var(--text-soft);display:grid;place-items:center;font-size:18px;transition:var(--trans);box-shadow:var(--shadow);
+}
+.nav-circle:hover{background:var(--primary);color:#fff;transform:scale(1.08)}
+.nav-circle:disabled{opacity:.4;cursor:not-allowed;transform:none;background:var(--bg-elev);color:var(--text-soft)}
+.mark-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:16px}
+.study-toolbar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.kbd-hint{margin-top:22px;text-align:center;color:var(--text-mute);font-size:12.5px}
+.kbd{display:inline-block;padding:2px 8px;border-radius:6px;background:var(--bg-soft);border:1px solid var(--border);font-size:11px;font-weight:600;margin:0 2px}
+
+/* ===================================================================
+   QUIZ MODE
+=================================================================== */
+.quiz-wrap{max-width:720px;margin:0 auto}
+.quiz-setup{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow)}
+.quiz-progress{height:9px;border-radius:20px;background:var(--bg-soft);overflow:hidden;margin-bottom:22px}
+.quiz-progress span{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));transition:width .4s}
+.quiz-card{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;box-shadow:var(--shadow-lg)}
+.quiz-qtype{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.quiz-question{font-size:22px;font-weight:700;line-height:1.4;margin-bottom:8px}
+.quiz-qimg{max-height:150px;border-radius:12px;margin-bottom:16px}
+.quiz-options{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.quiz-opt{
+  padding:16px 18px;border-radius:14px;border:2px solid var(--border);background:var(--bg);
+  font-size:15px;font-weight:500;transition:var(--trans);text-align:left;display:flex;align-items:center;gap:12px;
+}
+.quiz-opt .letter{width:28px;height:28px;border-radius:8px;background:var(--bg-soft);display:grid;place-items:center;font-weight:700;font-size:13px;flex-shrink:0;transition:var(--trans)}
+.quiz-opt:hover:not(:disabled){border-color:var(--primary);transform:translateX(4px)}
+.quiz-opt.correct{border-color:var(--success);background:var(--success-soft)}
+.quiz-opt.correct .letter{background:var(--success);color:#fff}
+.quiz-opt.wrong{border-color:var(--danger);background:var(--danger-soft)}
+.quiz-opt.wrong .letter{background:var(--danger);color:#fff}
+.quiz-input{width:100%;padding:15px 18px;border-radius:14px;border:2px solid var(--border);background:var(--bg);color:var(--text);font-size:16px;outline:none;margin-top:16px}
+.quiz-input:focus{border-color:var(--primary)}
+.quiz-feedback{margin-top:18px;padding:14px 18px;border-radius:12px;font-weight:600;font-size:14px;display:none;align-items:center;gap:10px}
+.quiz-feedback.show{display:flex;animation:fade .3s}
+.quiz-feedback.ok{background:var(--success-soft);color:var(--success)}
+.quiz-feedback.no{background:var(--danger-soft);color:var(--danger)}
+.quiz-foot{display:flex;justify-content:space-between;align-items:center;margin-top:24px}
+
+/* Results */
+.result-card{background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px;text-align:center;box-shadow:var(--shadow-lg)}
+.score-ring{width:160px;height:160px;margin:0 auto 24px;position:relative}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring .score-txt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-ring .score-txt b{font-size:38px;font-weight:800}
+.score-ring .score-txt span{font-size:13px;color:var(--text-soft)}
+.result-msg{font-size:22px;font-weight:800;margin-bottom:8px}
+.result-sub{color:var(--text-soft);margin-bottom:26px}
+.review-list{text-align:left;margin-top:26px}
+.review-item{border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px;background:var(--bg)}
+.review-item .rq{font-weight:700;margin-bottom:8px}
+.review-item .ra{font-size:13.5px;display:flex;gap:8px;align-items:center;margin-top:4px}
+.review-item .ra.your{color:var(--danger)}
+.review-item .ra.correct{color:var(--success)}
+
+/* Drag-drop import zone */
+.dropzone{
+  border:2px dashed var(--border);border-radius:var(--radius);padding:40px 20px;text-align:center;
+  color:var(--text-soft);transition:var(--trans);cursor:pointer;
+}
+.dropzone:hover,.dropzone.drag{border-color:var(--primary);background:var(--primary-soft);color:var(--primary)}
+.dropzone i{font-size:44px;margin-bottom:14px;color:var(--primary)}
+
+/* Toast */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:400;display:flex;flex-direction:column;gap:10px}
+.toast{
+  background:var(--bg-elev);border:1px solid var(--border);border-left:4px solid var(--primary);
+  border-radius:12px;padding:14px 18px;box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;
+  font-size:14px;font-weight:500;min-width:240px;animation:slideIn .3s;
+}
+.toast.ok{border-left-color:var(--success)}.toast.ok i{color:var(--success)}
+.toast.err{border-left-color:var(--danger)}.toast.err i{color:var(--danger)}
+.toast.info i{color:var(--primary)}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+
+/* Mobile */
+.backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:55}
+.backdrop.show{display:block}
+@media(max-width:900px){
+  .dash-cols{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .sidebar{position:fixed;left:0;top:0;transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .hamburger{display:block}
+  .field-row,.card-row .grid2,.card-row .opt-row{grid-template-columns:1fr}
+  .content{padding:18px}
+  .topbar{padding:12px 16px}
+  .flashcard{height:340px}
+  .face .txt{font-size:22px}
+}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand"><span class="logo"><i class="fa-solid fa-layer-group"></i></span> FlashDeck</div>
+    <button class="nav-item active" data-nav="dashboard"><i class="fa-solid fa-gauge-high"></i> Dashboard</button>
+    <button class="nav-item" data-nav="sets"><i class="fa-solid fa-clone"></i> My Sets</button>
+    <button class="nav-item" data-nav="favorites"><i class="fa-solid fa-star"></i> Favorites</button>
+    <button class="nav-item" data-nav="importexport"><i class="fa-solid fa-file-import"></i> Import / Export</button>
+    <div class="sidebar-foot">
+      <button class="btn btn-primary" id="newSetBtnSide"><i class="fa-solid fa-plus"></i> New Set</button>
+      <button class="theme-toggle" id="themeToggle">
+        <span><i class="fa-solid fa-moon"></i> &nbsp;Dark Mode</span>
+        <span class="switch"></span>
+      </button>
+    </div>
+  </aside>
+  <div class="backdrop" id="backdrop"></div>
+
+  <!-- ============ MAIN ============ -->
+  <div class="main">
+    <div class="topbar">
+      <button class="hamburger" id="hamburger"><i class="fa-solid fa-bars"></i></button>
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="globalSearch" placeholder="Search flashcard sets...">
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary" id="newSetBtnTop"><i class="fa-solid fa-plus"></i> New Set</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <section class="view active" id="view-dashboard"></section>
+      <!-- SETS -->
+      <section class="view" id="view-sets"></section>
+      <!-- FAVORITES -->
+      <section class="view" id="view-favorites"></section>
+      <!-- IMPORT/EXPORT -->
+      <section class="view" id="view-importexport"></section>
+      <!-- STUDY -->
+      <section class="view" id="view-study"></section>
+      <!-- QUIZ -->
+      <section class="view" id="view-quiz"></section>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL ROOT ============ -->
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- Hidden file input for import -->
+<input type="file" id="fileInput" accept=".json,application/json" multiple class="hidden">
+
+<!-- Toasts -->
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+/* ===================================================================
+   FLASHDECK — single-file flashcard study app
+   Data model:
+   set = {
+     id, title, description, category, pinned, createdAt, updatedAt,
+     lastStudied, cards:[ {id, front, back, hint, image, status} ]
+   }
+   card.status: "new" | "learned" | "practice"
+=================================================================== */
+
+const STORE_KEY = 'flashdeck_data_v1';
+const THEME_KEY = 'flashdeck_theme';
+const STREAK_KEY = 'flashdeck_streak';
+
+const CATEGORIES = [
+  {name:'General',   color:'#6366f1'},
+  {name:'Language',  color:'#0ea5e9'},
+  {name:'Science',   color:'#10b981'},
+  {name:'Math',      color:'#f59e0b'},
+  {name:'History',   color:'#ef4444'},
+  {name:'Geography', color:'#8b5cf6'},
+  {name:'Technology',color:'#ec4899'},
+  {name:'Business',  color:'#14b8a6'},
+  {name:'Arts',      color:'#f97316'},
+  {name:'Other',     color:'#64748b'},
+];
+const catColor = name => (CATEGORIES.find(c=>c.name===name)||CATEGORIES[0]).color;
+
+/* ---------- state ---------- */
+let state = { sets: [] };
+let activeCategory = 'All';
+let currentSet = null;      // set being studied/quizzed
+
+/* ---------- utils ---------- */
+const $ = (s,el=document)=>el.querySelector(s);
+const $$ = (s,el=document)=>[...el.querySelectorAll(s)];
+const uid = ()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc = s => (s??'').toString().replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const shuffle = a => { a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const fmtDate = t => t ? new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}) : '—';
+const timeAgo = t => {
+  if(!t) return 'never';
+  const d = Date.now()-t, m=60000, h=3600000, day=86400000;
+  if(d<m) return 'just now';
+  if(d<h) return Math.floor(d/m)+'m ago';
+  if(d<day) return Math.floor(d/h)+'h ago';
+  if(d<day*7) return Math.floor(d/day)+'d ago';
+  return fmtDate(t);
+};
+
+/* ---------- storage ---------- */
+function save(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(raw){ state = JSON.parse(raw); return true; }
+  }catch(e){ console.warn('load failed',e); }
+  return false;
+}
+
+/* ---------- toast ---------- */
+function toast(msg, type='info'){
+  const ic = type==='ok'?'fa-circle-check':type==='err'?'fa-circle-exclamation':'fa-circle-info';
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.innerHTML = `<i class="fa-solid ${ic}"></i><span>${esc(msg)}</span>`;
+  $('#toastWrap').appendChild(el);
+  setTimeout(()=>{ el.style.animation='fade .3s reverse'; setTimeout(()=>el.remove(),300); }, 2800);
+}
+
+/* ---------- streak tracking ---------- */
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function getStreak(){
+  try{ return JSON.parse(localStorage.getItem(STREAK_KEY)) || {last:null,count:0}; }
+  catch{ return {last:null,count:0}; }
+}
+function bumpStreak(){
+  const s = getStreak(); const today = todayStr();
+  if(s.last === today) return s.count;
+  const yest = new Date(Date.now()-86400000).toISOString().slice(0,10);
+  s.count = (s.last === yest) ? s.count+1 : 1;
+  s.last = today;
+  localStorage.setItem(STREAK_KEY, JSON.stringify(s));
+  return s.count;
+}
+
+/* ---------- derived stats ---------- */
+function totalCards(){ return state.sets.reduce((n,s)=>n+s.cards.length,0); }
+function totalMastered(){ return state.sets.reduce((n,s)=>n+s.cards.filter(c=>c.status==='learned').length,0); }
+
+/* ===================================================================
+   SEED DATA
+=================================================================== */
+function seedData(){
+  state.sets = [];
+  save();
+}
+
+/* ===================================================================
+   RENDERING — VIEWS
+=================================================================== */
+function setActiveNav(nav){
+  $$('.nav-item').forEach(b=>b.classList.toggle('active', b.dataset.nav===nav));
+}
+function showView(view){
+  $$('.view').forEach(v=>v.classList.remove('active'));
+  $('#view-'+view).classList.add('active');
+}
+function go(nav){
+  setActiveNav(nav);
+  showView(nav);
+  if(nav==='dashboard') renderDashboard();
+  if(nav==='sets') renderSets();
+  if(nav==='favorites') renderFavorites();
+  if(nav==='importexport') renderImportExport();
+  closeSidebar();
+  window.scrollTo(0,0);
+}
+
+/* ---------- Dashboard ---------- */
+function renderDashboard(){
+  const streak = getStreak().count;
+  const recent = [...state.sets].filter(s=>s.lastStudied)
+    .sort((a,b)=>b.lastStudied-a.lastStudied).slice(0,5);
+  const favs = state.sets.filter(s=>s.pinned);
+
+  $('#view-dashboard').innerHTML = `
+    <div class="page-head">
+      <div>
+        <h1>Welcome back 👋</h1>
+        <p>Keep the momentum going. Here's your study overview.</p>
+      </div>
+      <div class="head-actions">
+        <button class="btn btn-ghost" onclick="go('sets')"><i class="fa-solid fa-clone"></i> My Sets</button>
+        <button class="btn btn-primary" onclick="openSetEditor()"><i class="fa-solid fa-plus"></i> Create Set</button>
+      </div>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-ic i1"><i class="fa-solid fa-clone"></i></div>
+        <div><div class="stat-num">${state.sets.length}</div><div class="stat-lbl">Flashcard Sets</div></div></div>
+      <div class="stat-card"><div class="stat-ic i2"><i class="fa-solid fa-layer-group"></i></div>
+        <div><div class="stat-num">${totalCards()}</div><div class="stat-lbl">Total Cards</div></div></div>
+      <div class="stat-card"><div class="stat-ic i3"><i class="fa-solid fa-graduation-cap"></i></div>
+        <div><div class="stat-num">${totalMastered()}</div><div class="stat-lbl">Cards Mastered</div></div></div>
+      <div class="stat-card"><div class="stat-ic i4"><i class="fa-solid fa-fire"></i></div>
+        <div><div class="stat-num">${streak}</div><div class="stat-lbl">Day Study Streak</div></div></div>
+    </div>
+
+    <div class="dash-cols">
+      <div class="panel">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Recent Study Activity</h3>
+        ${recent.length ? recent.map(s=>`
+          <div class="activity-item">
+            <div class="activity-ic"><i class="fa-solid fa-book-open"></i></div>
+            <div><div class="t">${esc(s.title)}</div>
+              <div class="s">${s.cards.filter(c=>c.status==='learned').length}/${s.cards.length} mastered · ${esc(s.category)}</div></div>
+            <div class="time">${timeAgo(s.lastStudied)}</div>
+          </div>`).join('') : `<div class="empty-mini">No study activity yet. Start studying a set!</div>`}
+      </div>
+      <div class="panel">
+        <h3><i class="fa-solid fa-star"></i> Favorite Sets</h3>
+        ${favs.length ? favs.map(s=>`
+          <div class="activity-item">
+            <div class="activity-ic" style="color:${catColor(s.category)}"><i class="fa-solid fa-star"></i></div>
+            <div><div class="t">${esc(s.title)}</div><div class="s">${s.cards.length} cards</div></div>
+            <button class="btn btn-soft btn-sm" style="margin-left:auto" onclick="startStudy('${s.id}')"><i class="fa-solid fa-play"></i> Study</button>
+          </div>`).join('') : `<div class="empty-mini">Pin a set to see it here.</div>`}
+      </div>
+    </div>`;
+}
+
+/* ---------- Sets grid ---------- */
+function renderSets(filterText=''){
+  const el = $('#view-sets');
+  const q = ($('#globalSearch').value || filterText).trim().toLowerCase();
+  let sets = [...state.sets];
+  if(activeCategory!=='All') sets = sets.filter(s=>s.category===activeCategory);
+  if(q) sets = sets.filter(s=>
+    s.title.toLowerCase().includes(q) ||
+    (s.description||'').toLowerCase().includes(q) ||
+    s.category.toLowerCase().includes(q) ||
+    s.cards.some(c=>c.front.toLowerCase().includes(q)||c.back.toLowerCase().includes(q)));
+  sets.sort((a,b)=>(b.pinned-a.pinned)||(b.updatedAt-a.updatedAt));
+
+  const usedCats = ['All', ...new Set(state.sets.map(s=>s.category))];
+  const chips = usedCats.map(c=>`<button class="chip ${activeCategory===c?'active':''}" onclick="setCategory('${c}')">${c==='All'?'<i class=\"fa-solid fa-border-all\"></i> All':esc(c)}</button>`).join('');
+
+  el.innerHTML = `
+    <div class="page-head">
+      <div><h1>My Flashcard Sets</h1><p>${state.sets.length} set${state.sets.length!==1?'s':''} · ${totalCards()} cards</p></div>
+      <div class="head-actions"><button class="btn btn-primary" onclick="openSetEditor()"><i class="fa-solid fa-plus"></i> New Set</button></div>
+    </div>
+    <div class="filter-bar">${chips}</div>
+    ${sets.length ? `<div class="sets-grid">${sets.map(setCardHTML).join('')}</div>` : emptyState(q)}`;
+}
+function setCategory(c){ activeCategory=c; renderSets(); }
+
+function emptyState(q){
+  if(q) return `<div class="empty"><i class="fa-solid fa-magnifying-glass"></i><h3>No results found</h3><p>No sets match "${esc(q)}". Try a different search or clear filters.</p></div>`;
+  return `<div class="empty"><i class="fa-solid fa-clone"></i><h3>No flashcard sets yet</h3><p>Create your first set to start studying. Add questions, answers, hints and images.</p><button class="btn btn-primary" onclick="openSetEditor()"><i class="fa-solid fa-plus"></i> Create Your First Set</button></div>`;
+}
+
+function setCardHTML(s){
+  const mastered = s.cards.filter(c=>c.status==='learned').length;
+  const pct = s.cards.length ? Math.round(mastered/s.cards.length*100) : 0;
+  return `
+  <article class="set-card" style="--cat-color:${catColor(s.category)}">
+    <div class="set-top">
+      <span class="set-cat"><i class="fa-solid fa-tag"></i> ${esc(s.category)}</span>
+      <button class="pin-btn ${s.pinned?'pinned':''}" title="Pin favorite" onclick="togglePin('${s.id}')">
+        <i class="fa-${s.pinned?'solid':'regular'} fa-star"></i></button>
+    </div>
+    <h3>${esc(s.title)}</h3>
+    <p class="set-desc">${esc(s.description)||'No description.'}</p>
+    <div class="set-meta">
+      <span><i class="fa-solid fa-layer-group"></i> ${s.cards.length} cards</span>
+      <span><i class="fa-solid fa-circle-check"></i> ${pct}% mastered</span>
+    </div>
+    <div class="progress-line"><span style="width:${pct}%"></span></div>
+    <div class="set-actions">
+      <button class="btn btn-primary btn-sm" onclick="startStudy('${s.id}')" ${s.cards.length?'':'disabled'}><i class="fa-solid fa-play"></i> Study</button>
+      <button class="btn btn-soft btn-sm" onclick="startQuiz('${s.id}')" ${s.cards.length?'':'disabled'}><i class="fa-solid fa-clipboard-question"></i> Quiz</button>
+      <div class="menu-wrap">
+        <button class="icon-btn" onclick="toggleMenu(event,'${s.id}')"><i class="fa-solid fa-ellipsis-vertical"></i></button>
+        <div class="menu" id="menu-${s.id}">
+          <button onclick="openSetEditor('${s.id}')"><i class="fa-solid fa-pen"></i> Edit / Rename</button>
+          <button onclick="duplicateSet('${s.id}')"><i class="fa-solid fa-copy"></i> Duplicate</button>
+          <button onclick="exportSet('${s.id}')"><i class="fa-solid fa-file-export"></i> Export .json</button>
+          <button class="danger" onclick="deleteSet('${s.id}')"><i class="fa-solid fa-trash"></i> Delete</button>
+        </div>
+      </div>
+    </div>
+  </article>`;
+}
+
+/* ---------- Favorites ---------- */
+function renderFavorites(){
+  const favs = state.sets.filter(s=>s.pinned).sort((a,b)=>b.updatedAt-a.updatedAt);
+  $('#view-favorites').innerHTML = `
+    <div class="page-head"><div><h1>Favorite Sets</h1><p>Your pinned flashcard sets for quick access.</p></div></div>
+    ${favs.length ? `<div class="sets-grid">${favs.map(setCardHTML).join('')}</div>`
+      : `<div class="empty"><i class="fa-solid fa-star"></i><h3>No favorites yet</h3><p>Tap the ⭐ star on any set to pin it here.</p><button class="btn btn-primary" onclick="go('sets')"><i class="fa-solid fa-clone"></i> Browse Sets</button></div>`}`;
+}
+
+/* ---------- Import / Export view ---------- */
+function renderImportExport(){
+  $('#view-importexport').innerHTML = `
+    <div class="page-head"><div><h1>Import &amp; Export</h1><p>Back up, share, and restore your flashcards as JSON files.</p></div></div>
+    <div class="dash-cols">
+      <div class="panel">
+        <h3><i class="fa-solid fa-file-import"></i> Import Flashcards</h3>
+        <div class="dropzone" id="dropzone">
+          <i class="fa-solid fa-cloud-arrow-up"></i>
+          <p style="font-weight:600;margin-bottom:6px">Drag &amp; drop .json files here</p>
+          <p style="font-size:13px">or click to browse. Imports individual sets or full backups.</p>
+        </div>
+        <p style="color:var(--text-mute);font-size:12.5px;margin-top:14px">
+          <i class="fa-solid fa-circle-info"></i> Titles, categories, questions, answers, hints, images &amp; progress are all preserved.</p>
+      </div>
+      <div class="panel">
+        <h3><i class="fa-solid fa-file-export"></i> Export &amp; Backup</h3>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:12px" onclick="exportAll()">
+          <i class="fa-solid fa-database"></i> Export Full Backup (${state.sets.length} sets)</button>
+        <p style="color:var(--text-soft);font-size:13.5px;margin-bottom:16px">Downloads every set with progress data in one file.</p>
+        <h3 style="font-size:14px;margin:6px 0 12px"><i class="fa-solid fa-clone"></i> Export a single set</h3>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow:auto">
+          ${state.sets.length ? state.sets.map(s=>`
+            <div class="activity-item" style="border-bottom:1px solid var(--border)">
+              <div class="activity-ic" style="color:${catColor(s.category)}"><i class="fa-solid fa-file-lines"></i></div>
+              <div><div class="t">${esc(s.title)}</div><div class="s">${s.cards.length} cards · ${esc(s.category)}</div></div>
+              <button class="btn btn-soft btn-sm" style="margin-left:auto" onclick="exportSet('${s.id}')"><i class="fa-solid fa-download"></i></button>
+            </div>`).join('') : '<div class="empty-mini">No sets to export.</div>'}
+        </div>
+      </div>
+    </div>`;
+  setupDropzone();
+}
+
+/* ===================================================================
+   SET CRUD
+=================================================================== */
+function findSet(id){ return state.sets.find(s=>s.id===id); }
+
+function togglePin(id){ const s=findSet(id); if(s){ s.pinned=!s.pinned; s.updatedAt=Date.now(); save(); refreshCurrentView(); toast(s.pinned?'Pinned to favorites':'Unpinned','info'); } }
+
+function duplicateSet(id){
+  const s=findSet(id); if(!s) return;
+  const copy = JSON.parse(JSON.stringify(s));
+  copy.id=uid(); copy.title=s.title+' (Copy)'; copy.pinned=false;
+  copy.createdAt=copy.updatedAt=Date.now(); copy.lastStudied=null;
+  copy.cards.forEach(c=>c.id=uid());
+  state.sets.push(copy); save(); refreshCurrentView(); closeAllMenus();
+  toast('Set duplicated','ok');
+}
+
+function deleteSet(id){
+  const s=findSet(id); if(!s) return; closeAllMenus();
+  confirmDialog('Delete set?', `"${esc(s.title)}" and its ${s.cards.length} cards will be permanently deleted.`, ()=>{
+    state.sets = state.sets.filter(x=>x.id!==id); save(); refreshCurrentView(); toast('Set deleted','ok');
+  });
+}
+
+function refreshCurrentView(){
+  const active = $$('.nav-item').find(b=>b.classList.contains('active'));
+  const nav = active ? active.dataset.nav : 'sets';
+  if(nav==='dashboard') renderDashboard();
+  else if(nav==='favorites') renderFavorites();
+  else if(nav==='importexport') renderImportExport();
+  else renderSets();
+}
+
+/* ---------- menus ---------- */
+function toggleMenu(e,id){ e.stopPropagation(); const m=$('#menu-'+id); const open=m.classList.contains('open'); closeAllMenus(); if(!open) m.classList.add('open'); }
+function closeAllMenus(){ $$('.menu.open').forEach(m=>m.classList.remove('open')); }
+document.addEventListener('click', closeAllMenus);
+
+/* ===================================================================
+   SET EDITOR MODAL
+=================================================================== */
+let editorCards = [];   // working copy of cards while editing
+
+function openSetEditor(id){
+  closeAllMenus();
+  const editing = !!id;
+  const s = editing ? findSet(id) : {title:'',description:'',category:'General',cards:[]};
+  editorCards = JSON.parse(JSON.stringify(s.cards||[]));
+  if(!editing && editorCards.length===0) addEditorCard(false);
+
+  const catOpts = CATEGORIES.map(c=>`<option value="${c.name}" ${s.category===c.name?'selected':''}>${c.name}</option>`).join('');
+
+  openModal(`
+    <div class="modal-head">
+      <h2>${editing?'Edit Set':'Create New Set'}</h2>
+      <button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="field"><label>Set Title *</label>
+        <input id="f-title" placeholder="e.g. Spanish Essentials" value="${esc(s.title)}"></div>
+      <div class="field-row">
+        <div class="field"><label>Category / Subject</label><select id="f-cat">${catOpts}</select></div>
+        <div class="field"><label>&nbsp;</label>
+          <div style="display:flex;gap:8px">
+            <input id="f-newcat" placeholder="or type a new subject" style="flex:1">
+          </div></div>
+      </div>
+      <div class="field"><label>Description</label>
+        <textarea id="f-desc" placeholder="What is this set about?">${esc(s.description)}</textarea></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:24px 0 16px">
+        <h3 style="font-size:18px;font-weight:800;color:var(--text)">Flashcards <span id="cardCount" style="color:var(--text-soft);font-weight:500"></span></h3>
+        <button class="btn btn-soft btn-sm" onclick="addEditorCard()"><i class="fa-solid fa-plus"></i> Add Card</button>
+      </div>
+      <div class="cards-editor" id="cardsEditor"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSetEditor('${editing?id:''}')"><i class="fa-solid fa-check"></i> Save Set</button>
+    </div>
+  `, true);
+  renderEditorCards();
+}
+
+function addEditorCard(render=true){
+  editorCards.push({id:uid(),front:'',back:'',hint:'',image:'',status:'new'});
+  if(render) renderEditorCards();
+}
+function removeEditorCard(i){ editorCards.splice(i,1); renderEditorCards(); }
+function dupEditorCard(i){ const c=JSON.parse(JSON.stringify(editorCards[i])); c.id=uid(); editorCards.splice(i+1,0,c); renderEditorCards(); }
+
+function moveCardUp(i){
+  if(i<=0) return;
+  syncEditorFromDOM();
+  const temp = editorCards[i];
+  editorCards[i] = editorCards[i-1];
+  editorCards[i-1] = temp;
+  renderEditorCards();
+}
+function moveCardDown(i){
+  if(i>=editorCards.length-1) return;
+  syncEditorFromDOM();
+  const temp = editorCards[i];
+  editorCards[i] = editorCards[i+1];
+  editorCards[i+1] = temp;
+  renderEditorCards();
+}
+function swapCardFrontBack(i){
+  syncEditorFromDOM();
+  const temp = editorCards[i].front;
+  editorCards[i].front = editorCards[i].back;
+  editorCards[i].back = temp;
+  renderEditorCards();
+  const rows = $$('#cardsEditor .card-row');
+  if(rows[i]){
+    const f = $('.c-front', rows[i]);
+    if(f) f.focus();
+  }
+}
+function updateCardStatus(el){
+  const row = el.closest('.card-row');
+  if(!row) return;
+  const front = $('.c-front', row).value.trim();
+  const back = $('.c-back', row).value.trim();
+  const badge = $('.card-status', row);
+  if(badge){
+    if(front && back){
+      badge.className = 'card-status complete';
+      badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> Complete';
+    } else {
+      badge.className = 'card-status incomplete';
+      badge.innerHTML = '<i class="fa-solid fa-circle"></i> Incomplete';
+    }
+  }
+}
+
+function syncEditorFromDOM(){
+  $$('#cardsEditor .card-row').forEach((row,i)=>{
+    if(!editorCards[i]) return;
+    editorCards[i].front = $('.c-front',row).value;
+    editorCards[i].back  = $('.c-back',row).value;
+    editorCards[i].hint  = $('.c-hint',row).value;
+    editorCards[i].image = $('.c-image',row).value;
+  });
+}
+
+function renderEditorCards(){
+  const box = $('#cardsEditor'); if(!box) return;
+  $('#cardCount').textContent = `(${editorCards.length})`;
+  box.innerHTML = editorCards.map((c,i)=>{
+    const isComplete = c.front.trim() && c.back.trim();
+    const statusHtml = isComplete 
+      ? `<span class="card-status complete"><i class="fa-solid fa-circle-check"></i> Complete</span>`
+      : `<span class="card-status incomplete"><i class="fa-solid fa-circle"></i> Incomplete</span>`;
+
+    return `
+    <div class="card-row">
+      <div class="card-row-head">
+        <span class="num"><i class="fa-solid fa-layer-group"></i> Card ${i+1} ${statusHtml}</span>
+        <div class="actions">
+          <button class="move-up" title="Move card up" onclick="moveCardUp(${i})" ${i===0?'disabled':''}><i class="fa-solid fa-chevron-up"></i></button>
+          <button class="move-down" title="Move card down" onclick="moveCardDown(${i})" ${i===editorCards.length-1?'disabled':''}><i class="fa-solid fa-chevron-down"></i></button>
+          <div class="action-divider"></div>
+          <button class="dup" title="Duplicate card" onclick="dupEditorCard(${i})"><i class="fa-regular fa-copy"></i></button>
+          <button class="del" title="Delete card" onclick="removeEditorCard(${i})"><i class="fa-regular fa-trash-can"></i></button>
+        </div>
+      </div>
+      <div class="grid2">
+        <button class="swap-btn" title="Swap front and back" onclick="swapCardFrontBack(${i})"><i class="fa-solid fa-right-left"></i></button>
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-font"></i> Front (question / term)</label>
+          <textarea class="c-front" placeholder="Type question or term..." oninput="updateCardStatus(this)">${esc(c.front)}</textarea>
+        </div>
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-quote-right"></i> Back (answer / definition)</label>
+          <textarea class="c-back" placeholder="Type answer or definition..." oninput="updateCardStatus(this)">${esc(c.back)}</textarea>
+        </div>
+      </div>
+      <div class="opt-row">
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-circle-info"></i> Optional hint</label>
+          <input class="c-hint" placeholder="Provide a hint for this card..." value="${esc(c.hint)}">
+        </div>
+        <div class="input-group">
+          <label class="input-label"><i class="fa-solid fa-image"></i> Optional image URL</label>
+          <input class="c-image" placeholder="Paste image URL..." value="${esc(c.image)}" oninput="previewThumb(this)">
+        </div>
+      </div>
+      ${c.image?`<img class="card-thumb" src="${esc(c.image)}" onerror="this.style.display='none'">`:''}
+    </div>`;
+  }).join('');
+}
+function previewThumb(inp){
+  const row = inp.closest('.card-row');
+  let img = $('.card-thumb',row);
+  if(inp.value.trim()){
+    if(!img){ img=document.createElement('img'); img.className='card-thumb'; row.appendChild(img); }
+    img.src=inp.value.trim(); img.style.display=''; img.onerror=()=>img.style.display='none';
+  } else if(img){ img.remove(); }
+}
+
+function saveSetEditor(id){
+  syncEditorFromDOM();
+  const title = $('#f-title').value.trim();
+  if(!title){ toast('Please enter a set title','err'); $('#f-title').focus(); return; }
+  const newCat = $('#f-newcat').value.trim();
+  const category = newCat || $('#f-cat').value;
+  const desc = $('#f-desc').value.trim();
+  const cards = editorCards.filter(c=>c.front.trim()||c.back.trim())
+    .map(c=>({id:c.id,front:c.front.trim(),back:c.back.trim(),hint:(c.hint||'').trim(),image:(c.image||'').trim(),status:c.status||'new'}));
+  if(cards.length===0){ toast('Add at least one card with content','err'); return; }
+
+  if(id){
+    const s=findSet(id);
+    Object.assign(s,{title,category,description:desc,cards,updatedAt:Date.now()});
+    toast('Set updated','ok');
+  } else {
+    state.sets.push({id:uid(),title,description:desc,category,pinned:false,createdAt:Date.now(),updatedAt:Date.now(),lastStudied:null,cards});
+    toast('Set created','ok');
+  }
+  save(); closeModal(); refreshCurrentView();
+}
+
+/* ===================================================================
+   MODAL HELPERS
+=================================================================== */
+function openModal(html, wide=false){
+  const m=$('#modal'); m.className='modal'+(wide?' wide':''); m.innerHTML=html;
+  $('#overlay').classList.add('open'); document.body.style.overflow='hidden';
+}
+function closeModal(){ $('#overlay').classList.remove('open'); document.body.style.overflow=''; }
+$('#overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
+
+function confirmDialog(title,msg,onYes){
+  openModal(`
+    <div class="modal-head"><h2>${title}</h2><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body"><p style="color:var(--text-soft);font-size:15px">${msg}</p></div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-danger" id="confirmYes"><i class="fa-solid fa-trash"></i> Delete</button>
+    </div>`);
+  $('#confirmYes').onclick=()=>{ onYes(); closeModal(); };
+}
+
+/* ===================================================================
+   STUDY MODE
+=================================================================== */
+let study = null; // {set, order, idx, flipped}
+
+function startStudy(id){
+  const s=findSet(id); if(!s||!s.cards.length){ toast('This set has no cards','err'); return; }
+  closeAllMenus();
+  study = { set:s, order:s.cards.map((_,i)=>i), idx:0, flipped:false };
+  s.lastStudied=Date.now(); bumpStreak(); save();
+  setActiveNav('sets'); showView('study'); closeSidebar(); window.scrollTo(0,0);
+  renderStudy();
+}
+
+function renderStudy(){
+  const {set,order,idx}=study;
+  const card = set.cards[order[idx]];
+  const learned = set.cards.filter(c=>c.status==='learned').length;
+  const pct = Math.round(learned/set.cards.length*100);
+  $('#view-study').innerHTML = `
+  <div class="study-wrap">
+    <div class="study-head">
+      <div><h2>${esc(set.title)}</h2><div class="sub"><i class="fa-solid fa-tag"></i> ${esc(set.category)} · ${set.cards.length} cards</div></div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-ghost btn-sm" onclick="go('sets')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <button class="btn btn-soft btn-sm" onclick="startQuiz('${set.id}')"><i class="fa-solid fa-clipboard-question"></i> Quiz</button>
+      </div>
+    </div>
+    <div class="study-progress-bar"><span style="width:${pct}%"></span></div>
+    <div class="study-counter"><b>${idx+1}</b> / ${set.cards.length} · <span style="color:var(--success)">${learned} learned</span> · <span style="color:var(--warn)">${set.cards.filter(c=>c.status==='practice').length} to practice</span></div>
+
+    <div class="flashcard ${study.flipped?'flipped':''}" id="flashcard" onclick="flipCard()">
+      <div class="flashcard-inner">
+        <div class="face face-front">
+          <span class="tag">Front · Question</span>
+          <span class="card-status-badge ${card.status}"><i class="fa-solid fa-${card.status==='learned'?'circle-check':'circle-half-stroke'}"></i></span>
+          ${card.image?`<img src="${esc(card.image)}" onerror="this.style.display='none'">`:''}
+          <span class="txt">${esc(card.front)}</span>
+          ${card.hint?`<div class="hint-box" id="hintBox"><i class="fa-solid fa-lightbulb"></i> ${esc(card.hint)}</div>`:''}
+          <div class="flip-hint"><i class="fa-solid fa-hand-pointer"></i> Click or press Space to flip</div>
+        </div>
+        <div class="face face-back">
+          <span class="tag">Back · Answer</span>
+          <span class="txt">${esc(card.back)}</span>
+          <div class="flip-hint"><i class="fa-solid fa-rotate"></i> Click to flip back</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="study-controls">
+      <button class="nav-circle" onclick="studyPrev(event)" ${idx===0?'disabled':''}><i class="fa-solid fa-chevron-left"></i></button>
+      ${card.hint?`<button class="btn btn-ghost btn-sm" onclick="showHint(event)"><i class="fa-solid fa-lightbulb"></i> Hint</button>`:''}
+      <button class="nav-circle" onclick="studyNext(event)" ${idx===set.cards.length-1?'disabled':''}><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <div class="mark-row">
+      <button class="btn ${card.status==='learned'?'btn-success':'btn-ghost'} btn-sm" onclick="markCard(event,'learned')"><i class="fa-solid fa-check"></i> Learned</button>
+      <button class="btn ${card.status==='practice'?'btn-primary':'btn-ghost'} btn-sm" onclick="markCard(event,'practice')" style="${card.status==='practice'?'background:var(--warn)':''}"><i class="fa-solid fa-rotate-right"></i> Need Practice</button>
+      <button class="btn btn-ghost btn-sm" onclick="markCard(event,'new')"><i class="fa-solid fa-eraser"></i> Reset</button>
+    </div>
+
+    <div class="study-toolbar">
+      <button class="btn btn-ghost btn-sm" onclick="shuffleStudy()"><i class="fa-solid fa-shuffle"></i> Shuffle</button>
+      <button class="btn btn-ghost btn-sm" onclick="repeatDifficult()"><i class="fa-solid fa-arrows-rotate"></i> Repeat Difficult</button>
+      <button class="btn btn-ghost btn-sm" onclick="restartStudy()"><i class="fa-solid fa-backward-fast"></i> Restart</button>
+    </div>
+
+    <div class="kbd-hint">
+      Shortcuts: <span class="kbd">Space</span>/<span class="kbd">↑</span> flip · <span class="kbd">←</span><span class="kbd">→</span> navigate ·
+      <span class="kbd">L</span> learned · <span class="kbd">P</span> practice · <span class="kbd">S</span> shuffle · <span class="kbd">H</span> hint
+    </div>
+  </div>`;
+}
+
+function flipCard(){ study.flipped=!study.flipped; $('#flashcard').classList.toggle('flipped'); }
+function showHint(e){ if(e) e.stopPropagation(); const h=$('#hintBox'); if(h) h.classList.add('show'); }
+function studyNext(e){ if(e) e.stopPropagation(); if(study.idx<study.set.cards.length-1){ study.idx++; study.flipped=false; renderStudy(); } }
+function studyPrev(e){ if(e) e.stopPropagation(); if(study.idx>0){ study.idx--; study.flipped=false; renderStudy(); } }
+function markCard(e,status){ if(e) e.stopPropagation(); study.set.cards[study.order[study.idx]].status=status; study.set.updatedAt=Date.now(); save();
+  if(status==='learned' && study.idx<study.set.cards.length-1){ setTimeout(()=>studyNext(),250); } else renderStudy(); }
+function shuffleStudy(){ study.order=shuffle(study.order); study.idx=0; study.flipped=false; renderStudy(); toast('Cards shuffled','info'); }
+function restartStudy(){ study.order=study.set.cards.map((_,i)=>i); study.idx=0; study.flipped=false; renderStudy(); }
+function repeatDifficult(){
+  const diff = study.set.cards.map((c,i)=>({c,i})).filter(x=>x.c.status==='practice'||x.c.status==='new');
+  if(!diff.length){ toast('No difficult cards — all learned! 🎉','ok'); return; }
+  study.order = shuffle(diff.map(x=>x.i)); study.idx=0; study.flipped=false; renderStudy();
+  toast(`Practicing ${diff.length} difficult card(s)`,'info');
+}
+
+/* ===================================================================
+   QUIZ MODE
+=================================================================== */
+let quiz = null;
+
+function startQuiz(id){
+  const s=findSet(id); if(!s){ toast('Set not found','err'); return; }
+  closeAllMenus();
+  if(s.cards.length<2){ toast('Add at least 2 cards to generate a quiz','err'); return; }
+  currentSet = s;
+  setActiveNav('sets'); showView('quiz'); closeSidebar(); window.scrollTo(0,0);
+  renderQuizSetup(s);
+}
+
+function renderQuizSetup(s){
+  const optionsHtml = [5,10,15,20].filter(n=>n<=s.cards.length).map(n=>`<option value="${n}">${n} questions</option>`).join('');
+  $('#view-quiz').innerHTML = `
+  <div class="quiz-wrap">
+    <div class="study-head" style="margin-bottom:20px">
+      <div><h2>Quiz: ${esc(s.title)}</h2><div class="sub">Test yourself with auto-generated questions.</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="go('sets')"><i class="fa-solid fa-arrow-left"></i> Back</button>
+    </div>
+    <div class="quiz-setup">
+      <div class="field"><label>Number of questions</label>
+        <select id="q-count">
+          ${optionsHtml}
+          <option value="${s.cards.length}">All (${s.cards.length})</option>
+        </select></div>
+      <div class="field"><label>Question types</label>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:10px;font-weight:500;color:var(--text)"><input type="checkbox" id="t-mc" checked> Multiple Choice</label>
+          <label style="display:flex;align-items:center;gap:10px;font-weight:500;color:var(--text)"><input type="checkbox" id="t-type" checked> Type the Answer</label>
+          <label style="display:flex;align-items:center;gap:10px;font-weight:500;color:var(--text)"><input type="checkbox" id="t-tf" checked> True / False</label>
+        </div></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="buildQuiz('${s.id}')"><i class="fa-solid fa-play"></i> Start Quiz</button>
+    </div>
+  </div>`;
+}
+
+function buildQuiz(id){
+  const s=findSet(id);
+  const count = parseInt($('#q-count').value);
+  const types=[]; if($('#t-mc').checked) types.push('mc'); if($('#t-type').checked) types.push('type'); if($('#t-tf').checked) types.push('tf');
+  if(!types.length){ toast('Select at least one question type','err'); return; }
+
+  const pool = shuffle(s.cards).slice(0,count);
+  const questions = pool.map(card=>{
+    const type = types[Math.floor(Math.random()*types.length)];
+    if(type==='mc'){
+      const distractors = shuffle(s.cards.filter(c=>c.id!==card.id).map(c=>c.back)).slice(0,3);
+      const options = shuffle([card.back,...distractors]);
+      return {type:'mc',card,question:card.front,options,answer:card.back};
+    }
+    if(type==='tf'){
+      const flip = Math.random()<0.5;
+      const shown = flip ? (s.cards.filter(c=>c.id!==card.id)[Math.floor(Math.random()*Math.max(1,s.cards.length-1))]?.back || card.back) : card.back;
+      const isTrue = shown===card.back;
+      return {type:'tf',card,question:`"${card.front}" → "${shown}"`,answer:isTrue?'True':'False'};
+    }
+    return {type:'type',card,question:card.front,answer:card.back};
+  });
+
+  quiz = { set:s, questions, idx:0, score:0, answers:[], answered:false };
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion(){
+  const {questions,idx}=quiz;
+  const q = questions[idx];
+  const pct = Math.round(idx/questions.length*100);
+  const typeLabel = {mc:'Multiple Choice',type:'Type the Answer',tf:'True / False'}[q.type];
+  const typeIcon = {mc:'fa-list-ul',type:'fa-keyboard',tf:'fa-toggle-on'}[q.type];
+
+  let body='';
+  if(q.type==='mc'){
+    const optionsHtml = q.options.map((o,i)=>`
+      <button class="quiz-opt" onclick="answerMC(this,'${esc(o).replace(/'/g,"\\'")}')">
+        <span class="letter">${String.fromCharCode(65+i)}</span> ${esc(o)}</button>`).join('');
+    body = `<div class="quiz-options">${optionsHtml}</div>`;
+  } else if(q.type==='tf'){
+    body = `<div class="quiz-options" style="flex-direction:row">
+      <button class="quiz-opt" style="flex:1;justify-content:center" onclick="answerTF(this,'True')"><i class="fa-solid fa-check"></i> True</button>
+      <button class="quiz-opt" style="flex:1;justify-content:center" onclick="answerTF(this,'False')"><i class="fa-solid fa-xmark"></i> False</button></div>`;
+  } else {
+    body = `<input class="quiz-input" id="typeInput" placeholder="Type your answer and press Enter..." autocomplete="off">
+      <button class="btn btn-primary" style="width:100%;margin-top:14px" id="submitType" onclick="answerType()"><i class="fa-solid fa-paper-plane"></i> Submit Answer</button>`;
+  }
+
+  const imageHtml = q.card.image && q.type!=='tf' ? `<img class="quiz-qimg" src="${esc(q.card.image)}" onerror="this.style.display='none'">` : '';
+
+  $('#view-quiz').innerHTML = `
+  <div class="quiz-wrap">
+    <div class="study-head" style="margin-bottom:16px">
+      <div><h2>Quiz: ${esc(quiz.set.title)}</h2><div class="sub">Question ${idx+1} of ${questions.length} · Score: ${quiz.score}</div></div>
+      <button class="btn btn-ghost btn-sm" onclick="quitQuiz()"><i class="fa-solid fa-xmark"></i> Quit</button>
+    </div>
+    <div class="quiz-progress"><span style="width:${pct}%"></span></div>
+    <div class="quiz-card">
+      <div class="quiz-qtype"><i class="fa-solid ${typeIcon}"></i> ${typeLabel}</div>
+      ${imageHtml}
+      <div class="quiz-question">${esc(q.question)}</div>
+      ${body}
+      <div class="quiz-feedback" id="quizFeedback"></div>
+      <div class="quiz-foot">
+        <span style="color:var(--text-mute);font-size:13px">${q.type==='type'?'Not case-sensitive':''}</span>
+        <button class="btn btn-primary hidden" id="nextQ" onclick="nextQuizQuestion()">Next <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>`;
+
+  if(q.type==='type'){
+    const inp=$('#typeInput'); inp.focus();
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); answerType(); }});
+  }
+}
+
+function norm(s){ return (s||'').trim().toLowerCase().replace(/[.,!?;:]/g,''); }
+
+function recordAnswer(q, given, correct){
+  quiz.answered=true;
+  if(correct) quiz.score++;
+  quiz.answers.push({question:q.question, your:given||'(blank)', correct:q.answer, ok:correct, front:q.card.front});
+  const fb=$('#quizFeedback');
+  fb.className='quiz-feedback show '+(correct?'ok':'no');
+  fb.innerHTML = correct ? `<i class="fa-solid fa-circle-check"></i> Correct!`
+    : `<i class="fa-solid fa-circle-xmark"></i> Correct answer: <b>${esc(q.answer)}</b>`;
+  $('#nextQ').classList.remove('hidden');
+  if(quiz.idx===quiz.questions.length-1) $('#nextQ').innerHTML='See Results <i class="fa-solid fa-flag-checkered"></i>';
+}
+
+function answerMC(btn,chosen){
+  if(quiz.answered) return;
+  const q=quiz.questions[quiz.idx];
+  const correct = chosen===q.answer;
+  $$('.quiz-opt').forEach(b=>{ b.disabled=true;
+    const txt=b.textContent.trim();
+    if(txt.slice(2).trim()===q.answer) b.classList.add('correct');
+  });
+  if(!correct) btn.classList.add('wrong');
+  recordAnswer(q,chosen,correct);
+}
+function answerTF(btn,val){
+  if(quiz.answered) return;
+  const q=quiz.questions[quiz.idx];
+  const correct = val===q.answer;
+  $$('.quiz-opt').forEach(b=>b.disabled=true);
+  btn.classList.add(correct?'correct':'wrong');
+  recordAnswer(q,val,correct);
+}
+function answerType(){
+  if(quiz.answered) return;
+  const q=quiz.questions[quiz.idx];
+  const val=$('#typeInput').value;
+  const correct = norm(val)===norm(q.answer);
+  $('#typeInput').disabled=true; $('#submitType').disabled=true;
+  $('#typeInput').style.borderColor = correct?'var(--success)':'var(--danger)';
+  recordAnswer(q,val,correct);
+}
+function nextQuizQuestion(){
+  if(quiz.idx<quiz.questions.length-1){ quiz.idx++; quiz.answered=false; renderQuizQuestion(); }
+  else renderQuizResults();
+}
+function quitQuiz(){ confirmDialogSimple('Quit quiz?','Your progress in this quiz will be lost.',()=>go('sets')); }
+function confirmDialogSimple(title,msg,onYes){
+  openModal(`<div class="modal-head"><h2>${title}</h2><button class="modal-close" onclick="closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+    <div class="modal-body"><p style="color:var(--text-soft)">${msg}</p></div>
+    <div class="modal-foot"><button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-danger" id="cy">Quit</button></div>`);
+  $('#cy').onclick=()=>{ closeModal(); onYes(); };
+}
+
+function renderQuizResults(){
+  const {score,questions,answers,set}=quiz;
+  const total=questions.length;
+  const pct=Math.round(score/total*100);
+  const wrong=answers.filter(a=>!a.ok);
+  bumpStreak(); set.lastStudied=Date.now(); save();
+  const C = pct>=80?'var(--success)':pct>=50?'var(--warn)':'var(--danger)';
+  const msg = pct>=80?'Excellent work! 🎉':pct>=50?'Good effort! 👍':'Keep practicing! 💪';
+  const circ=2*Math.PI*70, off=circ*(1-pct/100);
+
+  let wrongHtml = '';
+  if(wrong.length){
+    const itemsHtml = wrong.map(a=>`
+      <div class="review-item">
+        <div class="rq">${esc(a.question)}</div>
+        <div class="ra your"><i class="fa-solid fa-xmark"></i> Your answer: ${esc(a.your)}</div>
+        <div class="ra correct"><i class="fa-solid fa-check"></i> Correct: ${esc(a.correct)}</div>
+      </div>`).join('');
+    wrongHtml = `
+      <div class="review-list">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:14px"><i class="fa-solid fa-list-check" style="color:var(--danger)"></i> Review Incorrect Answers (${wrong.length})</h3>
+        ${itemsHtml}
+      </div>`;
+  } else {
+    wrongHtml = `<div style="margin-top:26px;color:var(--success);font-weight:600"><i class="fa-solid fa-trophy"></i> Perfect score — no mistakes!</div>`;
+  }
+
+  $('#view-quiz').innerHTML=`
+  <div class="quiz-wrap">
+    <div class="result-card">
+      <div class="score-ring">
+        <svg width="160" height="160">
+          <circle cx="80" cy="80" r="70" fill="none" stroke="var(--bg-soft)" stroke-width="12"/>
+          <circle cx="80" cy="80" r="70" fill="none" stroke="${C}" stroke-width="12" stroke-linecap="round"
+            stroke-dasharray="${circ}" stroke-dashoffset="${off}"/>
+        </svg>
+        <div class="score-txt"><b style="color:${C}">${pct}%</b><span>${score}/${total} correct</span></div>
+      </div>
+      <div class="result-msg">${msg}</div>
+      <div class="result-sub">You answered ${score} of ${total} questions correctly.</div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn btn-primary" onclick="startQuiz('${set.id}')"><i class="fa-solid fa-rotate-right"></i> Retake Quiz</button>
+        <button class="btn btn-soft" onclick="startStudy('${set.id}')"><i class="fa-solid fa-book-open"></i> Study Set</button>
+        <button class="btn btn-ghost" onclick="go('sets')"><i class="fa-solid fa-clone"></i> My Sets</button>
+      </div>
+      ${wrongHtml}
+    </div>
+  </div>`;
+}
+
+/* ===================================================================
+   IMPORT / EXPORT
+=================================================================== */
+function download(filename, obj){
+  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=filename; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'').slice(0,40)||'set';
+
+function exportSet(id){
+  const s=findSet(id); if(!s) return; closeAllMenus();
+  download(`flashdeck-${slug(s.title)}.json`, {type:'flashdeck-set',version:1,exportedAt:Date.now(),set:s});
+  toast('Set exported','ok');
+}
+function exportAll(){
+  if(!state.sets.length){ toast('Nothing to export','err'); return; }
+  download(`flashdeck-backup-${todayStr()}.json`, {type:'flashdeck-backup',version:1,exportedAt:Date.now(),sets:state.sets});
+  toast('Full backup exported','ok');
+}
+
+function handleFiles(files){
+  let imported=0, filesLeft=files.length;
+  [...files].forEach(file=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      try{
+        const data=JSON.parse(e.target.result);
+        let sets=[];
+        if(data.type==='flashdeck-set' && data.set) sets=[data.set];
+        else if(data.type==='flashdeck-backup' && Array.isArray(data.sets)) sets=data.sets;
+        else if(Array.isArray(data)) sets=data;               // raw array of sets
+        else if(data.set) sets=[data.set];
+        else if(data.title && data.cards) sets=[data];        // raw single set
+        else throw new Error('Unrecognized format');
+
+        sets.forEach(s=>{
+          const clean={
+            id:uid(),
+            title:(s.title||'Imported Set').toString(),
+            description:(s.description||'').toString(),
+            category:(s.category||'Other').toString(),
+            pinned:!!s.pinned,
+            createdAt:s.createdAt||Date.now(),
+            updatedAt:Date.now(),
+            lastStudied:s.lastStudied||null,
+            cards:(Array.isArray(s.cards)?s.cards:[]).map(c=>({
+              id:uid(),
+              front:(c.front||'').toString(),
+              back:(c.back||'').toString(),
+              hint:(c.hint||'').toString(),
+              image:(c.image||'').toString(),
+              status:['new','learned','practice'].includes(c.status)?c.status:'new'
+            }))
+          };
+          if(clean.cards.length){ state.sets.push(clean); imported++; }
+        });
+      }catch(err){ toast('Failed to import '+file.name+': '+err.message,'err'); }
+      if(--filesLeft===0){
+        save();
+        if(imported){ toast(`Imported ${imported} set${imported!==1?'s':''}`,'ok'); refreshCurrentView(); }
+      }
+    };
+    reader.readAsText(file);
+  });
+}
+
+function setupDropzone(){
+  const dz=$('#dropzone'); if(!dz) return;
+  dz.onclick=()=>$('#fileInput').click();
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{ if(e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); });
+}
+$('#fileInput').addEventListener('change',e=>{ if(e.target.files.length) handleFiles(e.target.files); e.target.value=''; });
+
+/* Global drag-drop anywhere */
+['dragover','drop'].forEach(ev=>window.addEventListener(ev,e=>e.preventDefault()));
+
+/* ===================================================================
+   THEME
+=================================================================== */
+function applyTheme(t){
+  document.documentElement.dataset.theme=t;
+  localStorage.setItem(THEME_KEY,t);
+  const lbl=$('#themeToggle span:first-child');
+  lbl.innerHTML = t==='dark' ? '<i class="fa-solid fa-sun"></i> &nbsp;Light Mode' : '<i class="fa-solid fa-moon"></i> &nbsp;Dark Mode';
+}
+$('#themeToggle').addEventListener('click',()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+
+/* ===================================================================
+   SIDEBAR (mobile)
+=================================================================== */
+function openSidebar(){ $('#sidebar').classList.add('open'); $('#backdrop').classList.add('show'); }
+function closeSidebar(){ $('#sidebar').classList.remove('open'); $('#backdrop').classList.remove('show'); }
+$('#hamburger').addEventListener('click',openSidebar);
+$('#backdrop').addEventListener('click',closeSidebar);
+
+/* ===================================================================
+   KEYBOARD SHORTCUTS (study mode)
+=================================================================== */
+document.addEventListener('keydown',e=>{
+  if($('#overlay').classList.contains('open')){ if(e.key==='Escape') closeModal(); return; }
+  if(!$('#view-study').classList.contains('active') || !study) return;
+  const k=e.key.toLowerCase();
+  if(e.key===' '||e.key==='ArrowUp'){ e.preventDefault(); flipCard(); }
+  else if(e.key==='ArrowRight'){ studyNext(); }
+  else if(e.key==='ArrowLeft'){ studyPrev(); }
+  else if(k==='l'){ markCard(null,'learned'); }
+  else if(k==='p'){ markCard(null,'practice'); }
+  else if(k==='s'){ shuffleStudy(); }
+  else if(k==='h'){ showHint(); }
+});
+
+/* ===================================================================
+   EVENT WIRING & INIT
+=================================================================== */
+$$('.nav-item').forEach(b=>b.addEventListener('click',()=>go(b.dataset.nav)));
+$('#newSetBtnTop').addEventListener('click',()=>openSetEditor());
+$('#newSetBtnSide').addEventListener('click',()=>openSetEditor());
+let searchTimer;
+$('#globalSearch').addEventListener('input',()=>{
+  clearTimeout(searchTimer);
+  const active=$$('.nav-item').find(b=>b.classList.contains('active'));
+  if(active && active.dataset.nav!=='sets'){ go('sets'); }
+  searchTimer=setTimeout(()=>renderSets(),150);
+});
+
+function init(){
+  applyTheme(localStorage.getItem(THEME_KEY)||'light');
+  if(!load() || !state.sets){ seedData(); }
+  if(!Array.isArray(state.sets)) state.sets=[];
+  
+  // Clean out any preset card sets if they are in the loaded state
+  const presets = ['Spanish Essentials', 'Cell Biology Basics', 'World Capitals', 'JavaScript Fundamentals'];
+  const hasPresets = state.sets.some(s => presets.includes(s.title));
+  if(hasPresets){
+    state.sets = state.sets.filter(s => !presets.includes(s.title));
+    save();
+  }
+  
+  renderDashboard();
+}
+init();
+</script>
+</body>
+</html>

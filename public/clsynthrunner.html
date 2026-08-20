@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Retro Synthwave Runner | Games Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --neon-magenta: #ff007f;
+      --neon-blue: #00f0ff;
+      --neon-orange: #ff5e00;
+      --neon-yellow: #fff01f;
+      --bg-dark: #050510;
+      --bg-card: #101026;
+      --text-main: #f0f0ff;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Share Tech Mono', monospace;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .game-container {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      max-width: 100%;
+      padding: 10px;
+    }
+
+    /* Header Panel */
+    .header-panel {
+      width: 800px;
+      max-width: 100%;
+      background: var(--bg-card);
+      border: 2px solid rgba(255, 0, 127, 0.2);
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.1);
+      border-radius: 8px;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--neon-magenta);
+      text-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
+      letter-spacing: 2px;
+    }
+
+    .stats-container {
+      display: flex;
+      gap: 25px;
+    }
+
+    .stat-box {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #8a8ab0;
+      letter-spacing: 1px;
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--neon-blue);
+      text-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
+    }
+
+    .stat-value.magenta {
+      color: var(--neon-magenta);
+      text-shadow: 0 0 6px rgba(255, 0, 127, 0.4);
+    }
+
+    /* Game Arena Wrapper */
+    .arena-wrapper {
+      position: relative;
+      border: 2px solid rgba(0, 240, 255, 0.3);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.15);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #020208;
+    }
+
+    canvas {
+      display: block;
+      background: transparent;
+    }
+
+    /* Screens Overlay */
+    .screen-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 5, 12, 0.85);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+
+    .screen-overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .overlay-title {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 38px;
+      font-weight: 900;
+      text-align: center;
+      letter-spacing: 3px;
+      line-height: 1.2;
+    }
+
+    .overlay-title.magenta {
+      color: var(--neon-magenta);
+      text-shadow: 0 0 15px rgba(255, 0, 127, 0.8);
+    }
+
+    .overlay-title.blue {
+      color: var(--neon-blue);
+      text-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
+    }
+
+    .overlay-subtitle {
+      font-size: 16px;
+      color: #8a8ab0;
+      margin-top: -10px;
+      text-align: center;
+    }
+
+    .btn {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 16px;
+      font-weight: bold;
+      color: #ffffff;
+      background: transparent;
+      border: 2px solid var(--neon-blue);
+      border-radius: 4px;
+      padding: 12px 30px;
+      cursor: pointer;
+      letter-spacing: 2px;
+      transition: all 0.2s ease;
+      box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+      text-transform: uppercase;
+    }
+
+    .btn:hover {
+      background: var(--neon-blue);
+      color: var(--bg-dark);
+      box-shadow: 0 0 20px var(--neon-blue);
+      transform: scale(1.05);
+    }
+
+    .btn-pink {
+      border-color: var(--neon-magenta);
+      box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
+    }
+
+    .btn-pink:hover {
+      background: var(--neon-magenta);
+      color: var(--bg-dark);
+      box-shadow: 0 0 20px var(--neon-magenta);
+    }
+
+    /* Bottom Control Bar */
+    .controls-hint {
+      font-size: 12px;
+      color: #6a6a90;
+      display: flex;
+      gap: 15px;
+      margin-top: 5px;
+    }
+
+    .key {
+      background: #101026;
+      color: var(--neon-blue);
+      padding: 2px 6px;
+      border-radius: 3px;
+      border: 1px solid rgba(0, 240, 255, 0.3);
+    }
+
+    /* Music toggle and indicator */
+    .audio-controls {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      gap: 10px;
+    }
+
+    .audio-btn {
+      background: rgba(16, 16, 38, 0.8);
+      border: 1px solid rgba(255, 0, 127, 0.2);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .audio-btn:hover {
+      border-color: var(--neon-magenta);
+      color: var(--neon-magenta);
+    }
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <!-- Header info panel -->
+    <div class="header-panel">
+      <div class="title">SYNTHWAVE RUNNER</div>
+      <div class="stats-container">
+        <div class="stat-box">
+          <div class="stat-label">HIGH RUN</div>
+          <div id="high-score" class="stat-value">000000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">DISTANCE</div>
+          <div id="current-score" class="stat-value magenta">000000</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">MULTIPLIER</div>
+          <div id="multiplier" class="stat-value">1.0x</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arena Frame -->
+    <div class="arena-wrapper">
+      <!-- Start overlay -->
+      <div id="start-screen" class="screen-overlay">
+        <div class="overlay-title blue">SYNTHWAVE RUNNER</div>
+        <div class="overlay-subtitle">Dodge laser nodes on the endless grid road</div>
+        <button id="start-btn" class="btn">ENTER THE GRID</button>
+      </div>
+
+      <!-- Game Over overlay -->
+      <div id="gameover-screen" class="screen-overlay hidden">
+        <div class="overlay-title magenta">SYSTEM COLLISION</div>
+        <div class="overlay-subtitle">Grid connection terminated. Final distance: <span id="final-score" style="color: var(--neon-blue)">0</span>m</div>
+        <button id="restart-btn" class="btn btn-pink">REBOOT LINK</button>
+      </div>
+
+      <!-- Paused overlay -->
+      <div id="pause-screen" class="screen-overlay hidden">
+        <div class="overlay-title blue">STREAM PAUSED</div>
+        <div class="overlay-subtitle">Press ESC or click to resume cyber stream</div>
+        <button id="resume-btn" class="btn">RESUME</button>
+      </div>
+
+      <!-- Canvas -->
+      <canvas id="runnerCanvas" width="800" height="500"></canvas>
+    </div>
+
+    <!-- Controls hint footer -->
+    <div class="controls-hint">
+      <div><span class="key">← / a</span> Left</div>
+      <div><span class="key">→ / d</span> Right</div>
+      <div><span class="key">Space / ↑ / w</span> Jump</div>
+      <div><span class="key">↓ / s</span> Duck</div>
+      <div><span class="key">ESC</span> Pause</div>
+    </div>
+  </div>
+
+  <!-- Audio Controls -->
+  <div class="audio-controls">
+    <button id="synth-btn" class="audio-btn">
+      <span>🎹</span> SYNTH MUSIC: OFF
+    </button>
+    <button id="sfx-btn" class="audio-btn">
+      <span>🔊</span> SFX: ON
+    </button>
+  </div>
+
+  <script>
+    // -----------------------------------------------------------------
+    // SOUND & SYNTH ENGINE (Web Audio API)
+    // -----------------------------------------------------------------
+    let audioCtx = null;
+    let sfxEnabled = true;
+    let musicEnabled = false;
+    let synthInterval = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    // Play standalone synthesized sounds
+    function playSFX(type) {
+      if (!sfxEnabled) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'jump') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(500, now + 0.18);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+        osc.start(now);
+        osc.stop(now + 0.18);
+      } else if (type === 'duck') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(300, now);
+        osc.frequency.exponentialRampToValueAtTime(100, now + 0.15);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'crash') {
+        // Exploding retro synthesizer roar
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.linearRampToValueAtTime(30, now + 0.4);
+        gain.gain.setValueAtTime(0.25, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+        // Add low rumble
+        const oscSub = audioCtx.createOscillator();
+        const gainSub = audioCtx.createGain();
+        oscSub.connect(gainSub);
+        gainSub.connect(audioCtx.destination);
+        oscSub.type = 'sine';
+        oscSub.frequency.setValueAtTime(60, now);
+        oscSub.frequency.linearRampToValueAtTime(20, now + 0.4);
+        gainSub.gain.setValueAtTime(0.3, now);
+        gainSub.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+
+        osc.start(now);
+        osc.stop(now + 0.5);
+        oscSub.start(now);
+        oscSub.stop(now + 0.5);
+      } else if (type === 'score_milestone') {
+        // Sci-Fi ring chime
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, now);
+        osc.frequency.setValueAtTime(800, now + 0.08);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+        osc.start(now);
+        osc.stop(now + 0.2);
+      }
+    }
+
+    // Synthwave Arpeggiated Loop Music Player
+    const notes = [
+      110.00, 110.00, 130.81, 146.83, // A2, A2, C3, D3
+      110.00, 110.00, 164.81, 146.83, // A2, A2, E3, D3
+      82.41,  82.41,  98.00,  110.00, // E2, E2, G2, A2
+      82.41,  82.41,  123.47, 98.00   // E2, E2, B2, G2
+    ];
+    let noteIndex = 0;
+
+    function startMusic() {
+      if (synthInterval) return;
+      initAudio();
+      if (!audioCtx) return;
+
+      let tempo = 125; // BPM
+      let intervalMs = (60 / tempo) * 1000 / 2; // Eighth notes
+
+      synthInterval = setInterval(() => {
+        if (!musicEnabled) return;
+        if (audioCtx.state === 'suspended') return;
+
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+
+        osc.connect(gain);
+        gain.connect(filter);
+        filter.connect(audioCtx.destination);
+
+        // Synth arpeggiator oscillator settings
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(notes[noteIndex], now);
+
+        // Low Pass Filter sweep
+        filter.type = 'lowpass';
+        filter.Q.setValueAtTime(5, now);
+        filter.frequency.setValueAtTime(250, now);
+        filter.frequency.exponentialRampToValueAtTime(1200, now + 0.15);
+
+        // Quick punch envelope
+        gain.gain.setValueAtTime(0.06, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+        osc.start(now);
+        osc.stop(now + 0.24);
+
+        // Add a soft kick drum beat on beats 1 and 3
+        if (noteIndex % 4 === 0) {
+          const kickOsc = audioCtx.createOscillator();
+          const kickGain = audioCtx.createGain();
+          kickOsc.connect(kickGain);
+          kickGain.connect(audioCtx.destination);
+
+          kickOsc.type = 'sine';
+          kickOsc.frequency.setValueAtTime(150, now);
+          kickOsc.frequency.exponentialRampToValueAtTime(45, now + 0.15);
+
+          kickGain.gain.setValueAtTime(0.2, now);
+          kickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+          kickOsc.start(now);
+          kickOsc.stop(now + 0.15);
+        }
+
+        noteIndex = (noteIndex + 1) % notes.length;
+      }, intervalMs);
+    }
+
+    function stopMusic() {
+      if (synthInterval) {
+        clearInterval(synthInterval);
+        synthInterval = null;
+      }
+    }
+
+    // Audio Button Bindings
+    const sfxBtn = document.getElementById('sfx-btn');
+    const synthBtn = document.getElementById('synth-btn');
+
+    sfxBtn.addEventListener('click', () => {
+      sfxEnabled = !sfxEnabled;
+      sfxBtn.innerHTML = sfxEnabled ? '<span>🔊</span> SFX: ON' : '<span>🔇</span> SFX: OFF';
+    });
+
+    synthBtn.addEventListener('click', () => {
+      musicEnabled = !musicEnabled;
+      if (musicEnabled) {
+        synthBtn.innerHTML = '<span>🎹</span> SYNTH MUSIC: ON';
+        synthBtn.style.borderColor = 'var(--neon-blue)';
+        startMusic();
+      } else {
+        synthBtn.innerHTML = '<span>🎹</span> SYNTH MUSIC: OFF';
+        synthBtn.style.borderColor = 'rgba(255, 0, 127, 0.2)';
+        stopMusic();
+      }
+    });
+
+    // -----------------------------------------------------------------
+    // ENDLESS PERSPECTIVE ROAD PHYSICS ENGINE
+    // -----------------------------------------------------------------
+    const canvas = document.getElementById('runnerCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const scoreDisplay = document.getElementById('current-score');
+    const highScoreDisplay = document.getElementById('high-score');
+    const multiplierDisplay = document.getElementById('multiplier');
+
+    // UI elements
+    const startScreen = document.getElementById('start-screen');
+    const gameoverScreen = document.getElementById('gameover-screen');
+    const pauseScreen = document.getElementById('pause-screen');
+    
+    const startBtn = document.getElementById('start-btn');
+    const restartBtn = document.getElementById('restart-btn');
+    const resumeBtn = document.getElementById('resume-btn');
+
+    // High score registry
+    let highScore = parseInt(localStorage.getItem('unblocked-synthrunner-highscore')) || 0;
+    highScoreDisplay.textContent = String(highScore).padStart(6, '0');
+
+    // Game variables
+    let gameActive = false;
+    let isPaused = false;
+    let distance = 0;
+    let speed = 6;
+    let baseSpeed = 6;
+    let maxSpeed = 15;
+    let multiplier = 1.0;
+
+    // Player State
+    const player = {
+      lane: 1, // 0 = Left, 1 = Center, 2 = Right
+      targetX: canvas.width / 2,
+      x: canvas.width / 2,
+      y: canvas.height - 80,
+      baseY: canvas.height - 80,
+      width: 40,
+      height: 35,
+      jumping: false,
+      jumpVelocity: 0,
+      ducking: false,
+      duckTimer: 0,
+      gravity: 0.6
+    };
+
+    const lanesX = [200, 400, 600]; // mapping coordinate reference for drawing lanes
+
+    // Bind keyboard inputs
+    let keys = {};
+    window.addEventListener('keydown', e => {
+      if (e.key === 'Escape' || e.key === 'Esc') {
+        togglePause();
+      }
+
+      if (!gameActive || isPaused) return;
+
+      if ((e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'Left') && player.lane > 0) {
+        player.lane--;
+        playSFX('jump');
+      }
+      if ((e.key === 'ArrowRight' || e.key === 'd' || e.key === 'Right') && player.lane < 2) {
+        player.lane++;
+        playSFX('jump');
+      }
+      if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ' || e.key === 'Spacebar' || e.key === 'Up') && !player.jumping && !player.ducking) {
+        player.jumping = true;
+        player.jumpVelocity = -11;
+        playSFX('jump');
+      }
+      if ((e.key === 'ArrowDown' || e.key === 's' || e.key === 'Down') && !player.jumping) {
+        player.ducking = true;
+        player.duckTimer = 25; // Duck frames duration
+        playSFX('duck');
+      }
+    });
+
+    // Touch click bindings inside iframe (support lanes swipe or click click)
+    canvas.addEventListener('click', e => {
+      if (!gameActive || isPaused) return;
+      const rect = canvas.getBoundingClientRect();
+      const relativeX = e.clientX - rect.left;
+      
+      // Tap Left/Right segments of screen to move lanes
+      if (relativeX < canvas.width * 0.35 && player.lane > 0) {
+        player.lane--;
+        playSFX('jump');
+      } else if (relativeX > canvas.width * 0.65 && player.lane < 2) {
+        player.lane++;
+        playSFX('jump');
+      } else {
+        // Center tap triggers Jump
+        if (!player.jumping && !player.ducking) {
+          player.jumping = true;
+          player.jumpVelocity = -11;
+          playSFX('jump');
+        }
+      }
+    });
+
+    // Lists for assets
+    let obstacles = [];
+    let speedLines = [];
+    let particleExplosions = [];
+    let sunOffset = 0;
+    let terrainOffset = 0;
+
+    // Obstacle types definitions
+    const obsTypes = {
+      GATE: { color: '#00f0ff', label: 'GATE', height: 80, yOffset: -55 }, // High gate (Must duck)
+      BARRIER: { color: '#ff007f', label: 'BARRIER', height: 40, yOffset: 0 }, // Low wall (Must jump)
+      PYRAMID: { color: '#ff5e00', label: 'PYRAMID', height: 45, yOffset: 0 } // Center spike (Must jump)
+    };
+
+    // Spawn an obstacle on horizon
+    let obstacleTimer = 0;
+    function spawnObstacle() {
+      const typeKeys = Object.keys(obsTypes);
+      const chosenType = typeKeys[Math.floor(Math.random() * typeKeys.length)];
+      const chosenLane = Math.floor(Math.random() * 3);
+
+      obstacles.push({
+        lane: chosenLane,
+        type: chosenType,
+        z: 100, // Z perspective tracker: 100 (horizon) to 0 (player)
+        width: 15,
+        height: obsTypes[chosenType].height,
+        color: obsTypes[chosenType].color,
+        yOffset: obsTypes[chosenType].yOffset
+      });
+    }
+
+    // Speed particle line generator
+    function spawnSpeedLine() {
+      speedLines.push({
+        x: Math.random() * canvas.width,
+        y: canvas.height / 2 + 20,
+        length: 10 + Math.random() * 30,
+        speed: 8 + Math.random() * 8
+      });
+    }
+
+    function createCrashParticles(x, y, color) {
+      for (let i = 0; i < 20; i++) {
+        particleExplosions.push({
+          x: x,
+          y: y,
+          dx: (Math.random() - 0.5) * 8,
+          dy: (Math.random() - 0.5) * 8,
+          radius: 1 + Math.random() * 3,
+          color: color,
+          alpha: 1,
+          decay: 0.02 + Math.random() * 0.02
+        });
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // LOOP & MECHANICS UPDATE
+    // -----------------------------------------------------------------
+    function startNewGame() {
+      distance = 0;
+      speed = baseSpeed;
+      multiplier = 1.0;
+      obstacles = [];
+      speedLines = [];
+      particleExplosions = [];
+      obstacleTimer = 0;
+      player.lane = 1;
+      player.jumping = false;
+      player.ducking = false;
+      player.y = player.baseY;
+
+      startScreen.classList.add('hidden');
+      gameoverScreen.classList.add('hidden');
+      pauseScreen.classList.add('hidden');
+
+      gameActive = true;
+      isPaused = false;
+      if (musicEnabled) {
+        startMusic();
+      }
+    }
+
+    function gameOver() {
+      gameActive = false;
+      playSFX('crash');
+      document.getElementById('final-score').textContent = Math.floor(distance);
+
+      if (Math.floor(distance) > highScore) {
+        highScore = Math.floor(distance);
+        localStorage.setItem('unblocked-synthrunner-highscore', highScore);
+        highScoreDisplay.textContent = String(highScore).padStart(6, '0');
+      }
+
+      gameoverScreen.classList.remove('hidden');
+    }
+
+    function togglePause() {
+      if (!gameActive) return;
+      isPaused = !isPaused;
+      if (isPaused) {
+        pauseScreen.classList.remove('hidden');
+      } else {
+        pauseScreen.classList.add('hidden');
+      }
+    }
+
+    // Main logic update loop
+    function update() {
+      if (!gameActive || isPaused) return;
+
+      // Increment score based on current speeds
+      distance += (speed * 0.015) * multiplier;
+      scoreDisplay.textContent = String(Math.floor(distance)).padStart(6, '0');
+
+      // Speed progression
+      speed = Math.min(maxSpeed, baseSpeed + (distance / 400));
+      multiplier = 1 + Math.floor(distance / 200) * 0.2;
+      multiplierDisplay.textContent = multiplier.toFixed(1) + 'x';
+
+      // Score chime sound milestone
+      if (Math.floor(distance) > 0 && Math.floor(distance) % 250 === 0 && Math.floor(distance) % 1000 !== 0) {
+        playSFX('score_milestone');
+      }
+
+      // Player side motion lerp
+      const targetXCoord = 120 + player.lane * 280; // transform lane spacing width
+      player.x += (targetXCoord - player.x) * 0.22;
+
+      // Handle jumping physics
+      if (player.jumping) {
+        player.y += player.jumpVelocity;
+        player.jumpVelocity += player.gravity;
+
+        if (player.y >= player.baseY) {
+          player.y = player.baseY;
+          player.jumping = false;
+          player.jumpVelocity = 0;
+        }
+      }
+
+      // Handle duck frames timer
+      if (player.ducking) {
+        player.duckTimer--;
+        if (player.duckTimer <= 0) {
+          player.ducking = false;
+        }
+      }
+
+      // Move speed lines
+      if (Math.random() < 0.4) spawnSpeedLine();
+      for (let i = speedLines.length - 1; i >= 0; i--) {
+        const line = speedLines[i];
+        line.y += line.speed * (speed / baseSpeed);
+        if (line.y > canvas.height) {
+          speedLines.splice(i, 1);
+        }
+      }
+
+      // Spawning obstacles matching distance timer
+      obstacleTimer++;
+      if (obstacleTimer > Math.max(35, 75 - (speed * 3.5))) {
+        spawnObstacle();
+        obstacleTimer = 0;
+      }
+
+      // Move obstacles
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const obs = obstacles[i];
+        obs.z -= (speed * 0.16); // push obstacles forward
+
+        // Collision check when obstacle crosses the player depth
+        if (obs.z <= 6) {
+          obstacles.splice(i, 1);
+
+          if (obs.lane === player.lane) {
+            // Check vertical collision bounds
+            const isHighGate = obs.type === 'GATE';
+            
+            if (isHighGate) {
+              // High gate: hit if we are NOT ducking (ducking shrinks player)
+              if (!player.ducking) {
+                createCrashParticles(player.x, player.y, obs.color);
+                gameOver();
+              }
+            } else {
+              // Low barrier/spike: hit if we are NOT jumping high enough
+              if (!player.jumping || (player.y > player.baseY - 45)) {
+                createCrashParticles(player.x, player.y, obs.color);
+                gameOver();
+              }
+            }
+          }
+          continue;
+        }
+      }
+
+      // Update particle explosions
+      for (let i = particleExplosions.length - 1; i >= 0; i--) {
+        const p = particleExplosions[i];
+        p.x += p.dx;
+        p.y += p.dy;
+        p.alpha -= p.decay;
+        if (p.alpha <= 0) {
+          particleExplosions.splice(i, 1);
+        }
+      }
+
+      // Scroll horizon backdrop offsets
+      sunOffset += 0.05;
+      terrainOffset += (speed * 0.8);
+    }
+
+    // -----------------------------------------------------------------
+    // ENDLESS 3D HORIZON CANVAS DRAWING PIPELINE
+    // -----------------------------------------------------------------
+    function draw() {
+      // Clear with dark sky ambient
+      ctx.fillStyle = '#050510';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const horizon = canvas.height / 2;
+
+      // 1. Draw glowing neon wireframe horizon hills
+      ctx.strokeStyle = '#201040';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let x = 0; x <= canvas.width; x += 20) {
+        const noise = Math.sin((x + terrainOffset) * 0.008) * 15 + Math.cos((x - terrainOffset) * 0.003) * 5;
+        ctx.lineTo(x, horizon + noise - 10);
+      }
+      ctx.lineTo(canvas.width, horizon);
+      ctx.lineTo(0, horizon);
+      ctx.closePath();
+      ctx.fillStyle = '#030309';
+      ctx.fill();
+      ctx.stroke();
+
+      // 2. Draw Retro Neon Sun
+      const sunR = 85;
+      const sunX = canvas.width / 2;
+      const sunY = horizon - 15;
+
+      const gradient = ctx.createLinearGradient(sunX, sunY - sunR, sunX, sunY + sunR);
+      gradient.addColorStop(0, '#ffe100'); // Hot yellow top
+      gradient.addColorStop(0.5, '#ff007f'); // Magenta center
+      gradient.addColorStop(1, '#ff0055'); // Deep red base
+
+      ctx.save();
+      // Draw circular sun
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, sunR, 0, Math.PI * 2);
+      ctx.clip();
+
+      ctx.fillStyle = gradient;
+      ctx.fill();
+
+      // Sun sunset horizontal cut strips
+      ctx.fillStyle = '#050510';
+      for (let y = sunY - sunR; y < sunY + sunR; y += 12) {
+        // Thickening lines at the bottom for cool vaporwave styling
+        const relativeHeight = (y - (sunY - sunR)) / (sunR * 2);
+        const stripThickness = 2 + relativeHeight * 6;
+        ctx.fillRect(sunX - sunR - 10, y, sunR * 2 + 20, stripThickness);
+      }
+      ctx.restore();
+
+      // Draw beautiful sun ambient bloom
+      ctx.shadowColor = '#ff007f';
+      ctx.shadowBlur = 25;
+      ctx.strokeStyle = 'rgba(255, 0, 127, 0.15)';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, sunR + 1, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0; // reset
+
+      // 3. Draw Pseudo-3D Perspective Road Grid Lines
+      const vanishingPointX = canvas.width / 2;
+      const perspectiveLines = 12;
+
+      ctx.strokeStyle = '#2a1542';
+      ctx.lineWidth = 1.5;
+
+      // Radial perspective projection lines (lanes dividers)
+      for (let i = 0; i <= perspectiveLines; i++) {
+        const xOffset = (canvas.width / perspectiveLines) * i;
+        ctx.beginPath();
+        ctx.moveTo(vanishingPointX, horizon);
+        ctx.lineTo(xOffset, canvas.height);
+        ctx.stroke();
+      }
+
+      // Horizontal perspective grid dividers mapping speed
+      const gridInterval = 40;
+      const phase = (terrainOffset % gridInterval);
+
+      for (let y = horizon; y <= canvas.height; y += 8) {
+        // Non-linear exponential scaling to simulate 3D spacing
+        const ratio = (y - horizon) / (canvas.height - horizon);
+        const yAdjusted = horizon + Math.pow(ratio, 1.8) * (canvas.height - horizon);
+
+        ctx.strokeStyle = `rgba(160, 32, 240, ${0.1 + ratio * 0.35})`;
+        ctx.beginPath();
+        ctx.moveTo(0, yAdjusted);
+        ctx.lineTo(canvas.width, yAdjusted);
+        ctx.stroke();
+      }
+
+      // Draw the neon road boundaries
+      ctx.strokeStyle = '#00f0ff';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 10;
+      
+      // Left boundary
+      ctx.beginPath();
+      ctx.moveTo(vanishingPointX - 10, horizon);
+      ctx.lineTo(60, canvas.height);
+      ctx.stroke();
+
+      // Right boundary
+      ctx.beginPath();
+      ctx.moveTo(vanishingPointX + 10, horizon);
+      ctx.lineTo(canvas.width - 60, canvas.height);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // 4. Draw speed particles lines
+      ctx.strokeStyle = 'rgba(0, 240, 255, 0.35)';
+      ctx.lineWidth = 1;
+      speedLines.forEach(line => {
+        ctx.beginPath();
+        ctx.moveTo(line.x, line.y);
+        ctx.lineTo(line.x, line.y + line.length);
+        ctx.stroke();
+      });
+
+      // 5. Draw Obstacles with perspective size scaling
+      obstacles.forEach(obs => {
+        // Perspective Math: size shrinks exponentially as obs moves to Z = 100
+        const scale = 1 - (obs.z / 100);
+        
+        // Horizontal coordinate sizing on the projection road
+        const laneOffsetPercent = (obs.lane - 1) * 0.32; // Offset center -32%, 0%, 32%
+        const laneWidthHorizon = 15;
+        const laneWidthBase = 280;
+
+        // Radial projection center
+        const startX = vanishingPointX + (vanishingPointX * laneOffsetPercent * scale);
+        const targetY = horizon + Math.pow(scale, 1.8) * (canvas.height - horizon);
+
+        // Scale bounds
+        const drawWidth = 6 + (scale * 75);
+        const drawHeight = 8 + (scale * obs.height);
+        const drawY = targetY - drawHeight + (obs.yOffset * scale);
+
+        // Glow effects
+        ctx.shadowColor = obs.color;
+        ctx.shadowBlur = 6 + scale * 15;
+        ctx.fillStyle = obs.color;
+
+        if (obs.type === 'PYRAMID') {
+          // Draw Neon Spike Triangle
+          ctx.beginPath();
+          ctx.moveTo(startX, drawY);
+          ctx.lineTo(startX - drawWidth/2, drawY + drawHeight);
+          ctx.lineTo(startX + drawWidth/2, drawY + drawHeight);
+          ctx.closePath();
+          ctx.fill();
+        } else if (obs.type === 'BARRIER') {
+          // Draw horizontal bumper barrier
+          ctx.fillRect(startX - drawWidth/2, drawY, drawWidth, drawHeight);
+          // Highlight core
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(startX - drawWidth/3, drawY + 3, (drawWidth * 2/3), drawHeight - 6);
+        } else if (obs.type === 'GATE') {
+          // Draw arch gateway
+          ctx.fillRect(startX - drawWidth/2, drawY, 8 * scale, drawHeight); // left pillar
+          ctx.fillRect(startX + drawWidth/2 - 8*scale, drawY, 8 * scale, drawHeight); // right pillar
+          ctx.fillRect(startX - drawWidth/2, drawY, drawWidth, 10 * scale); // arch top
+        }
+      });
+      ctx.shadowBlur = 0; // reset
+
+      // 6. Draw Particle explosions
+      particleExplosions.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.alpha;
+        ctx.fill();
+        ctx.closePath();
+      });
+      ctx.globalAlpha = 1.0;
+
+      // 7. Draw Player hover-ship with dynamic trail
+      ctx.save();
+      // Eased horizontal slide tilt effect
+      const currentLaneX = 120 + player.lane * 280;
+      const tiltAngle = (player.x - currentLaneX) * -0.002;
+
+      ctx.translate(player.x, player.y);
+      ctx.rotate(tiltAngle);
+
+      // Neon cyan laser trail engine jet flares
+      ctx.shadowColor = '#00f0ff';
+      ctx.shadowBlur = 15;
+      ctx.fillStyle = '#00f0ff';
+      
+      const jetLength = 15 + Math.random() * 15;
+      ctx.fillRect(-15, player.height - 10, 4, jetLength);
+      ctx.fillRect(11, player.height - 10, 4, jetLength);
+
+      // Ducking vs Jumping ship scale transformation
+      let drawH = player.height;
+      let drawW = player.width;
+      let drawYAdjust = 0;
+
+      if (player.ducking) {
+        drawH = player.height * 0.45; // flatten ship
+        drawYAdjust = player.height * 0.55;
+      }
+
+      // Draw glowing hot magenta hover ship silhouette body
+      ctx.shadowColor = '#ff007f';
+      ctx.shadowBlur = 12;
+      ctx.fillStyle = '#ff007f';
+      ctx.beginPath();
+      ctx.moveTo(0, drawYAdjust); // Nose
+      ctx.lineTo(-drawW/2, drawYAdjust + drawH); // Left fin
+      ctx.lineTo(-drawW/4, drawYAdjust + drawH - 5); // Left thruster
+      ctx.lineTo(drawW/4, drawYAdjust + drawH - 5); // Right thruster
+      ctx.lineTo(drawW/2, drawYAdjust + drawH); // Right fin
+      ctx.closePath();
+      ctx.fill();
+
+      // White neon cockpit core
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.moveTo(0, drawYAdjust + 5);
+      ctx.lineTo(-8, drawYAdjust + drawH - 8);
+      ctx.lineTo(8, drawYAdjust + drawH - 8);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+      ctx.shadowBlur = 0;
+    }
+
+    // Main animation loops
+    function gameLoop() {
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // -----------------------------------------------------------------
+    // GAME OVERLAYS TRIGGER
+    // -----------------------------------------------------------------
+    startBtn.addEventListener('click', () => {
+      startNewGame();
+    });
+
+    restartBtn.addEventListener('click', () => {
+      startNewGame();
+    });
+
+    resumeBtn.addEventListener('click', () => {
+      togglePause();
+    });
+
+    // Run render engine frame ticks
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
