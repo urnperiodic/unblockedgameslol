@@ -4,21 +4,30 @@ import { PUBLIC_GAMES_BASE_URL } from './data/gameSource';
 const GAMES_PER_PAGE = 36;
 const gameHtmlCache = new Map();
 const GAME_RUNTIME_SHIM = `<script>
-  window.poki_init_raw = window.poki_init_raw || function () { return false; };
-  window.poki_commercial_break_raw = window.poki_commercial_break_raw || function () {};
-  window.poki_rewarded_break_raw = window.poki_rewarded_break_raw || function () {};
-  window.poki_script_closure_raw = window.poki_script_closure_raw || function () {};
-  window.poki_get_team_raw = window.poki_get_team_raw || function () { return ''; };
-  window.poki_set_team_raw = window.poki_set_team_raw || function () {};
+  function poki_init_raw() { return false; }
+  function poki_commercial_break_raw() {}
+  function poki_rewarded_break_raw() {}
+  function poki_script_closure_raw() {}
+  function poki_get_team_raw() { return ''; }
+  function poki_set_team_raw() {}
+  window.poki_init_raw = poki_init_raw;
+  window.poki_commercial_break_raw = poki_commercial_break_raw;
+  window.poki_rewarded_break_raw = poki_rewarded_break_raw;
+  window.poki_script_closure_raw = poki_script_closure_raw;
+  window.poki_get_team_raw = poki_get_team_raw;
+  window.poki_set_team_raw = poki_set_team_raw;
 </script>`;
 
 const prepareGameHtml = (html, baseUrl) => {
   const baseTag = `<base href="${baseUrl}">`;
   const runtimeShim = GAME_RUNTIME_SHIM;
+  const optionalScriptsRemoved = html
+    .replace(/<script[^>]+src=["']\/js\/all\.js["'][^>]*><\/script>/gi, '')
+    .replace(/<script[^>]+src=["']\/html\/settings\/js\/index\.js["'][^>]*><\/script>/gi, '');
   if (/<head(?:\s[^>]*)?>/i.test(html)) {
-    return html.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}${runtimeShim}`);
+    return optionalScriptsRemoved.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}${runtimeShim}`);
   }
-  return `${baseTag}${runtimeShim}${html}`;
+  return `${baseTag}${runtimeShim}${optionalScriptsRemoved}`;
 };
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
 const FlashcardsWorkspace = lazy(() => import('./components/FlashcardsWorkspace'));
