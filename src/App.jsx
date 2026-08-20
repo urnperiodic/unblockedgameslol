@@ -19,15 +19,13 @@ const GAME_RUNTIME_SHIM = `<script>
 </script>`;
 
 const prepareGameHtml = (html, baseUrl) => {
-  const baseTag = `<base href="${baseUrl}">`;
+  const hasBaseUrl = /<base(?:\s[^>]*)?>/i.test(html);
+  const baseTag = hasBaseUrl ? '' : `<base href="${baseUrl}">`;
   const runtimeShim = GAME_RUNTIME_SHIM;
-  const optionalScriptsRemoved = html
-    .replace(/<script[^>]+src=["']\/js\/all\.js["'][^>]*><\/script>/gi, '')
-    .replace(/<script[^>]+src=["']\/html\/settings\/js\/index\.js["'][^>]*><\/script>/gi, '');
   if (/<head(?:\s[^>]*)?>/i.test(html)) {
-    return optionalScriptsRemoved.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}${runtimeShim}`);
+    return html.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}${runtimeShim}`);
   }
-  return `${baseTag}${runtimeShim}${optionalScriptsRemoved}`;
+  return `${baseTag}${runtimeShim}${html}`;
 };
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
 const FlashcardsWorkspace = lazy(() => import('./components/FlashcardsWorkspace'));
