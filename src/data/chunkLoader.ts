@@ -1,57 +1,102 @@
+// src/data/chunkLoader.ts
 import { useState, useEffect } from 'react';
 import { Game } from '../types';
-import { chunk0 } from './chunks/chunk0';
+
+const BASE = typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.BASE_URL
+  ? import.meta.env.BASE_URL
+  : './';
+
+type Manifest = {
+  totalChunks: number;
+  chunkSize?: number;
+  // optional extra metadata can go here in future
+};
+
+const jsonPath = (name: string) => `${BASE}data/games/${name}`;
+
+const memoryCache = new Map<string, Game[] | Manifest>();
+
+async function fetchJson<T>(url: string): Promise<T> {
+  // memory cache look-up
+  if (memoryCache.has(url)) {
+    return memoryCache.get(url) as T;
+  }
+  const res = await fetch(url, { method: 'GET', credentials: 'same-origin' });
+  if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`);
+  const data = await res.json();
+  memoryCache.set(url, data);
+  return data as T;
+}
 
 export function useGameDataChunks() {
-  // Start immediately with chunk0 (500 curated games) so there is NEVER a blank screen
-  const [loadedGames, setLoadedGames] = useState<Game[]>(chunk0);
-  const [loadedChunksCount, setLoadedChunksCount] = useState(1);
-  const totalChunksCount = 6;
+  const [games, setGames] = useState<Game[]>([]);
+  const [loadedChunksCount, setLoadedChunksCount] = useState(0);
+  const [totalChunksCount, setTotalChunksCount] = useState<number | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
+    let mounted = true;
 
-    async function loadRemainingChunks() {
-      // Dynamic ES imports for progressive background loading
-      const chunkLoaders = [
-        () => import('./chunks/chunk1'),
-        () => import('./chunks/chunk2'),
-        () => import('./chunks/chunk3'),
-        () => import('./chunks/chunk4'),
-        () => import('./chunks/chunk5')
-      ];
-
-      for (let i = 0; i < chunkLoaders.length; i++) {
-        if (!isMounted) break;
-
-        // Yield to main UI thread briefly before loading next chunk
-        await new Promise(res => setTimeout(res, 200));
+    async function init() {
+      try {
+        // Try to load manifest first
+        const manifestUrl = jsonPath('manifest.json');
+        let manifest: Manifest | null = null;
 
         try {
-          const mod = await chunkLoaders[i]();
-          const chunkKey = `chunk${i + 1}` as keyof typeof mod;
-          const chunkData = mod[chunkKey] as Game[];
-
-          if (isMounted && Array.isArray(chunkData)) {
-            setLoadedGames(prev => [...prev, ...chunkData]);
-            setLoadedChunksCount(i + 2);
-          }
+          manifest = await fetchJson<Manifest>(manifestUrl);
         } catch (err) {
-          console.warn(`Failed to dynamically load chunk ${i + 1}:`, err);
+          // If manifest missing, assume at least chunk0 exists.
+          console.warn('Could not load manifest, falling back to guess totalChunks=1', err);
         }
+
+        // Determine first chunk name
+        const firstChunkName = 'games-0.json';
+        const firstChunkUrl = jsonPath(firstChunkName) as string;
+
+        // Load first chunk immediately (this mirrors the old chunk0 behavior)
+        const firstChunk = await fetchJson<Game[]>(firstChunkUrl);
+        if (!mounted) return;
+        setGames(firstChunk || []);
+        setLoadedChunksCount(1);
+        setTotalChunksCount(manifest?.totalChunks ?? 1);
+
+        // Background load remaining chunks progressively
+        const total = manifest?.totalChunks ?? 1;
+        // If total is 1, nothing more to load.
+        if (total <= 1) return;
+
+        // Progressive loader: stagger loads to avoid blocking UI and network spike
+        for (let i = 1; i < total; i++) {
+          if (!mounted) break;
+          // slight delay between requests so UI remains responsive
+          await new Promise(res => setTimeout(res, 150));
+
+          const url = jsonPath(`games-${i}.json`);
+          try {
+            const c = await fetchJson<Game[]>(url);
+            if (!mounted) break;
+            // append chunk to games
+            setGames(prev => [...prev, ...(Array.isArray(c) ? c : [])]);
+            setLoadedChunksCount(prev => prev + 1);
+          } catch (err) {
+            console.warn(`Failed to load ${url}:`, err);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to initialize game chunks', err);
       }
     }
 
-    loadRemainingChunks();
+    init();
 
     return () => {
-      isMounted = false;
+      mounted = false;
     };
   }, []);
 
   return {
-    games: loadedGames,
+    games,
     loadedChunksCount,
-    totalChunksCount
+    totalChunksCount: totalChunksCount ?? 0
   };
 }
