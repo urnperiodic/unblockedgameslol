@@ -1,6 +1,6 @@
 import { useDeferredValue, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { games as gamesData } from './data/games';
+import { games as gamesData, PUBLIC_GAMES_BASE_URL } from './data/games';
 import { slopeGames } from './data/slopeGames';
 
 // Merge curated catalog with the 1090 Slope-3 Classroom6x games, then
@@ -343,6 +343,41 @@ export default function App() {
       return null;
     }
   });
+  const [gameFrame, setGameFrame] = useState(null);
+
+  useEffect(() => {
+    if (!selectedGame) {
+      setGameFrame(null);
+      return undefined;
+    }
+
+    if (!selectedGame.url.startsWith(PUBLIC_GAMES_BASE_URL)) {
+      setGameFrame({ src: selectedGame.url });
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    setGameFrame(null);
+
+    fetch(selectedGame.url, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error(`Game file request failed: ${response.status}`);
+        return response.text();
+      })
+      .then((html) => {
+        const baseUrl = selectedGame.url.slice(0, selectedGame.url.lastIndexOf('/') + 1);
+        const baseTag = `<base href="${baseUrl}">`;
+        const srcDoc = /<head(?:\s[^>]*)?>/i.test(html)
+          ? html.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}`)
+          : `${baseTag}${html}`;
+        setGameFrame({ srcDoc });
+      })
+      .catch((error) => {
+        if (error.name !== 'AbortError') setGameFrame({ src: selectedGame.url });
+      });
+
+    return () => controller.abort();
+  }, [selectedGame]);
 
   const [gameHeaderHidden, setGameHeaderHidden] = useState(false);
   const [autoHideHeader, setAutoHideHeader] = useState(() => {
@@ -4482,16 +4517,18 @@ export default function App() {
                       height: `${100 / zoom}%`
                     }}
                   >
-                    <iframe 
-                      id="game-frame"
-                      key={selectedGame.id}
-                      src={selectedGame.url} 
-                      className="w-full h-full flex-1 border-none block m-0 p-0"
-                      title={selectedGame.title}
-                      allowFullScreen
-                      referrerPolicy="no-referrer"
-                      sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-                    />
+                    {gameFrame && (
+                      <iframe
+                        id="game-frame"
+                        key={selectedGame.id}
+                        {...gameFrame}
+                        className="w-full h-full flex-1 border-none block m-0 p-0"
+                        title={selectedGame.title}
+                        allowFullScreen
+                        referrerPolicy="no-referrer"
+                        sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                      />
+                    )}
                   </div>
                 </div>
 
