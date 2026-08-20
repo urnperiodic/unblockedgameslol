@@ -4432,10 +4432,6 @@ export default function App() {
                         tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=ixl.com";
                       }
 
-                      const absoluteUrl = selectedGame.url.startsWith('http')
-                        ? selectedGame.url
-                        : window.location.origin + '/' + selectedGame.url;
-
                       win.document.write(`
                         <!DOCTYPE html>
                         <html>
@@ -4477,11 +4473,41 @@ export default function App() {
                           <\/script>
                         </head>
                         <body>
-                          <iframe src="${absoluteUrl}" allow="fullscreen" referrerpolicy="no-referrer"></iframe>
+                          <iframe id="about-blank-game-frame" allow="fullscreen" referrerpolicy="no-referrer"></iframe>
                         </body>
                         </html>
                       `);
                       win.document.close();
+
+                      const frame = win.document.getElementById('about-blank-game-frame');
+                      if (!selectedGame.url.startsWith(PUBLIC_GAMES_BASE_URL)) {
+                        frame.src = selectedGame.url;
+                        return;
+                      }
+
+                      const cachedFrame = gameHtmlCache.get(selectedGame.url);
+                      const loadGameHtml = cachedFrame
+                        ? Promise.resolve(cachedFrame.srcDoc)
+                        : fetch(selectedGame.url).then((response) => {
+                            if (!response.ok) throw new Error(`Game file request failed: ${response.status}`);
+                            return response.text();
+                          }).then((html) => {
+                            const baseUrl = selectedGame.url.slice(0, selectedGame.url.lastIndexOf('/') + 1);
+                            const baseTag = `<base href="${baseUrl}">`;
+                            const srcDoc = /<head(?:\s[^>]*)?>/i.test(html)
+                              ? html.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}`)
+                              : `${baseTag}${html}`;
+                            gameHtmlCache.set(selectedGame.url, { srcDoc });
+                            return srcDoc;
+                          });
+
+                      loadGameHtml
+                        .then((srcDoc) => {
+                          if (!win.closed) frame.srcdoc = srcDoc;
+                        })
+                        .catch(() => {
+                          if (!win.closed) frame.src = selectedGame.url;
+                        });
                     }}
                     className="flex items-center gap-1.5 border border-[var(--card-border)] hover:border-[var(--accent-color)] bg-[var(--bg-color)] py-1.5 px-3 rounded-lg text-xs font-mono text-[var(--text-primary)] font-medium transition-all cursor-pointer"
                     title="Open Game in New Tab"
