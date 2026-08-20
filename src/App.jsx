@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useDeferredValue, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { games as gamesData } from './data/games';
 import { slopeGames } from './data/slopeGames';
@@ -25,7 +25,10 @@ const games = [...gamesData, ...slopeGames].map((game, index) => {
   if (aFeatured && !bFeatured) return -1;
   if (!aFeatured && bFeatured) return 1;
   return 0;
-});
+}).map((game) => ({
+  ...game,
+  searchText: `${game.title || ''} ${game.description || ''} ${game.category || ''}`.toLowerCase()
+}));
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
 import FlashcardsWorkspace from './components/FlashcardsWorkspace';
 import QuizWorkspace from './components/QuizWorkspace';
@@ -327,6 +330,7 @@ export default function App() {
     }
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const deferredSearchQuery = useDeferredValue(searchQuery);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedGame, setSelectedGame] = useState(() => {
     try {
@@ -1371,6 +1375,7 @@ export default function App() {
   };
 
   // Filter games based on category sidebar, matching search query
+  const normalizedSearchQuery = deferredSearchQuery.trim().toLowerCase();
   const filteredGames = games.filter(game => {
     if (filter === 'single') {
       if (!isSinglePlayerCategory(game.category)) return false;
@@ -1387,12 +1392,8 @@ export default function App() {
       if ((game.category || '').toLowerCase().trim() !== filter.toLowerCase().trim()) return false;
     }
 
-    if (searchQuery.trim() !== '') {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = (game.title || '').toLowerCase().includes(q);
-      const matchDesc = (game.description || '').toLowerCase().includes(q);
-      const matchCat = (game.category || '').toLowerCase().includes(q);
-      return matchTitle || matchDesc || matchCat;
+    if (normalizedSearchQuery !== '') {
+      return game.searchText.includes(normalizedSearchQuery);
     }
 
     return true;
@@ -4082,6 +4083,9 @@ export default function App() {
                             <img 
                               src={getOptimizedThumbnail(game.thumbnail)} 
                               alt={game.title} 
+                              width="640"
+                              height="360"
+                              loading="lazy"
                               referrerPolicy="no-referrer"
                               draggable="false"
                               onError={() => setFailedThumbnails(prev => ({ ...prev, [game.id]: true }))}
@@ -4480,6 +4484,7 @@ export default function App() {
                   >
                     <iframe 
                       id="game-frame"
+                      key={selectedGame.id}
                       src={selectedGame.url} 
                       className="w-full h-full flex-1 border-none block m-0 p-0"
                       title={selectedGame.title}
