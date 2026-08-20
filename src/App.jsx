@@ -310,6 +310,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedGame, setSelectedGame] = useState(null);
   const [gameFrame, setGameFrame] = useState(null);
+  const restoredSavedGame = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -322,7 +323,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (games.length === 0 || selectedGame) return;
+    if (games.length === 0 || selectedGame || restoredSavedGame.current) return;
+    restoredSavedGame.current = true;
     const savedId = safeStorage.getItem('unblocked-last-game');
     if (savedId) {
       setSelectedGame(games.find((game) => game.id === savedId) || null);
@@ -4276,7 +4278,10 @@ export default function App() {
                 <div className={`sticky ${gameHeaderHidden ? 'top-0' : headerOpen ? 'top-[108px] sm:top-[56px]' : 'top-[108px] md:top-[44px]'} z-[50] flex flex-col sm:flex-row sm:items-center justify-between border-b border-[var(--card-border)] bg-[var(--bg-secondary)] rounded-none py-3 px-4 gap-3 shadow-inner`}>
                   
                   <button
-                    onClick={() => setSelectedGame(null)}
+                    onClick={() => {
+                      safeStorage.removeItem('unblocked-last-game');
+                      setSelectedGame(null);
+                    }}
                     className="flex items-center gap-2 border border-[var(--card-border)] hover:border-[var(--accent-color)] text-[var(--text-primary)] hover:text-[var(--accent-color)] transition-all font-mono py-1.5 px-3.5 rounded-lg text-xs font-bold leading-normal cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
