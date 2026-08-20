@@ -7,7 +7,7 @@ export const games: Game[] = [
   {
     title: 'The Legend of Zelda Ocarina of Time',
     description: 'Travel through time to save Hyrule in the legendary Nintendo 64 masterpiece. Make sure you open in a seperate tab to play this game.',
-    url: 'clzeldaoot.html',
+    url: 'clocarinaoftime.html',
     thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/57/The_Legend_of_Zelda_Ocarina_of_Time.jpg',
     category: 'Emulated',
     featured: true
@@ -15,7 +15,7 @@ export const games: Game[] = [
   {
     title: 'The Legend of Zelda',
     description: 'The classic original NES adventure that started it all. Make sure you open in a seperate tab to play this game.',
-    url: 'clzeldanes.html',
+    url: 'clloz1.html',
     thumbnail: 'https://upload.wikimedia.org/wikipedia/en/4/41/Legend_of_Zelda_Cover.jpg',
     category: 'Emulated',
     featured: true
@@ -31,7 +31,7 @@ export const games: Game[] = [
   {
     title: 'EarthBound',
     description: 'Join Ness and his friends in this quirky, beloved SNES RPG classic. Make sure you open in a seperate tab to play this game.',
-    url: 'clearthbound.html',
+    url: 'clearthboundsnes.html',
     thumbnail: 'https://upload.wikimedia.org/wikipedia/en/1/1a/EarthBound_Box_Art.jpg',
     category: 'Emulated',
     featured: true
@@ -39,7 +39,7 @@ export const games: Game[] = [
   {
     title: 'Castlevania: Aria of Sorrow',
     description: 'Command tactical souls and explore Dracula\'s castle in this stellar GBA Metroidvania. Make sure you open in a seperate tab to play this game.',
-    url: 'clcastlevaniaaos.html',
+    url: 'clcastlevaniaariaofsorrow.html',
     thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/52/Castlevania_aria_of_sorrow_box.jpg',
     category: 'Emulated',
     featured: true
@@ -201,7 +201,7 @@ export const games: Game[] = [
     featured: true
   },
   {
-    title: 'The Final Earth 2 (Modded)',
+    title: 'The Final Earth 2',
     description: 'Modded version — easier to play and has more things to do!',
     url: 'The_Final_Earth_2_Standalone.html',
     thumbnail: 'Modded.png',
@@ -399,7 +399,7 @@ export const games: Game[] = [
   {
     title: 'Schoolboy Runaway',
     description: 'yeah',
-    url: 'schoolboyrunaway.html',
+    url: 'clschoolboyrunaway.html',
     featured: true,
     thumbnail: 'data:image/jpeg;base64,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',
     category: 'Solo'
@@ -439,7 +439,7 @@ export const games: Game[] = [
   {
     title: 'Adventure Capitalist',
     description: 'Grow your business empire in this classic capitalist clicker!',
-    url: 'cladventurecapitalist.html',
+    url: 'clAdventureCapatalist.html',
     thumbnail: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=300&q=80',
     category: 'Solo',
     featured: false
@@ -575,7 +575,7 @@ export const games: Game[] = [
   {
     title: 'Chess',
     description: 'Play chess with a friend online using a room code.',
-    url: 'chess.html',
+    url: 'clchess.html',
     thumbnail: 'https://images.chesscomfiles.com/uploads/v1/blog/291978.333e4ddb.630x354o.6e5e89b5223a.png',
     category: 'Multiplayer',
     featured: false
@@ -1893,7 +1893,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clCartoonNetworkTableTennisUltimateTournament.htm l CaseOh\'s Basics in Eating and Fast Food',
+    title: 'CaseOh\'s Basics in Eating and Fast Food',
     description: '',
     url: 'clbaldicaseoh.html',
     thumbnail: '',
@@ -2197,7 +2197,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clcrankit!.html Crazy Cars',
+    title: 'Crazy Cars',
     description: '',
     url: 'clcrazycars.html',
     thumbnail: '',
@@ -3853,7 +3853,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clhei$t.html Helix Jump',
+    title: 'Helix Jump',
     description: '',
     url: 'clhelixjump.html',
     thumbnail: '',
@@ -4509,7 +4509,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'Knock, Knock. clknockknock.html Konkr.io',
+    title: 'Konkr.io',
     description: '',
     url: 'clkonkrio.html',
     thumbnail: '',
@@ -5349,7 +5349,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clʘ.html Operius',
+    title: 'Operius',
     description: '',
     url: 'cloperius.html',
     thumbnail: '',
@@ -5381,7 +5381,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clovo2.temphtml OVO 3 Dimensions',
+    title: 'OVO 3 Dimensions',
     description: '',
     url: 'clovodimensions.html',
     thumbnail: '',
@@ -5573,7 +5573,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'Pixel Speedrun clpixelspeedrun.html Pixel Warfare',
+    title: 'Pixel Warfare',
     description: '',
     url: 'clpixelwarfare.html',
     thumbnail: '',
@@ -5605,7 +5605,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clpvz2gardenless Plants vs Zombies Modded',
+    title: 'Plants vs Zombies Modded',
     description: '',
     url: 'clpvzm.html',
     thumbnail: '',
@@ -6229,7 +6229,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'Sandbox City - clsandboxcity.html Sandboxels',
+    title: 'Sandboxels',
     description: '',
     url: 'clsandboxels.html',
     thumbnail: '',
@@ -6485,7 +6485,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clskibididibidygyattohiorizzingallovertheplacestillwat ermangotheoryfemboydrool.html Skinwalker',
+    title: 'Skinwalker',
     description: '',
     url: 'clskinwalker.html',
     thumbnail: '',
@@ -6589,7 +6589,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'Smash Hit Ripoff clsmashhitripoff.html Shadow Courier',
+    title: 'Shadow Courier',
     description: '',
     url: 'clshadowcourier.html',
     thumbnail: '',
@@ -7373,7 +7373,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clsuperkidadventure.htm Super Liquid Soccer',
+    title: 'Super Liquid Soccer',
     description: '',
     url: 'clsuperliquidsoccer.html',
     thumbnail: '',
@@ -8701,7 +8701,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'EaglercraftX 1.8.8(u29).html Minecraft 1.9',
+    title: 'Minecraft 1.9',
     description: '',
     url: 'EaglercraftL_1.9_v0_7_0_Offline_Signed.html',
     thumbnail: '',
@@ -9005,7 +9005,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'Vs. Among Us Skeld Symphony.html FNF - Baddies Nightmare',
+    title: 'FNF - Baddies Nightmare',
     description: '',
     url: 'BaddiesNightmare.html',
     thumbnail: '',
@@ -9861,7 +9861,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clfnftwinsomnia Friday Night Funkin’ Undertale',
+    title: 'Friday Night Funkin’ Undertale',
     description: '',
     url: 'clfnfundertale.html',
     thumbnail: '',
@@ -9893,7 +9893,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clfnfweeklytweakmas FNF - Vloo Guy (Ourple Guy D-Sides)',
+    title: 'FNF - Vloo Guy (Ourple Guy D-Sides)',
     description: '',
     url: 'VlooGuy.html',
     thumbnail: '',
@@ -10197,7 +10197,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clfnfspiritsofhellv2 Friday Night Funkin X-Event',
+    title: 'Friday Night Funkin X-Event',
     description: '',
     url: 'clxevent.html',
     thumbnail: '',
@@ -10317,7 +10317,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '“Creators youtube link” Classroom Maxxing',
+    title: 'Classroom Maxxing',
     description: '',
     url: 'classroommaxxing.html',
     thumbnail: '',
@@ -13341,7 +13341,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clicantbelievegoogleflaggedmeforthenameofthefilelol .html Riddle Transfer',
+    title: 'Riddle Transfer',
     description: '',
     url: 'clriddletransfer.html',
     thumbnail: '',
@@ -15469,7 +15469,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'Wolf Child clwolfchild.html Wonder Boy 3 - Dragon’s Trap',
+    title: 'Wonder Boy 3 - Dragon’s Trap',
     description: '',
     url: 'clwonderboy3.html',
     thumbnail: '',
@@ -15493,7 +15493,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clAlien Storm.html An Ordinary Sonic rom Hack (sonic.exe)',
+    title: 'An Ordinary Sonic rom Hack (sonic.exe)',
     description: '',
     url: 'clordinarysonicromhack.html',
     thumbnail: '',
@@ -15613,7 +15613,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clFatal Fury 2.html FIFA International Soccer',
+    title: 'FIFA International Soccer',
     description: '',
     url: 'clFIFAinternationalsoccer.html',
     thumbnail: '',
@@ -15813,7 +15813,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clShining Force II.html Snow Bros - Nick and Tom',
+    title: 'Snow Bros - Nick and Tom',
     description: '',
     url: 'clsnowbrosgenesis.html',
     thumbnail: '',
@@ -15901,7 +15901,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clSonic & Knuckles + Sonic The Hedgehog 3.html Sonic 3D Blast - Director\'s Cut',
+    title: 'Sonic 3D Blast - Director\'s Cut',
     description: '',
     url: 'clsonic3dblastdx.html',
     thumbnail: '',
@@ -16109,7 +16109,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clWorld Heroes.html Zombies Ate My Neighbors',
+    title: 'Zombies Ate My Neighbors',
     description: '',
     url: 'clzombiesatemyneighboors.html',
     thumbnail: '',
@@ -17677,7 +17677,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clpmev+.html Pokemon Moon Emerald',
+    title: 'Pokemon Moon Emerald',
     description: '',
     url: 'clpokemoonemerald.html',
     thumbnail: '',
@@ -18005,7 +18005,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'clPokémonstunningsteel.html Pokémon SunSky',
+    title: 'Pokémon SunSky',
     description: '',
     url: 'clpokesunsky.html',
     thumbnail: '',
@@ -18677,7 +18677,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'NBA Jam - Tournament Edition. clnbajamte.html New Super Mario World 2 - Around the World',
+    title: 'New Super Mario World 2 - Around the World',
     description: '',
     url: 'clNewSuperMarioWorld2AroundtheWorld.html',
     thumbnail: '',
@@ -18949,7 +18949,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: 'A few games may appear rotated. This is not a bug and please do not report it as such. Arm Wrestling',
+    title: 'Arm Wrestling',
     description: '',
     url: 'clarmwrestarc.html',
     thumbnail: '',
@@ -19557,7 +19557,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Final Fantasy VII (disc one)',
+    title: 'Final Fantasy VII (disc one)',
     description: '',
     url: 'clfinalfantasyVII.html',
     thumbnail: '',
@@ -19565,7 +19565,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Final Fantasy VII (disc two)',
+    title: 'Final Fantasy VII (disc two)',
     description: '',
     url: 'clfinalfantasyVIId2.html',
     thumbnail: '',
@@ -19605,7 +19605,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Grand Theft Auto 2',
+    title: 'Grand Theft Auto 2',
     description: '',
     url: 'clgta22.html',
     thumbnail: '',
@@ -19613,7 +19613,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Gran Turismo',
+    title: 'Gran Turismo',
     description: '',
     url: 'clgranturismo.html',
     thumbnail: '',
@@ -19757,7 +19757,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Pepsiman',
+    title: 'Pepsiman',
     description: '',
     url: 'clpepsiman.html',
     thumbnail: '',
@@ -19765,7 +19765,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Persona',
+    title: 'Persona',
     description: '',
     url: 'clpersona.html',
     thumbnail: '',
@@ -19773,7 +19773,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Persona 2',
+    title: 'Persona 2',
     description: '',
     url: 'clpersona2.html',
     thumbnail: '',
@@ -19781,7 +19781,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Powerslave',
+    title: 'Powerslave',
     description: '',
     url: 'clpowerslave.html',
     thumbnail: '',
@@ -19837,7 +19837,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Tekken 2',
+    title: 'Tekken 2',
     description: '',
     url: 'cltekken2ps1.html',
     thumbnail: '',
@@ -19861,7 +19861,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Theme Park',
+    title: 'Theme Park',
     description: '',
     url: 'clthemeparkpsx.html',
     thumbnail: '',
@@ -19917,7 +19917,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) WWF Smackdown 2',
+    title: 'WWF Smackdown 2',
     description: '',
     url: 'clwwfsmackdown2.html',
     thumbnail: '',
@@ -21037,7 +21037,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Kirby Canvas Curse',
+    title: 'Kirby Canvas Curse',
     description: '',
     url: 'clkirbycanvascurse.html',
     thumbnail: '',
@@ -21301,7 +21301,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Pokemon Blaze Black 2 Redux',
+    title: 'Pokemon Blaze Black 2 Redux',
     description: '',
     url: 'clpokeblazeblack2redux.html',
     thumbnail: '',
@@ -21405,7 +21405,7 @@ export const games: Game[] = [
     featured: false
   },
   {
-    title: '(alt link) Professor Layton and the Curious Village',
+    title: 'Professor Layton and the Curious Village',
     description: '',
     url: 'clprofessorlaytonandthecuriousvillage.html',
     thumbnail: '',
