@@ -267,6 +267,8 @@ function DecoyDropdown({ value, onChange, mode, compact = false, showLabel = fal
 }
 
 export default function App() {
+  const defaultThumbnail = '/thumbnails/defaultthumbnail.png';
+
   // Helper to optimize and resize thumbnail URLs dynamically to Poki recommended size (512x512) for fast load & high clarity
   const getOptimizedThumbnail = (url) => {
     if (!url) return '';
@@ -4163,7 +4165,16 @@ export default function App() {
                               className="w-full h-full object-cover transition-transform duration-500 hover:scale-110 select-none pointer-events-none" 
                             />
                           ) : (
-                            renderGameArt(game)
+                            <img
+                              src={defaultThumbnail}
+                              alt={game.title}
+                              width="640"
+                              height="360"
+                              loading="lazy"
+                              decoding="async"
+                              draggable="false"
+                              className="w-full h-full object-cover select-none pointer-events-none"
+                            />
                           )}
 
                           {game.featured && (
