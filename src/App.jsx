@@ -1,42 +1,16 @@
-import { useDeferredValue, useState, useEffect, useRef } from 'react';
+import { lazy, Suspense, useDeferredValue, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { games as gamesData, PUBLIC_GAMES_BASE_URL } from './data/games';
-import { slopeGames } from './data/slopeGames';
-
-// Merge curated catalog with the 1090 Slope-3 Classroom6x games, then
-// ensure every entry has a stable unique id (used for keys & favorites).
-const games = [...gamesData, ...slopeGames].map((game, index) => {
-  if (!game.id) {
-    const slug = (game.title || '').replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    return {
-      ...game,
-      id: `game-gen-${index}-${slug}`
-    };
-  }
-  return game;
-}).sort((a, b) => {
-  const aAi = a.isAiGenerated === true || a.isAiGenerated === 'true';
-  const bAi = b.isAiGenerated === true || b.isAiGenerated === 'true';
-  if (aAi && !bAi) return 1;
-  if (!aAi && bAi) return -1;
-
-  const aFeatured = a.featured === true || a.featured === 'true';
-  const bFeatured = b.featured === true || b.featured === 'true';
-  if (aFeatured && !bFeatured) return -1;
-  if (!aFeatured && bFeatured) return 1;
-  return 0;
-}).map((game) => ({
-  ...game,
-  searchText: `${game.title || ''} ${game.description || ''} ${game.category || ''}`.toLowerCase()
-}));
+import { PUBLIC_GAMES_BASE_URL } from './data/gameSource';
+const GAMES_PER_PAGE = 36;
+const gameHtmlCache = new Map();
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
-import FlashcardsWorkspace from './components/FlashcardsWorkspace';
-import QuizWorkspace from './components/QuizWorkspace';
-import NotesWorkspace from './components/NotesWorkspace';
-import StudyTimer from './components/StudyTimer';
-import ChatWorkspace from './components/ChatWorkspace';
+const FlashcardsWorkspace = lazy(() => import('./components/FlashcardsWorkspace'));
+const QuizWorkspace = lazy(() => import('./components/QuizWorkspace'));
+const NotesWorkspace = lazy(() => import('./components/NotesWorkspace'));
+const StudyTimer = lazy(() => import('./components/StudyTimer'));
+const ChatWorkspace = lazy(() => import('./components/ChatWorkspace'));
 import UserChat from './components/UserChat';
-import MoviesWorkspace from './components/MoviesWorkspace';
+const MoviesWorkspace = lazy(() => import('./components/MoviesWorkspace'));
 import InformationSection from './components/InformationSection';
 import { 
   School, 
@@ -331,19 +305,29 @@ export default function App() {
   });
   const [searchQuery, setSearchQuery] = useState('');
   const deferredSearchQuery = useDeferredValue(searchQuery);
+  const [currentGamePage, setCurrentGamePage] = useState(1);
+  const [games, setGames] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [selectedGame, setSelectedGame] = useState(() => {
-    try {
-      const savedId = safeStorage.getItem('unblocked-last-game');
-      if (savedId) {
-        return games.find(g => g.id === savedId) || null;
-      }
-      return null;
-    } catch {
-      return null;
-    }
-  });
+  const [selectedGame, setSelectedGame] = useState(null);
   const [gameFrame, setGameFrame] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    import('./data/gameCatalog').then(({ games: loadedGames }) => {
+      if (active) setGames(loadedGames);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (games.length === 0 || selectedGame) return;
+    const savedId = safeStorage.getItem('unblocked-last-game');
+    if (savedId) {
+      setSelectedGame(games.find((game) => game.id === savedId) || null);
+    }
+  }, [games, selectedGame]);
 
   useEffect(() => {
     if (!selectedGame) {
@@ -353,6 +337,12 @@ export default function App() {
 
     if (!selectedGame.url.startsWith(PUBLIC_GAMES_BASE_URL)) {
       setGameFrame({ src: selectedGame.url });
+      return undefined;
+    }
+
+    const cachedFrame = gameHtmlCache.get(selectedGame.url);
+    if (cachedFrame) {
+      setGameFrame(cachedFrame);
       return undefined;
     }
 
@@ -370,7 +360,9 @@ export default function App() {
         const srcDoc = /<head(?:\s[^>]*)?>/i.test(html)
           ? html.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}`)
           : `${baseTag}${html}`;
-        setGameFrame({ srcDoc });
+        const frame = { srcDoc };
+        gameHtmlCache.set(selectedGame.url, frame);
+        setGameFrame(frame);
       })
       .catch((error) => {
         if (error.name !== 'AbortError') setGameFrame({ src: selectedGame.url });
@@ -401,11 +393,16 @@ export default function App() {
         setGameHeaderHidden(false);
       }
     } else {
+      if (games.length === 0) return;
       safeStorage.removeItem('unblocked-last-game');
       setWindowFullscreen(false);
       setGameHeaderHidden(false);
     }
-  }, [selectedGame, autoHideHeader]);
+  }, [selectedGame, autoHideHeader, games.length]);
+
+  useEffect(() => {
+    setCurrentGamePage(1);
+  }, [filter, searchQuery, selectedGame]);
   const [showGithubNotice, setShowGithubNotice] = useState(() => {
     return safeStorage.getItem('academic-github-notice-dismissed') !== 'true';
   });
@@ -1433,6 +1430,16 @@ export default function App() {
 
     return true;
   });
+  const totalGamePages = Math.max(1, Math.ceil(filteredGames.length / GAMES_PER_PAGE));
+  const safeGamePage = Math.min(currentGamePage, totalGamePages);
+  const paginatedGames = filteredGames.slice(
+    (safeGamePage - 1) * GAMES_PER_PAGE,
+    safeGamePage * GAMES_PER_PAGE
+  );
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [safeGamePage]);
 
 
 
@@ -2331,7 +2338,8 @@ export default function App() {
 
 
   return (
-    <div className={`min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-clip ${viewMode === 'games' ? 'games-no-select select-none' : ''} ${selectedGame ? 'h-screen overflow-hidden' : ''}`}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-[var(--bg-color)] text-[var(--text-muted)] text-sm">Loading workspace...</div>}>
+      <div className={`min-h-screen flex flex-col transition-colors duration-300 relative overflow-x-clip ${viewMode === 'games' ? 'games-no-select select-none' : ''} ${selectedGame ? 'h-screen overflow-hidden' : ''}`}>
       <CursorSpotlight active={viewMode === 'games'} />
       {/* HEADER */}
       <AnimatePresence initial={false}>
@@ -4058,7 +4066,7 @@ export default function App() {
                     {filter === 'deverrors' && '(Dev Errors)'}
                   </h2>
                   <p className="text-xs text-[var(--text-muted)] mt-0.5">
-                    Showing {filteredGames.length} unblocked resources
+                    Showing {filteredGames.length} unblocked resources · Page {safeGamePage} of {totalGamePages}
                   </p>
                 </div>
 
@@ -4093,7 +4101,7 @@ export default function App() {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredGames.map(game => {
+                  {paginatedGames.map(game => {
                     const isFav = favorites.includes(game.id);
                     return (
                       <motion.div 
@@ -4121,6 +4129,7 @@ export default function App() {
                               width="640"
                               height="360"
                               loading="lazy"
+                              decoding="async"
                               referrerPolicy="no-referrer"
                               draggable="false"
                               onError={() => setFailedThumbnails(prev => ({ ...prev, [game.id]: true }))}
@@ -4216,6 +4225,32 @@ export default function App() {
                       </motion.div>
                     );
                   })}
+                </div>
+              )}
+
+              {filteredGames.length > GAMES_PER_PAGE && (
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentGamePage((page) => Math.max(1, page - 1))}
+                    disabled={safeGamePage === 1}
+                    className="flex items-center gap-1.5 rounded-lg border border-[var(--card-border)] px-3 py-2 text-xs font-bold text-[var(--text-primary)] transition-colors hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    Previous
+                  </button>
+                  <span className="min-w-20 text-center font-mono text-xs text-[var(--text-muted)]">
+                    {safeGamePage} / {totalGamePages}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCurrentGamePage((page) => Math.min(totalGamePages, page + 1))}
+                    disabled={safeGamePage === totalGamePages}
+                    className="flex items-center gap-1.5 rounded-lg border border-[var(--card-border)] px-3 py-2 text-xs font-bold text-[var(--text-primary)] transition-colors hover:border-[var(--accent-color)] hover:text-[var(--accent-color)] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    Next
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
                 </div>
               )}
 
@@ -4588,6 +4623,7 @@ export default function App() {
 
 
 
-    </div>
+      </div>
+    </Suspense>
   );
 }
