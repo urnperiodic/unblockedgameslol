@@ -3,6 +3,23 @@ import { motion, AnimatePresence } from 'motion/react';
 import { PUBLIC_GAMES_BASE_URL } from './data/gameSource';
 const GAMES_PER_PAGE = 36;
 const gameHtmlCache = new Map();
+const GAME_RUNTIME_SHIM = `<script>
+  window.poki_init_raw = window.poki_init_raw || function () { return false; };
+  window.poki_commercial_break_raw = window.poki_commercial_break_raw || function () {};
+  window.poki_rewarded_break_raw = window.poki_rewarded_break_raw || function () {};
+  window.poki_script_closure_raw = window.poki_script_closure_raw || function () {};
+  window.poki_get_team_raw = window.poki_get_team_raw || function () { return ''; };
+  window.poki_set_team_raw = window.poki_set_team_raw || function () {};
+</script>`;
+
+const prepareGameHtml = (html, baseUrl) => {
+  const baseTag = `<base href="${baseUrl}">`;
+  const runtimeShim = GAME_RUNTIME_SHIM;
+  if (/<head(?:\s[^>]*)?>/i.test(html)) {
+    return html.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}${runtimeShim}`);
+  }
+  return `${baseTag}${runtimeShim}${html}`;
+};
 import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
 const FlashcardsWorkspace = lazy(() => import('./components/FlashcardsWorkspace'));
 const QuizWorkspace = lazy(() => import('./components/QuizWorkspace'));
@@ -358,10 +375,7 @@ export default function App() {
       })
       .then((html) => {
         const baseUrl = selectedGame.url.slice(0, selectedGame.url.lastIndexOf('/') + 1);
-        const baseTag = `<base href="${baseUrl}">`;
-        const srcDoc = /<head(?:\s[^>]*)?>/i.test(html)
-          ? html.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}`)
-          : `${baseTag}${html}`;
+        const srcDoc = prepareGameHtml(html, baseUrl);
         const frame = { srcDoc };
         gameHtmlCache.set(selectedGame.url, frame);
         setGameFrame(frame);
@@ -4493,10 +4507,7 @@ export default function App() {
                             return response.text();
                           }).then((html) => {
                             const baseUrl = selectedGame.url.slice(0, selectedGame.url.lastIndexOf('/') + 1);
-                            const baseTag = `<base href="${baseUrl}">`;
-                            const srcDoc = /<head(?:\s[^>]*)?>/i.test(html)
-                              ? html.replace(/<head(\s[^>]*)?>/i, (head) => `${head}${baseTag}`)
-                              : `${baseTag}${html}`;
+                            const srcDoc = prepareGameHtml(html, baseUrl);
                             gameHtmlCache.set(selectedGame.url, { srcDoc });
                             return srcDoc;
                           });
