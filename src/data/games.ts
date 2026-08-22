@@ -2,7 +2,7 @@ import { Game } from '../types';
 
 export const PUBLIC_GAMES_BASE_URL = 'https://raw.githubusercontent.com/urnperiodic/Publicfilesforgames/main/';
 
-const gameData: Game[] = [
+const legacyGameData: Game[] = [
   // ─────────────────────────────────────────────────────────────
   // ── WELL-KNOWN EMULATED CLASSICS (TOP PRIORITY) ──
   // ─────────────────────────────────────────────────────────────
@@ -181,8 +181,10 @@ const gameData: Game[] = [
     thumbnail: 'https://i.ytimg.com/vi/H96rM_liOHo/maxresdefault.jpg',
     category: 'Emulated',
     featured: false
-  },
+  }
+];
 
+const gameData: Game[] = [
   // ─────────────────────────────────────────────────────────────
   // ── AI / CHAT / DEV DEMOS ──
   // ─────────────────────────────────────────────────────────────
@@ -21709,7 +21711,8 @@ const gameData: Game[] = [
     thumbnail: '',
     category: 'Emulated',
     featured: false
-  }
+  },
+  ...legacyGameData
 ];
 
 export const games: Game[] = gameData.map((game) => ({
