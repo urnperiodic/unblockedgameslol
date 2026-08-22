@@ -1,6 +1,7 @@
 import { lazy, Suspense, useDeferredValue, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PUBLIC_GAMES_BASE_URL } from './data/gameSource';
+import defaultThumbnail from '../thumbnails/defaultthumbnail.png';
 const GAMES_PER_PAGE = 36;
 const gameHtmlCache = new Map();
 const GAME_RUNTIME_SHIM = `<script>
@@ -267,8 +268,6 @@ function DecoyDropdown({ value, onChange, mode, compact = false, showLabel = fal
 }
 
 export default function App() {
-  const defaultThumbnail = '/thumbnails/defaultthumbnail.png';
-
   // Helper to optimize and resize thumbnail URLs dynamically to Poki recommended size (512x512) for fast load & high clarity
   const getOptimizedThumbnail = (url) => {
     if (!url) return '';
