@@ -10,7 +10,7 @@ const gameData: Game[] = [
     title: 'The Legend of Zelda Ocarina of Time',
     description: 'Travel through time to save Hyrule in the legendary Nintendo 64 masterpiece. Make sure you open in a seperate tab to play this game.',
     url: 'clocarinaoftime.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/57/The_Legend_of_Zelda_Ocarina_of_Time.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
@@ -18,7 +18,7 @@ const gameData: Game[] = [
     title: 'The Legend of Zelda',
     description: 'The classic original NES adventure that started it all. Make sure you open in a seperate tab to play this game.',
     url: 'clloz1.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/4/41/Legend_of_Zelda_Cover.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
@@ -26,7 +26,7 @@ const gameData: Game[] = [
     title: 'Chrono Trigger',
     description: 'Travel across time eras in this masterpiece SNES RPG by Square. Make sure you open in a seperate tab to play this game.',
     url: 'clchronotrigger.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/a/a7/Chrono_Trigger_snes_box.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
@@ -34,7 +34,7 @@ const gameData: Game[] = [
     title: 'EarthBound',
     description: 'Join Ness and his friends in this quirky, beloved SNES RPG classic. Make sure you open in a seperate tab to play this game.',
     url: 'clearthboundsnes.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/1/1a/EarthBound_Box_Art.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
@@ -42,7 +42,7 @@ const gameData: Game[] = [
     title: 'Castlevania: Aria of Sorrow',
     description: 'Command tactical souls and explore Dracula\'s castle in this stellar GBA Metroidvania. Make sure you open in a seperate tab to play this game.',
     url: 'clcastlevaniaariaofsorrow.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/52/Castlevania_aria_of_sorrow_box.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
@@ -50,7 +50,7 @@ const gameData: Game[] = [
     title: 'Cave Story',
     description: 'The legendary action-adventure platformer. Explore the underground caves and save the Mimigas.',
     url: 'clcavestory.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/7/74/Cave_Story_cover_art.jpg',
+    thumbnail: '',
     category: 'Solo',
     featured: true
   },
@@ -58,7 +58,7 @@ const gameData: Game[] = [
     title: 'New Super Mario Bros',
     description: 'Make sure you open in a seperate tab to play this game.',
     url: 'clnewsupermariobros.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/d/db/NewSuperMarioBrothers.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
@@ -66,7 +66,7 @@ const gameData: Game[] = [
     title: 'Mario Kart DS',
     description: 'Make sure you open in a seperate tab to play this game.',
     url: 'clmariokartds.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/8/86/Mario_Kart_DS_cover.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
@@ -98,7 +98,7 @@ const gameData: Game[] = [
     title: 'Pokemon Stadium 2',
     description: 'Make sure you open in a seperate tab to play this game.',
     url: 'clpokemonstadium2.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/b/ba/Pok%C3%A9mon_Stadium_2_Coverart.png',
+    thumbnail: '',
     category: 'Emulated',
     featured: false
   },
@@ -106,7 +106,7 @@ const gameData: Game[] = [
     title: 'Gran Turismo 2',
     description: 'Make sure you open in a seperate tab to play this game.',
     url: 'clgranturismo2.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/thumb/6/6b/GranTurismo2.jpg/250px-GranTurismo2.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: false
   },
@@ -154,7 +154,7 @@ const gameData: Game[] = [
     title: 'Ace Attorney: Investigations - Miles Edgeworth',
     description: 'Make sure you open in a seperate tab to play this game.',
     url: 'claceattorneymilesedgeworth.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/thumb/0/0d/Ace_Attorney_Investigations_Miles_Edgeworth_Game_Cover.jpg/250px-Ace_Attorney_Investigations_Miles_Edgeworth_Game_Cover.jpg',
+    thumbnail: '',
     category: 'Emulated',
     featured: true
   },
@@ -190,7 +190,7 @@ const gameData: Game[] = [
     title: 'City Skylines copy',
     description: 'I used ai to make some of the game.',
     url: 'https://urnperiodic.github.io/cityskylinesremake/',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/5/58/Cities_Skylines_cover_art.jpg',
+    thumbnail: '',
     category: 'Solo',
     featured: false
   },
@@ -234,7 +234,7 @@ const gameData: Game[] = [
     title: 'Cookie Clicker',
     description: '',
     url: 'clcookieclicker.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/0/06/Cookie_Clicker_logo.png',
+    thumbnail: '',
     category: 'Solo',
     featured: false
   },
@@ -450,7 +450,7 @@ const gameData: Game[] = [
     title: 'Angry Birds',
     description: 'Launch your birds to smash the structures and defeat the green pigs!',
     url: 'clangrybirds.html',
-    thumbnail: 'https://upload.wikimedia.org/wikipedia/en/a/a9/Angry_Birds_classic_cover_art.png',
+    thumbnail: '',
     category: 'Solo',
     featured: false
   },
