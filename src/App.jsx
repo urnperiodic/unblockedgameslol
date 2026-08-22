@@ -1417,14 +1417,14 @@ export default function App() {
   const isSinglePlayerCategory = (cat) => {
     if (!cat) return true;
     const c = cat.toLowerCase().trim();
-    if (c === 'minecraft' || c === 'emulated' || c === 'other websites') return true;
+    if (c === 'minecraft' || c === 'emulated') return true;
     return ['solo', 'single', 'platformer', 'skill', 'science', 'driving', 'horror', 'creative', 'ai'].some(kw => c.includes(kw));
   };
 
   const isMultiplayerCategory = (cat) => {
     if (!cat) return false;
     const c = cat.toLowerCase().trim();
-    if (c === 'minecraft' || c === 'random' || c === 'other websites') return true;
+    if (c === 'minecraft') return true;
     return ['social', 'sport', 'multiplayer', 'fast', 'party', 'puzzle', 'shooter'].some(kw => c.includes(kw)) || c.includes('or');
   };
 
@@ -1439,8 +1439,6 @@ export default function App() {
       if (!favorites.includes(game.id)) return false;
     } else if (filter === 'featured') {
       if (!game.featured) return false;
-    } else if (filter === 'deverrors') {
-      if (game.thumbnail && game.thumbnail.trim() !== '' && !failedThumbnails[game.id]) return false;
     } else if (filter !== 'all') {
       // Direct category filter matching
       if ((game.category || '').toLowerCase().trim() !== filter.toLowerCase().trim()) return false;
@@ -4024,7 +4022,6 @@ export default function App() {
                     {filter === 'Sports' && 'Sports Games'}
                     {filter === 'Emulated' && 'Emulated Archives'}
                     {filter === 'minecraft' && 'Minecraft Platform'}
-                    {filter === 'Not Games' && 'Not Games'}
                   </h2>
                   <p className="text-xs text-[var(--text-muted)] mt-0.5">
                     Showing {filteredGames.length} unblocked resources · Page {safeGamePage} of {totalGamePages}
