@@ -32,7 +32,7 @@ const prepareGameHtml = (html, baseUrl) => {
 const createGameLoadErrorDocument = (url) => ({
   srcDoc: `<html><body style="margin:0;background:#080b12;color:#e5e7eb;font:16px sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center"><main><h2>Game could not be loaded</h2><p>The remote game file did not respond.</p><a href="${url}" target="_blank" rel="noreferrer" style="color:#60a5fa">Open source file</a></main></body></html>`
 });
-import { initialArticles, gameOptions, toneOptions, generateMockAIArticle } from './data/articles';
+import { initialArticles } from './data/articles';
 const FlashcardsWorkspace = lazy(() => import('./components/FlashcardsWorkspace'));
 const QuizWorkspace = lazy(() => import('./components/QuizWorkspace'));
 const NotesWorkspace = lazy(() => import('./components/NotesWorkspace'));
@@ -84,16 +84,13 @@ import {
   Bell,
   Check,
   X,
-  Shuffle,
   Cpu,
   Box,
   Mail,
   Crosshair,
   Trophy,
-  PartyPopper,
   Shield,
   AlertTriangle,
-  ImageOff,
   Eye,
   EyeOff,
   History
@@ -312,8 +309,6 @@ export default function App() {
     return 'classroom';
   });
 
-  const useClassroomDecoy = true;
-
   // Persist decoy state to localStorage
   useEffect(() => {
     localStorage.setItem('study-tools-decoy-type', decoyType);
@@ -404,7 +399,6 @@ export default function App() {
     const saved = safeStorage.getItem('unblocked-auto-hide-header');
     return saved !== 'false'; // Defaults to true
   });
-  const [toolsExpanded, setToolsExpanded] = useState(false);
   const [altBarOpen, setAltBarOpen] = useState(true);
   const [headerOpen, setHeaderOpen] = useState(false);
 
@@ -3862,20 +3856,6 @@ export default function App() {
           <motion.button
             whileHover={{ x: 6 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => { setFilter('Party'); setSelectedGame(null); }}
-            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
-              filter === 'Party' && !selectedGame
-                ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_4px_12px_var(--accent-shadow)] font-bold'
-                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80'
-            }`}
-          >
-            <PartyPopper className="w-4.5 h-4.5 shrink-0" />
-            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Party</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ x: 6 }}
-            whileTap={{ scale: 0.97 }}
             onClick={() => { setFilter('Sports'); setSelectedGame(null); }}
             className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
               filter === 'Sports' && !selectedGame
@@ -3887,20 +3867,6 @@ export default function App() {
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Sports</span>
           </motion.button>
           
-          <motion.button
-            whileHover={{ x: 6 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { setFilter('Random'); setSelectedGame(null); }}
-            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
-              filter === 'Random' && !selectedGame
-                ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_4px_12px_var(--accent-shadow)] font-bold'
-                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80'
-            }`}
-          >
-            <Shuffle className="w-4.5 h-4.5 shrink-0" />
-            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Random Games</span>
-          </motion.button>
-
           <motion.button
             whileHover={{ x: 6 }}
             whileTap={{ scale: 0.97 }}
@@ -3927,34 +3893,6 @@ export default function App() {
           >
             <Box className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Minecraft</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ x: 6 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { setFilter('Not Games'); setSelectedGame(null); }}
-            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
-              filter === 'Not Games' && !selectedGame
-                ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_4px_12px_var(--accent-shadow)] font-bold'
-                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80'
-            }`}
-          >
-            <Globe className="w-4.5 h-4.5 shrink-0" />
-            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Other Websites</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ x: 6 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { setFilter('deverrors'); setSelectedGame(null); }}
-            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
-              filter === 'deverrors' && !selectedGame
-                ? 'bg-red-500 text-white shadow-[0_4px_12px_rgba(239,68,68,0.3)] font-bold'
-                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80'
-            }`}
-          >
-            <ImageOff className="w-4.5 h-4.5 shrink-0 text-red-500" />
-            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>(Dev Errors)</span>
           </motion.button>
 
           <div className="flex-1" />
@@ -4083,15 +4021,10 @@ export default function App() {
                     {filter === 'favorites' && 'Bookmarked Games'}
                     {filter === 'featured' && 'Featured Showcases'}
                     {filter === 'single' && 'Singleplayer Arcades'}
-                    {filter === 'multiplayer' && 'Multiplayer Hub'}
-                    {filter === 'Shooter' && 'Shooter Games'}
-                    {filter === 'Party' && 'Party Games'}
                     {filter === 'Sports' && 'Sports Games'}
-                    {filter === 'Random' && 'Random Games'}
                     {filter === 'Emulated' && 'Emulated Archives'}
                     {filter === 'minecraft' && 'Minecraft Platform'}
                     {filter === 'Not Games' && 'Not Games'}
-                    {filter === 'deverrors' && '(Dev Errors)'}
                   </h2>
                   <p className="text-xs text-[var(--text-muted)] mt-0.5">
                     Showing {filteredGames.length} unblocked resources · Page {safeGamePage} of {totalGamePages}
