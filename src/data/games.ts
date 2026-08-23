@@ -5737,14 +5737,6 @@ const gameData: Game[] = [
     featured: false
   },
   {
-    title: 'Prank Call Tung Tung Tung Sahur Clicker',
-    description: '',
-    url: 'clprankcalltungtungtungsahurclicker.html',
-    thumbnail: '',
-    category: 'Solo',
-    featured: false
-  },
-  {
     title: 'Prestige Tree',
     description: '',
     url: 'clprestigetree.html',
