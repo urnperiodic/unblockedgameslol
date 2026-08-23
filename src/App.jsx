@@ -152,10 +152,6 @@ const isLocalGame = (url) => {
   return url && !url.startsWith('http://') && !url.startsWith('https://');
 };
 
-const isCreatorGame = (url) => {
-  return url?.includes('urnperiodic.github.io') || url?.includes('grandplat2.github.io');
-};
-
 const decoyOptions = [
   { value: 'classroom', label: 'Classroom', labelLong: 'Google Classroom', icon: 'https://ssl.gstatic.com/classroom/favicon.png' },
   { value: 'clever', label: 'Clever', labelLong: 'Clever Login', icon: 'https://www.google.com/s2/favicons?sz=64&domain=clever.com' },
@@ -2992,10 +2988,13 @@ export default function App() {
             <div className="p-1 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-md border border-[var(--card-border)] shadow-sm group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center shrink-0">
               <School className="w-3.5 h-3.5" />
             </div>
-            <div className="flex flex-row items-baseline gap-1.5 flex-wrap">
+            <div className="flex flex-col items-start gap-0.5">
               <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
                 Urnperiodic&Grandplat2 hub
               </h1>
+              <span className="text-[8px] leading-none text-gray-400 whitespace-nowrap">
+                Lead creator: Urnperiodic&nbsp;&nbsp;Cocreator: Grandplat2
+              </span>
             </div>
           </div>
 
@@ -4516,7 +4515,7 @@ export default function App() {
               <div className="flex flex-col sm:flex-row justify-start items-start sm:items-center border-l-4 border-[var(--accent-color)] pl-3 gap-4 sm:gap-10">
                 <div>
                   <h2 className="text-lg font-black uppercase tracking-wider text-[var(--text-primary)]">
-                    {filter === 'all' && 'Games Library'}
+                    {filter === 'all' && 'All Portals'}
                     {filter === 'favorites' && 'Bookmarked Games'}
                     {filter === 'featured' && 'Featured Showcases'}
                     {filter === 'single' && 'Singleplayer Arcades'}
@@ -4646,11 +4645,6 @@ export default function App() {
                                 </span>
                               )}
                             </h3>
-                            {isCreatorGame(game.url) && (
-                              <p className="text-[10px] leading-tight text-gray-400">
-                                Lead creator: Urnperiodic&nbsp;&nbsp;Cocreator: Grandplat2
-                              </p>
-                            )}
                             <p className="text-xs text-[var(--text-muted)] line-clamp-3 leading-relaxed">
                               {game.description}
                             </p>
