@@ -1,7 +1,7 @@
 import { lazy, Suspense, useDeferredValue, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PUBLIC_GAMES_BASE_URL } from './data/gameSource';
-import defaultThumbnail from '../thumbnails/defaultthumbnail.png';
+import defaultThumbnail from './assets/defaultthumbnail.png';
 const GAMES_PER_PAGE = 36;
 const gameHtmlCache = new Map();
 const GAME_RUNTIME_SHIM = `<script>
@@ -87,13 +87,14 @@ import {
   Cpu,
   Box,
   Mail,
-  Crosshair,
-  Trophy,
   Shield,
   AlertTriangle,
   Eye,
   EyeOff,
-  History
+  History,
+  Shuffle,
+  Timer,
+  Dices
 } from 'lucide-react';
 
 // Safe storage helper to prevent SecurityError crash in sandboxed iframes
@@ -264,6 +265,240 @@ function DecoyDropdown({ value, onChange, mode, compact = false, showLabel = fal
   );
 }
 
+function AutoRandomizeDecoyButton({
+  autoRandomize,
+  setAutoRandomize,
+  interval,
+  setInterval,
+  pool,
+  togglePoolItem,
+  selectAllPool,
+  countdown,
+  onRandomizeNow,
+  currentDecoy,
+  mode,
+  compact = false
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const formatInterval = (sec) => {
+    if (sec < 60) return `${sec}s`;
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  };
+
+  const presets = [5, 10, 15, 30, 60, 120, 300];
+
+  return (
+    <div ref={dropdownRef} className="relative inline-block text-left">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex items-center gap-1 rounded-full border cursor-pointer transition-all duration-200 select-none ${
+          compact ? 'px-1.5 py-0.5 text-[10px] h-6' : 'px-2.5 py-1 text-xs h-8'
+        } ${
+          autoRandomize
+            ? 'bg-[var(--accent-color)]/15 border-[var(--accent-color)] text-[var(--accent-color)] shadow-[0_0_8px_var(--accent-shadow)] font-black'
+            : 'bg-[var(--card-bg)] border-[var(--card-border)] text-[var(--text-muted)] hover:border-[var(--accent-color)]/50 hover:text-[var(--accent-color)]'
+        }`}
+        title={autoRandomize ? `Auto Randomize: ON (${formatInterval(interval)}) • Next in ${countdown}s` : "Auto Randomize Decoy (Settings)"}
+        aria-label="Auto Randomize Decoy"
+      >
+        <Shuffle className={`${compact ? 'w-3 h-3' : 'w-3.5 h-3.5'} ${autoRandomize ? 'animate-pulse text-[var(--accent-color)]' : ''}`} />
+        {autoRandomize && (
+          <span className="font-mono text-[9px] font-black leading-none px-1 py-0.5 rounded bg-[var(--accent-color)] text-[var(--bg-color)] shadow-xs">
+            {countdown}s
+          </span>
+        )}
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="absolute top-full right-0 mt-2 w-72 sm:w-80 rounded-2xl bg-[#12121a]/95 backdrop-blur-xl border border-white/10 p-3.5 shadow-2xl z-[2800] overflow-hidden select-none text-left"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-[var(--accent-color)]/15 border border-[var(--accent-color)]/30 text-[var(--accent-color)]">
+                  <Shuffle className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-white leading-tight">Auto Randomize Decoy</h4>
+                  <p className="text-[10px] text-neutral-400">Cycles disguise automatically</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="p-1 rounded-lg hover:bg-white/10 text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            {/* Master Toggle */}
+            <div className="bg-white/5 border border-white/10 rounded-xl p-2.5 mb-3 flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-white block">Auto Switch Decoy</span>
+                <span className="text-[10px] text-neutral-400">
+                  {autoRandomize ? `Active • Every ${formatInterval(interval)}` : 'Disabled'}
+                </span>
+              </div>
+              <button
+                onClick={() => setAutoRandomize(!autoRandomize)}
+                className={`relative w-11 h-6 rounded-full transition-colors duration-200 cursor-pointer p-0.5 border ${
+                  autoRandomize ? 'bg-emerald-500 border-emerald-400' : 'bg-neutral-800 border-neutral-700'
+                }`}
+                aria-label="Toggle Auto Switch Decoy"
+              >
+                <div
+                  className={`w-5 h-5 rounded-full bg-white shadow-md transform transition-transform duration-200 ${
+                    autoRandomize ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+
+            {/* Interval Configuration */}
+            <div className="mb-3 bg-white/5 border border-white/10 rounded-xl p-2.5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-neutral-200 flex items-center gap-1.5">
+                  <Timer className="w-3 h-3 text-[var(--accent-color)]" />
+                  <span>Switch Interval</span>
+                </span>
+                <span className="text-[11px] font-mono font-bold text-[var(--accent-color)] bg-[var(--accent-color)]/10 px-2 py-0.5 rounded-md border border-[var(--accent-color)]/20">
+                  {formatInterval(interval)}
+                </span>
+              </div>
+
+              {/* Slider */}
+              <input
+                type="range"
+                min="3"
+                max="300"
+                step="1"
+                value={interval}
+                onChange={(e) => setInterval(Number(e.target.value))}
+                className="w-full h-1.5 bg-neutral-700 rounded-lg appearance-none cursor-pointer accent-[var(--accent-color)] mb-2.5"
+              />
+
+              {/* Presets */}
+              <div className="flex items-center gap-1 flex-wrap">
+                {presets.map((sec) => (
+                  <button
+                    key={sec}
+                    onClick={() => setInterval(sec)}
+                    className={`text-[10px] font-mono px-2 py-0.5 rounded-md border transition-all cursor-pointer ${
+                      interval === sec
+                        ? 'bg-[var(--accent-color)] text-[var(--bg-color)] border-[var(--accent-color)] font-bold shadow-xs'
+                        : 'bg-white/5 text-neutral-300 border-white/10 hover:bg-white/10 hover:text-white'
+                    }`}
+                  >
+                    {formatInterval(sec)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Choose Decoys Pool */}
+            <div className="mb-3 bg-white/5 border border-white/10 rounded-xl p-2.5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold text-neutral-200 flex items-center gap-1">
+                  <span>Randomize Pool</span>
+                  <span className="text-[9px] font-mono text-neutral-400">({pool.length}/{decoyOptions.length})</span>
+                </span>
+                <div className="flex items-center gap-1 text-[10px]">
+                  <button
+                    onClick={selectAllPool}
+                    className="text-[var(--accent-color)] hover:underline cursor-pointer font-bold"
+                  >
+                    Select All
+                  </button>
+                </div>
+              </div>
+
+              {/* Decoy options checkboxes */}
+              <div className="grid grid-cols-1 gap-1 max-h-36 overflow-y-auto pr-0.5 scrollbar-thin">
+                {decoyOptions.map((opt) => {
+                  const isChecked = pool.includes(opt.value);
+                  const isCurrent = currentDecoy === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      onClick={() => togglePoolItem(opt.value)}
+                      className={`flex items-center justify-between w-full px-2 py-1 rounded-lg text-xs transition-colors cursor-pointer border ${
+                        isChecked
+                          ? 'bg-white/10 border-white/15 text-white'
+                          : 'bg-transparent border-transparent text-neutral-500 hover:bg-white/5'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0">
+                        {opt.icon === 'school' ? (
+                          <School className="w-3.5 h-3.5 text-[var(--accent-color)] shrink-0" />
+                        ) : (
+                          <img src={opt.icon} className="w-3.5 h-3.5 object-contain shrink-0" referrerPolicy="no-referrer" alt="" />
+                        )}
+                        <span className="truncate text-[11px] font-medium">{opt.labelLong}</span>
+                        {isCurrent && (
+                          <span className="text-[8px] uppercase tracking-wider font-mono font-bold bg-[var(--accent-color)]/20 text-[var(--accent-color)] px-1 rounded">
+                            current
+                          </span>
+                        )}
+                      </div>
+                      <div className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-all ${
+                        isChecked ? 'bg-[var(--accent-color)] border-[var(--accent-color)] text-[var(--bg-color)]' : 'border-neutral-600'
+                      }`}>
+                        {isChecked && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer Action: Randomize Now & Status */}
+            <div className="flex items-center justify-between gap-2 pt-1 border-t border-white/10">
+              <div className="text-[10px] text-neutral-400 font-mono flex items-center gap-1.5">
+                {autoRandomize ? (
+                  <>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span>Next in {countdown}s</span>
+                  </>
+                ) : (
+                  <span className="text-neutral-500">Auto switch off</span>
+                )}
+              </div>
+              <button
+                onClick={onRandomizeNow}
+                className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold rounded-lg bg-[var(--accent-color)] text-[var(--bg-color)] hover:brightness-110 active:scale-95 transition-all cursor-pointer shadow-sm"
+                title="Immediately pick another random decoy"
+              >
+                <Shuffle className="w-3 h-3" />
+                <span>Roll Now</span>
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export default function App() {
   // Helper to optimize and resize thumbnail URLs dynamically to Poki recommended size (512x512) for fast load & high clarity
   const getOptimizedThumbnail = (url) => {
@@ -286,6 +521,21 @@ export default function App() {
     const initialViewMode = safeStorage.getItem('classroom-view-mode') || 'articles';
     return initialViewMode === 'games' ? 'dark' : 'light';
   });
+
+  const [viewMode, setViewMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('unlocked') === 'true' || params.get('view') === 'games') {
+        safeStorage.setItem('classroom-view-mode', 'games');
+        return 'games';
+      }
+    }
+    const saved = safeStorage.getItem('classroom-view-mode');
+    if (saved === 'games') return 'games';
+    return 'articles'; // Innocent educational syllabus base is shown on first startup
+  });
+
+  const isPasscodeUnlocked = viewMode === 'games';
 
   // Classroom/Games Cloak/Decoy State
   const [decoyType, setDecoyType] = useState(() => {
@@ -314,6 +564,99 @@ export default function App() {
     localStorage.setItem('study-tools-decoy-type', decoyType);
     localStorage.setItem('study-tools-classroom-decoy', 'true');
   }, [decoyType]);
+
+  // Auto Randomize Decoy State & Controls
+  const [autoRandomizeDecoy, setAutoRandomizeDecoy] = useState(() => {
+    const saved = safeStorage.getItem('study-tools-auto-randomize');
+    return saved === 'true';
+  });
+
+  const [randomizeInterval, setRandomizeInterval] = useState(() => {
+    const saved = safeStorage.getItem('study-tools-randomize-interval');
+    const num = Number(saved);
+    return !isNaN(num) && num >= 3 && num <= 300 ? num : 15;
+  });
+
+  const [randomizePool, setRandomizePool] = useState(() => {
+    try {
+      const saved = safeStorage.getItem('study-tools-randomize-pool');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const valid = parsed.filter(p => decoyOptions.some(d => d.value === p));
+          if (valid.length > 0) return valid;
+        }
+      }
+    } catch {}
+    return ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'];
+  });
+
+  const [randomizeCountdown, setRandomizeCountdown] = useState(randomizeInterval);
+
+  useEffect(() => {
+    safeStorage.setItem('study-tools-auto-randomize', String(autoRandomizeDecoy));
+  }, [autoRandomizeDecoy]);
+
+  const updateRandomizeInterval = (sec) => {
+    const clamped = Math.max(3, Math.min(300, Number(sec) || 15));
+    setRandomizeInterval(clamped);
+    setRandomizeCountdown(clamped);
+    safeStorage.setItem('study-tools-randomize-interval', String(clamped));
+  };
+
+  const toggleDecoyInPool = (val) => {
+    setRandomizePool((prev) => {
+      let updated;
+      if (prev.includes(val)) {
+        if (prev.length <= 1) return prev; // Keep at least one
+        updated = prev.filter(item => item !== val);
+      } else {
+        updated = [...prev, val];
+      }
+      safeStorage.setItem('study-tools-randomize-pool', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const selectAllDecoys = () => {
+    const all = decoyOptions.map(d => d.value);
+    setRandomizePool(all);
+    safeStorage.setItem('study-tools-randomize-pool', JSON.stringify(all));
+  };
+
+  const triggerManualRandomize = () => {
+    const activePool = randomizePool.length > 0 ? randomizePool : decoyOptions.map(d => d.value);
+    const choices = activePool.length > 1 ? activePool.filter(d => d !== decoyType) : activePool;
+    const next = choices[Math.floor(Math.random() * choices.length)] || decoyType;
+    setDecoyType(next);
+    setRandomizeCountdown(randomizeInterval);
+  };
+
+  // Timer loop for auto-randomization
+  useEffect(() => {
+    if (!autoRandomizeDecoy || viewMode !== 'games') {
+      return;
+    }
+
+    setRandomizeCountdown(randomizeInterval);
+
+    const timer = setInterval(() => {
+      setRandomizeCountdown((prev) => {
+        if (prev <= 1) {
+          setDecoyType((curr) => {
+            const activePool = randomizePool.length > 0 ? randomizePool : decoyOptions.map(d => d.value);
+            const choices = activePool.length > 1 ? activePool.filter(d => d !== curr) : activePool;
+            const next = choices[Math.floor(Math.random() * choices.length)] || curr;
+            return next;
+          });
+          return randomizeInterval;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [autoRandomizeDecoy, randomizeInterval, randomizePool, viewMode]);
   const [filter, setFilter] = useState(() => {
     try {
       const hasVisited = safeStorage.getItem('has-visited-before');
@@ -401,6 +744,62 @@ export default function App() {
   });
   const [altBarOpen, setAltBarOpen] = useState(true);
   const [headerOpen, setHeaderOpen] = useState(false);
+  const [searchExpanded, setSearchExpanded] = useState(false);
+  const searchInputRef = useRef(null);
+
+  const compactHeaderRef = useRef(null);
+  const compactLeftRef = useRef(null);
+  const compactRightRef = useRef(null);
+  const compactCenterRef = useRef(null);
+  const [centerOffsetLeft, setCenterOffsetLeft] = useState(null);
+
+  useEffect(() => {
+    const updateCenter = () => {
+      if (!compactHeaderRef.current || !compactCenterRef.current) return;
+      const headerRect = compactHeaderRef.current.getBoundingClientRect();
+      const leftRect = compactLeftRef.current ? compactLeftRef.current.getBoundingClientRect() : null;
+      const rightRect = compactRightRef.current ? compactRightRef.current.getBoundingClientRect() : null;
+      const centerRect = compactCenterRef.current.getBoundingClientRect();
+
+      const headerW = headerRect.width;
+      if (headerW === 0 || centerRect.width === 0) return;
+
+      const leftEdge = leftRect ? (leftRect.right - headerRect.left) : 150;
+      const rightEdge = rightRect ? (rightRect.left - headerRect.left) : (headerW - 300);
+      const centerW = centerRect.width;
+
+      const GAP = 20;
+      const minLeft = leftEdge + GAP;
+      const maxLeft = rightEdge - centerW - GAP;
+      const trueCenterLeft = (headerW - centerW) / 2;
+
+      if (minLeft > maxLeft) {
+        setCenterOffsetLeft(null);
+        return;
+      }
+
+      const target = Math.max(minLeft, Math.min(trueCenterLeft, maxLeft));
+      setCenterOffsetLeft(target);
+    };
+
+    updateCenter();
+    const timer = setTimeout(updateCenter, 50);
+
+    let ro;
+    if (typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(updateCenter);
+      if (compactHeaderRef.current) ro.observe(compactHeaderRef.current);
+      if (compactRightRef.current) ro.observe(compactRightRef.current);
+      if (compactLeftRef.current) ro.observe(compactLeftRef.current);
+      if (compactCenterRef.current) ro.observe(compactCenterRef.current);
+    }
+    window.addEventListener('resize', updateCenter);
+    return () => {
+      clearTimeout(timer);
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', updateCenter);
+    };
+  }, [headerOpen, searchQuery, searchExpanded, filter]);
 
   useEffect(() => {
     safeStorage.setItem('unblocked-last-filter', filter);
@@ -521,21 +920,6 @@ export default function App() {
       return [];
     }
   });
-
-  const [viewMode, setViewMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('unlocked') === 'true' || params.get('view') === 'games') {
-        safeStorage.setItem('classroom-view-mode', 'games');
-        return 'games';
-      }
-    }
-    const saved = safeStorage.getItem('classroom-view-mode');
-    if (saved === 'games') return 'games';
-    return 'articles'; // Innocent educational syllabus base is shown on first startup
-  });
-
-  const isPasscodeUnlocked = viewMode === 'games';
 
   const setViewModeAndSave = (mode) => {
     setViewMode(mode);
@@ -2386,19 +2770,16 @@ export default function App() {
           </div>
           <div className="flex flex-row items-baseline gap-2 flex-wrap">
             <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
-              Urnperiodic &amp; Grandplat2 Games
+              StudyTools Games
             </h1>
-            <span className="font-mono text-[var(--text-muted)] font-medium leading-none opacity-80" style={{ fontSize: '8px' }}>
-              Made by Urnperiodic and Grandplat2
-            </span>
           </div>
         </div>
 
         {/* Right Side Controls */}
-        <div className="flex flex-wrap items-center gap-3 md:gap-4 self-stretch sm:self-auto justify-between sm:justify-end">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4 flex-1 min-w-0 justify-between">
           
-          {/* Workspaces Group */}
-          <div className="flex flex-wrap items-center gap-1.5">
+          {/* Workspaces & Icons Group (moves left for extra space) */}
+          <div className="flex flex-wrap items-center gap-1.5 shrink min-w-0 justify-start">
             {/* Movies Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -2500,6 +2881,19 @@ export default function App() {
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase select-none">Decoy:</span>
               <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} />
+              <AutoRandomizeDecoyButton
+                autoRandomize={autoRandomizeDecoy}
+                setAutoRandomize={setAutoRandomizeDecoy}
+                interval={randomizeInterval}
+                setInterval={updateRandomizeInterval}
+                pool={randomizePool}
+                togglePoolItem={toggleDecoyInPool}
+                selectAllPool={selectAllDecoys}
+                countdown={randomizeCountdown}
+                onRandomizeNow={triggerManualRandomize}
+                currentDecoy={decoyType}
+                mode={mode}
+              />
             </div>
 
             {/* Quick Exit & Open Separately buttons for Workspaces (Sticky) */}
@@ -2565,12 +2959,16 @@ export default function App() {
 
       </div>
       ) : (
-        <div className="py-1.5 px-4 flex flex-col md:grid md:grid-cols-3 items-center gap-3 transition-colors duration-300">
+        <div 
+          ref={compactHeaderRef}
+          className="relative py-1.5 px-3 md:px-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 md:gap-3 w-full transition-colors duration-300 min-h-[42px]"
+        >
           
           {/* Left: Logo & Title */}
           <div 
+            ref={compactLeftRef}
             onClick={() => { setFilter('all'); setSelectedGame(null); setSearchQuery(''); }}
-            className="flex items-center gap-2 cursor-pointer select-none group shrink-0 justify-start"
+            className="flex items-center gap-2 cursor-pointer select-none group shrink-0 justify-start z-10"
             title="Go to homepage"
           >
             <div className="p-1 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-md border border-[var(--card-border)] shadow-sm group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center shrink-0">
@@ -2578,19 +2976,25 @@ export default function App() {
             </div>
             <div className="flex flex-row items-baseline gap-1.5 flex-wrap">
               <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
-                Urnperiodic &amp; Grandplat2 Games
+                StudyTools Games
               </h1>
-              <span className="font-mono text-[var(--text-muted)] font-medium leading-none opacity-80" style={{ fontSize: '8px' }}>
-                Made by Urnperiodic and Grandplat2
-              </span>
             </div>
           </div>
 
-          {/* Center: Navigation & Decoy Dropdown */}
-          <div className="flex items-center justify-center w-full gap-3">
-
+          {/* Center: Quick Sections & Navigation (perfect true center, dynamically moves left if right side needs space) */}
+          <div 
+            ref={compactCenterRef}
+            style={{
+              position: centerOffsetLeft !== null ? 'absolute' : 'relative',
+              left: centerOffsetLeft !== null ? `${centerOffsetLeft}px` : 'auto',
+              top: centerOffsetLeft !== null ? '50%' : 'auto',
+              transform: centerOffsetLeft !== null ? 'translateY(-50%)' : 'none',
+              zIndex: 20
+            }}
+            className="flex items-center justify-center min-w-0 pointer-events-auto transition-[left] duration-200 ease-out"
+          >
             {/* Quick Sections with backgrounds for mobile/tablet wrapped cleanly */}
-            <div className="flex md:hidden items-center gap-1 bg-[var(--bg-secondary)] border border-[var(--card-border)]/50 p-0.5 rounded-lg shadow-sm">
+            <div className="flex md:hidden items-center gap-1 bg-[var(--bg-secondary)] border border-[var(--card-border)]/50 p-0.5 rounded-lg shadow-sm shrink-0">
               <button
                 onClick={() => { setFilter(filter === 'movies' ? 'all' : 'movies'); setSelectedGame(null); }}
                 className={`p-1 rounded-md text-xs transition-all duration-200 ${
@@ -2689,8 +3093,24 @@ export default function App() {
                 <ExternalLink className="w-3.5 h-3.5" />
               </button>
 
-              {/* Decoy Selector */}
-              <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
+              {/* Decoy Selector & Auto Randomize */}
+              <div className="flex items-center gap-1">
+                <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
+                <AutoRandomizeDecoyButton
+                  autoRandomize={autoRandomizeDecoy}
+                  setAutoRandomize={setAutoRandomizeDecoy}
+                  interval={randomizeInterval}
+                  setInterval={updateRandomizeInterval}
+                  pool={randomizePool}
+                  togglePoolItem={toggleDecoyInPool}
+                  selectAllPool={selectAllDecoys}
+                  countdown={randomizeCountdown}
+                  onRandomizeNow={triggerManualRandomize}
+                  currentDecoy={decoyType}
+                  mode={mode}
+                  compact={true}
+                />
+              </div>
             </div>
 
             {/* Middle: Section Icons with Background (Visible on medium+ screens) */}
@@ -2942,11 +3362,25 @@ export default function App() {
                 )}
               </div>
 
-              {/* Decoy Selector */}
-              <div className="relative">
+              {/* Decoy Selector & Auto Randomize */}
+              <div className="relative flex items-center gap-1">
                 <div className={showNotices && noticeStep === 3 ? 'ring-2 ring-[var(--accent-color)] ring-offset-2 ring-offset-[#0d0d12] rounded-lg animate-pulse' : ''}>
                   <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} compact={true} />
                 </div>
+                <AutoRandomizeDecoyButton
+                  autoRandomize={autoRandomizeDecoy}
+                  setAutoRandomize={setAutoRandomizeDecoy}
+                  interval={randomizeInterval}
+                  setInterval={updateRandomizeInterval}
+                  pool={randomizePool}
+                  togglePoolItem={toggleDecoyInPool}
+                  selectAllPool={selectAllDecoys}
+                  countdown={randomizeCountdown}
+                  onRandomizeNow={triggerManualRandomize}
+                  currentDecoy={decoyType}
+                  mode={mode}
+                  compact={true}
+                />
 
                 {showNotices && noticeStep === 3 && (
                   <div className="absolute top-full left-0 mt-3 w-80 bg-[#13111c] border-2 border-amber-500/80 text-white rounded-xl p-3.5 shadow-[0_0_30px_rgba(245,158,11,0.4)] z-[3000] animate-fade-in select-none text-left text-xs font-medium">
@@ -3077,8 +3511,59 @@ export default function App() {
             </div>
           </div>
 
-          {/* Top Right: Theme Slider & Settings/Colors Bar */}
-          <div className="flex items-center gap-2 justify-end w-full md:w-auto">
+          {/* Top Right: Search Bar, Clear History, Theme Slider & Settings */}
+          <div ref={compactRightRef} className="flex items-center gap-2 justify-end shrink-0 min-w-0 ml-auto z-10">
+
+            {/* Header Search Bar (collapsible icon / expandable input) */}
+            <div className="relative flex items-center shrink-0">
+              {searchExpanded || searchQuery ? (
+                <div className="relative flex items-center w-28 sm:w-36 md:w-44 lg:w-52 transition-all duration-300">
+                  <Search className="absolute left-2.5 w-3.5 h-3.5 text-[var(--accent-color)] pointer-events-none shrink-0" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    autoFocus
+                    placeholder="Search games..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onBlur={() => {
+                      if (!searchQuery) {
+                        setSearchExpanded(false);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') {
+                        setSearchQuery('');
+                        setSearchExpanded(false);
+                      }
+                    }}
+                    className="w-full bg-[var(--card-bg)] border border-[var(--accent-color)]/60 text-[var(--text-primary)] text-xs rounded-lg pl-7 pr-6 py-1 outline-none shadow-sm transition-all duration-200 placeholder:text-[var(--text-muted)]/60 min-w-0"
+                  />
+                  <button
+                    onClick={() => {
+                      setSearchQuery('');
+                      setSearchExpanded(false);
+                    }}
+                    className="absolute right-2 p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
+                    title="Close search"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setSearchExpanded(true);
+                    setTimeout(() => searchInputRef.current?.focus(), 50);
+                  }}
+                  className="p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--bg-secondary)] hover:border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all duration-200 cursor-pointer shadow-sm flex items-center justify-center shrink-0 group"
+                  title="Search games"
+                  aria-label="Search games"
+                >
+                  <Search className="w-3.5 h-3.5 group-hover:scale-110 transition-transform duration-200" />
+                </button>
+              )}
+            </div>
 
             {/* Clear History Button in Header */}
             <button
@@ -3357,11 +3842,6 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="border-t border-white/5 pt-2 mt-1 text-center">
-                      <p className="text-[9px] font-mono text-neutral-500">
-                        made by Urnperiodic and Grandplat2
-                      </p>
-                    </div>
                   </div>
                 </div>
               )}
@@ -3447,6 +3927,42 @@ export default function App() {
             <div className="flex items-center gap-1.5">
               <span className="text-[10px] font-mono font-bold text-neutral-400 uppercase select-none">Decoy:</span>
               <DecoyDropdown value={decoyType} onChange={setDecoyType} mode={mode} />
+              <AutoRandomizeDecoyButton
+                autoRandomize={autoRandomizeDecoy}
+                setAutoRandomize={setAutoRandomizeDecoy}
+                interval={randomizeInterval}
+                setInterval={updateRandomizeInterval}
+                pool={randomizePool}
+                togglePoolItem={toggleDecoyInPool}
+                selectAllPool={selectAllDecoys}
+                countdown={randomizeCountdown}
+                onRandomizeNow={triggerManualRandomize}
+                currentDecoy={decoyType}
+                mode={mode}
+              />
+            </div>
+
+            {/* Alt Bar Search Bar (squishable, left of Clear History) */}
+            <div className="w-28 sm:w-36 md:w-44 shrink transition-all duration-300 min-w-[70px]">
+              <div className="relative flex items-center w-full">
+                <Search className="absolute left-2.5 w-3 h-3 text-[var(--accent-color)] pointer-events-none shrink-0" />
+                <input
+                  type="text"
+                  placeholder="Search games..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-color)]/50 focus:border-[var(--accent-color)] text-[var(--text-primary)] text-xs rounded-lg pl-7 pr-6 py-1 outline-none transition-all duration-200 placeholder:text-[var(--text-muted)]/60 min-w-0"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer"
+                    title="Clear search"
+                  >
+                    <X className="w-2.5 h-2.5" />
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Clear History Button in Alt Bar */}
@@ -3662,11 +4178,6 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="border-t border-white/5 pt-2 mt-1 text-center">
-                      <p className="text-[9px] font-mono text-neutral-500">
-                        made by Urnperiodic and Grandplat2
-                      </p>
-                    </div>
                   </div>
                 </div>
               )}
@@ -3836,34 +4347,6 @@ export default function App() {
             <Users className="w-4.5 h-4.5 shrink-0" />
             <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Multiplayer</span>
           </motion.button>
-
-          <motion.button
-            whileHover={{ x: 6 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { setFilter('Shooter'); setSelectedGame(null); }}
-            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
-              filter === 'Shooter' && !selectedGame
-                ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_4px_12px_var(--accent-shadow)] font-bold'
-                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80'
-            }`}
-          >
-            <Crosshair className="w-4.5 h-4.5 shrink-0" />
-            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Shooter</span>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ x: 6 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => { setFilter('Sports'); setSelectedGame(null); }}
-            className={`w-full text-left py-2.5 px-3 rounded-lg flex items-center gap-3 text-sm font-medium transition-all duration-200 cursor-pointer ${
-              filter === 'Sports' && !selectedGame
-                ? 'bg-[var(--accent-color)] text-[var(--bg-color)] shadow-[0_4px_12px_var(--accent-shadow)] font-bold'
-                : 'hover:bg-[var(--card-bg)] text-[var(--text-primary)] opacity-80'
-            }`}
-          >
-            <Trophy className="w-4.5 h-4.5 shrink-0" />
-            <span className={`transition-all duration-300 ${sidebarOpen ? 'opacity-100 translate-x-0' : 'opacity-0 pointer-events-none md:hidden'}`}>Sports</span>
-          </motion.button>
           
           <motion.button
             whileHover={{ x: 6 }}
@@ -4019,7 +4502,6 @@ export default function App() {
                     {filter === 'favorites' && 'Bookmarked Games'}
                     {filter === 'featured' && 'Featured Showcases'}
                     {filter === 'single' && 'Singleplayer Arcades'}
-                    {filter === 'Sports' && 'Sports Games'}
                     {filter === 'Emulated' && 'Emulated Archives'}
                     {filter === 'minecraft' && 'Minecraft Platform'}
                   </h2>
