@@ -32,6 +32,32 @@ const prepareGameHtml = (html, baseUrl) => {
 const createGameLoadErrorDocument = (url) => ({
   srcDoc: `<html><body style="margin:0;background:#080b12;color:#e5e7eb;font:16px sans-serif;display:grid;place-items:center;min-height:100vh;text-align:center"><main><h2>Game could not be loaded</h2><p>The remote game file did not respond.</p><a href="${url}" target="_blank" rel="noreferrer" style="color:#60a5fa">Open source file</a></main></body></html>`
 });
+
+const loadGameFrame = async (url, signal) => {
+  if (!url.startsWith(PUBLIC_GAMES_BASE_URL)) return { src: url };
+
+  const loadHtml = async (sourceUrl) => {
+    const response = await fetch(sourceUrl, { signal });
+    if (!response.ok) throw new Error(`Game file request failed: ${response.status}`);
+    const html = await response.text();
+    const baseUrl = sourceUrl.slice(0, sourceUrl.lastIndexOf('/') + 1);
+    return prepareGameHtml(html, baseUrl);
+  };
+
+  try {
+    const srcDoc = await loadHtml(url);
+    return { srcDoc };
+  } catch (error) {
+    if (error.name === 'AbortError') throw error;
+
+    const filename = new URL(url).pathname.split('/').pop();
+    if (!filename) throw error;
+
+    const localUrl = `${window.location.origin}/${filename}`;
+    const srcDoc = await loadHtml(localUrl);
+    return { srcDoc };
+  }
+};
 import { initialArticles } from './data/articles';
 const FlashcardsWorkspace = lazy(() => import('./components/FlashcardsWorkspace'));
 const QuizWorkspace = lazy(() => import('./components/QuizWorkspace'));
@@ -704,11 +730,6 @@ export default function App() {
       return undefined;
     }
 
-    if (!selectedGame.url.startsWith(PUBLIC_GAMES_BASE_URL)) {
-      setGameFrame({ src: selectedGame.url });
-      return undefined;
-    }
-
     const cachedFrame = gameHtmlCache.get(selectedGame.url);
     if (cachedFrame) {
       setGameFrame(cachedFrame);
@@ -718,15 +739,8 @@ export default function App() {
     const controller = new AbortController();
     setGameFrame(null);
 
-    fetch(selectedGame.url, { signal: controller.signal })
-      .then((response) => {
-        if (!response.ok) throw new Error(`Game file request failed: ${response.status}`);
-        return response.text();
-      })
-      .then((html) => {
-        const baseUrl = selectedGame.url.slice(0, selectedGame.url.lastIndexOf('/') + 1);
-        const srcDoc = prepareGameHtml(html, baseUrl);
-        const frame = { srcDoc };
+    loadGameFrame(selectedGame.url, controller.signal)
+      .then((frame) => {
         gameHtmlCache.set(selectedGame.url, frame);
         setGameFrame(frame);
       })
@@ -4927,22 +4941,12 @@ export default function App() {
                       win.document.close();
 
                       const frame = win.document.getElementById('about-blank-game-frame');
-                      if (!selectedGame.url.startsWith(PUBLIC_GAMES_BASE_URL)) {
-                        frame.src = selectedGame.url;
-                        return;
-                      }
-
                       const cachedFrame = gameHtmlCache.get(selectedGame.url);
                       const loadGameHtml = cachedFrame
-                        ? Promise.resolve(cachedFrame.srcDoc)
-                        : fetch(selectedGame.url).then((response) => {
-                            if (!response.ok) throw new Error(`Game file request failed: ${response.status}`);
-                            return response.text();
-                          }).then((html) => {
-                            const baseUrl = selectedGame.url.slice(0, selectedGame.url.lastIndexOf('/') + 1);
-                            const srcDoc = prepareGameHtml(html, baseUrl);
-                            gameHtmlCache.set(selectedGame.url, { srcDoc });
-                            return srcDoc;
+                        ? Promise.resolve(cachedFrame.src || cachedFrame.srcDoc)
+                        : loadGameFrame(selectedGame.url).then((gameFrame) => {
+                            gameHtmlCache.set(selectedGame.url, gameFrame);
+                            return gameFrame.src || gameFrame.srcDoc;
                           });
 
                       loadGameHtml
