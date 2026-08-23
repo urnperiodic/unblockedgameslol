@@ -1,7 +1,7 @@
 import { lazy, Suspense, useDeferredValue, useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { PUBLIC_GAMES_BASE_URL } from './data/gameSource';
-import defaultThumbnail from './assets/defaultthumbnail.png';
+import defaultThumbnail from './assets/images/defaultthumbnail.png';
 const GAMES_PER_PAGE = 36;
 const gameHtmlCache = new Map();
 const GAME_RUNTIME_SHIM = `<script>
