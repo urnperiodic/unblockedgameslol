@@ -152,6 +152,10 @@ const isLocalGame = (url) => {
   return url && !url.startsWith('http://') && !url.startsWith('https://');
 };
 
+const isCreatorGame = (url) => {
+  return url?.includes('urnperiodic.github.io') || url?.includes('grandplat2.github.io');
+};
+
 const decoyOptions = [
   { value: 'classroom', label: 'Classroom', labelLong: 'Google Classroom', icon: 'https://ssl.gstatic.com/classroom/favicon.png' },
   { value: 'clever', label: 'Clever', labelLong: 'Clever Login', icon: 'https://www.google.com/s2/favicons?sz=64&domain=clever.com' },
@@ -2990,7 +2994,7 @@ export default function App() {
             </div>
             <div className="flex flex-row items-baseline gap-1.5 flex-wrap">
               <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
-                StudyTools Games
+                Urnperiodic&Grandplat2 hub
               </h1>
             </div>
           </div>
@@ -4642,6 +4646,11 @@ export default function App() {
                                 </span>
                               )}
                             </h3>
+                            {isCreatorGame(game.url) && (
+                              <p className="text-[10px] leading-tight text-gray-400">
+                                Lead creator: Urnperiodic&nbsp;&nbsp;Cocreator: Grandplat2
+                              </p>
+                            )}
                             <p className="text-xs text-[var(--text-muted)] line-clamp-3 leading-relaxed">
                               {game.description}
                             </p>
