@@ -7,18 +7,38 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default defineConfig(() => {
-  return {
-    base: './',
-    plugins: [react(), tailwindcss()],
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, '.'),
-      },
+export default defineConfig({
+  base: './',
+
+  plugins: [
+    react(),
+    tailwindcss(),
+  ],
+
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, '.'),
     },
-    server: {
-      hmr: process.env.DISABLE_HMR !== 'true',
-      watch: process.env.DISABLE_HMR === 'true' ? null : {},
+  },
+
+  // Don't let Vite watch/scan the huge game collection
+  server: {
+    hmr: process.env.DISABLE_HMR !== 'true',
+    watch: {
+      ignored: [
+        '**/Gmfiles/**',
+        '**/node_modules/**',
+        '**/.git/**',
+      ],
     },
-  };
+  },
+
+  // Don't allow these files to be pulled into the Vite bundle
+  build: {
+    rollupOptions: {
+      external: [
+        /^\/Gmfiles\//,
+      ],
+    },
+  },
 });
