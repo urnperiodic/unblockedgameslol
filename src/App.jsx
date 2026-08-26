@@ -1393,6 +1393,7 @@ export default function App() {
   useEffect(() => {
     if (!selectedGame) return;
     const handleBeforeUnload = (e) => {
+      safeStorage.removeItem('unblocked-last-game');
       e.preventDefault();
       e.returnValue = ''; // Required for most browsers to show prompt
       return ''; 
@@ -4674,8 +4675,8 @@ export default function App() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   const link = document.createElement('a');
-                                  link.href = '/' + game.url;
-                                  link.download = game.url;
+                                  link.href = game.url;
+                                  link.download = game.url.split('/').pop();
                                   document.body.appendChild(link);
                                   link.click();
                                   document.body.removeChild(link);
@@ -4813,8 +4814,8 @@ export default function App() {
                       <button
                         onClick={() => {
                           const link = document.createElement('a');
-                          link.href = '/' + selectedGame.url;
-                          link.download = selectedGame.url;
+                          link.href = selectedGame.url;
+                          link.download = selectedGame.url.split('/').pop();
                           document.body.appendChild(link);
                           link.click();
                           document.body.removeChild(link);
