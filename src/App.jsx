@@ -703,6 +703,7 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedGame, setSelectedGame] = useState(null);
   const [gameFrame, setGameFrame] = useState(null);
+  const [pointerLockActive, setPointerLockActive] = useState(false);
   const restoredSavedGame = useRef(false);
 
   useEffect(() => {
@@ -727,6 +728,7 @@ export default function App() {
   useEffect(() => {
     if (!selectedGame) {
       setGameFrame(null);
+      setPointerLockActive(false);
       return undefined;
     }
 
@@ -750,6 +752,25 @@ export default function App() {
 
     return () => controller.abort();
   }, [selectedGame]);
+
+  useEffect(() => {
+    setPointerLockActive(false);
+    if (!selectedGame?.pointerLock) return undefined;
+
+    const updatePointerLockState = () => {
+      const gameFrameElement = document.getElementById('game-frame');
+      setPointerLockActive(document.pointerLockElement === gameFrameElement);
+    };
+
+    document.addEventListener('pointerlockchange', updatePointerLockState);
+    document.addEventListener('pointerlockerror', updatePointerLockState);
+    updatePointerLockState();
+
+    return () => {
+      document.removeEventListener('pointerlockchange', updatePointerLockState);
+      document.removeEventListener('pointerlockerror', updatePointerLockState);
+    };
+  }, [selectedGame, gameFrame]);
 
   const [gameHeaderHidden, setGameHeaderHidden] = useState(false);
   const [autoHideHeader, setAutoHideHeader] = useState(() => {
@@ -4864,7 +4885,7 @@ export default function App() {
                     </button>
 
                   {/* Open in New Tab button */}
-                  <button
+                  {!selectedGame.pointerLock && <button
                     onClick={() => {
                       const win = window.open("about:blank", "_blank");
                       if (!win) {
@@ -4966,7 +4987,7 @@ export default function App() {
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline text-[10px] font-bold">OPEN IN ABOUT:BLANK</span>
-                  </button>
+                  </button>}
 
                   {/* Lobby Chat Toggle Button */}
                   <button
@@ -5043,9 +5064,18 @@ export default function App() {
                         className="w-full h-full flex-1 border-none block m-0 p-0"
                         title={selectedGame.title}
                         allowFullScreen
+                        allow={selectedGame.pointerLock ? 'fullscreen; pointer-lock' : undefined}
                         referrerPolicy="no-referrer"
                         sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                       />
+                    )}
+                    {selectedGame.pointerLock && pointerLockActive && (
+                      <div
+                        className="pointer-events-none absolute top-3 left-1/2 z-20 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1.5 text-center text-[11px] font-medium text-white/90 shadow-lg"
+                        aria-hidden="true"
+                      >
+                        To show your cursor, press Esc
+                      </div>
                     )}
                   </div>
                 </div>
