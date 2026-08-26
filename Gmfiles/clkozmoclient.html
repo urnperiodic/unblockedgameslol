@@ -1,0 +1,34 @@
+<!-- shxyder -->
+<!-- ugs file -->
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>kozmo</title>
+</head>
+<body>
+  <script>
+    async function loadAndRun() {
+      const urls = [
+      "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/Kozmo Client.html.part1",
+      "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/Kozmo Client.html.part2",
+      "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/Kozmo Client.html.part3",
+      "https://cdn.jsdelivr.net/gh/shayderrr/eaglercraft@main/Kozmo Client.html.part4"
+
+      ];
+      let fullHtml = "";
+      for (const u of urls) {
+        const res = await fetch(u);
+        fullHtml += await res.text();
+      }
+
+      document.open();
+      document.write(fullHtml);
+      document.close();
+    }
+
+    loadAndRun();
+  </script>
+</body>
+</html>

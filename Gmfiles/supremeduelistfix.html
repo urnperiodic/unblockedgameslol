@@ -1,0 +1,310 @@
+<!-- Ultimate Game Stash file--> 
+<!-- For the regularly updating doc go to https://docs.google.com/document/d/1_FmH3BlSBQI7FGgAQL59-ZPe8eCxs35wel6JUyVaG8Q/ -->
+
+<!--ripped by greeni-->
+
+
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+<base href="https://cdn.jsdelivr.net/gh/greeniYT/stickywicky@main/" target="_blank">
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  <title>Supreme Duelist</title>
+  <link rel="stylesheet" href="TemplateData/style.css">
+
+  <script>
+    // === SPOOF 1: Make page think it's top-level (not inside an iframe) ===
+    try {
+      Object.defineProperty(window, 'parent', { get: () => window, configurable: true });
+      Object.defineProperty(window, 'top', { get: () => window, configurable: true });
+    } catch(e) {}
+
+    // === SPOOF 2: Fake document.referrer as youtube.com ===
+    try {
+      Object.defineProperty(document, 'referrer', {
+        get: () => 'https://www.youtube.com/',
+        configurable: true
+      });
+    } catch(e) {}
+
+    // === SPOOF 3: Fake ancestorOrigins ===
+    try {
+      Object.defineProperty(window.location, 'ancestorOrigins', {
+        get: () => ({ length: 1, 0: 'https://www.youtube.com', contains: (o) => o === 'https://www.youtube.com' }),
+        configurable: true
+      });
+    } catch(e) {}
+
+    window.ytgame = window.ytgame || {};
+  </script>
+
+  <script>
+    (function() {
+      const requiredHash = '#flags=%7B"enableServiceWorker"%3Afalse%7D&origin=https%3A%2F%2Fwww.youtube.com';
+      try {
+        if (window.location.hash !== requiredHash) window.location.hash = requiredHash;
+      } catch(e) {}
+    })();
+  </script>
+
+  <script>
+    const _OrigAC = window.AudioContext || window.webkitAudioContext;
+    window.AudioContext = window.webkitAudioContext = function(...args) {
+      const ctx = new _OrigAC(...args);
+      window._unityAudioContext = ctx;
+      ctx.suspend = () => { console.log('[AudioFix] Blocked suspend'); return Promise.resolve(); };
+      const _origCreateGain = ctx.createGain.bind(ctx);
+      ctx.createGain = function() {
+        const gain = _origCreateGain();
+        const _origGainDesc = Object.getOwnPropertyDescriptor(GainNode.prototype, 'gain');
+        Object.defineProperty(gain, 'gain', {
+          get: () => _origGainDesc.get.call(gain),
+          set: (v) => {
+            if (v < 0.1) { console.log('[AudioFix] Blocked gain set to', v); return; }
+            _origGainDesc.set.call(gain, v);
+          }
+        });
+        return gain;
+      };
+      return ctx;
+    };
+    window.AudioContext.prototype = _OrigAC.prototype;
+    setInterval(() => {
+      if (window._unityAudioContext && window._unityAudioContext.state !== 'running') {
+        window._unityAudioContext.resume();
+      }
+    }, 500);
+  </script>
+
+  <!-- Real YouTube Game API SDK -->
+  <script src="https://www.youtube.com/game_api/v1"></script>
+
+  <script>
+    // Patch ytgame immediately after SDK loads
+    (function patchYTGame() {
+      if (typeof ytgame === 'undefined' || !ytgame.system) {
+        setTimeout(patchYTGame, 10);
+        return;
+      }
+      console.log('[Patch] ytgame found, patching...');
+
+      ytgame.system.isAudioEnabled = () => true;
+
+      const _origAEC = ytgame.system.onAudioEnabledChange.bind(ytgame.system);
+      ytgame.system.onAudioEnabledChange = (cb) => {
+        return _origAEC((enabled) => { cb(true); });
+      };
+
+      if (ytgame.system.onPause) {
+        ytgame.system.onPause = (cb) => { return () => {}; };
+      }
+
+      if (ytgame.system.onResume) {
+        const _origResume = ytgame.system.onResume.bind(ytgame.system);
+        ytgame.system.onResume = (cb) => {
+          setTimeout(() => cb(), 100);
+          return _origResume(cb);
+        };
+      }
+
+      if (ytgame.game && ytgame.game.onStart) {
+        const _origStart = ytgame.game.onStart.bind(ytgame.game);
+        ytgame.game.onStart = (cb) => {
+          setTimeout(() => cb(), 200);
+          return _origStart(cb);
+        };
+      }
+
+      if (ytgame.game && ytgame.game.onVisibilityChange) {
+        const _origVis = ytgame.game.onVisibilityChange.bind(ytgame.game);
+        ytgame.game.onVisibilityChange = (cb) => {
+          setTimeout(() => cb(true), 100);
+          return _origVis((v) => cb(true));
+        };
+      }
+
+      if (ytgame.ads) {
+        ytgame.ads.isAdBreakAvailable = () => false;
+        ytgame.ads.requestAdBreak = (cb) => { if (cb) cb({ breakStatus: 'dismissed' }); };
+      }
+
+      console.log('[Patch] ytgame fully patched');
+    })();
+
+    window.addEventListener('message', function(e) {
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        if (data && (data.muted === true || data.type === 'mute')) {
+          e.stopImmediatePropagation();
+          return;
+        }
+      } catch(_) {}
+    }, true);
+  </script>
+</head>
+
+<body>
+  <div id="unity-container" class="unity-desktop">
+    <canvas id="unity-canvas" width=100% height=100% tabindex="-1"></canvas>
+    <div id="unity-loading-bar">
+      <div id="unity-logo"></div>
+      <div id="unity-progress-bar-empty">
+        <div id="unity-progress-bar-full"></div>
+      </div>
+    </div>
+    <div id="unity-warning"> </div>
+  </div>
+
+  <script src="unarchiver.min.js"></script>
+  <script>
+    var container = document.querySelector("#unity-container");
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingBar = document.querySelector("#unity-loading-bar");
+    var progressBarFull = document.querySelector("#unity-progress-bar-full");
+    var warningBanner = document.querySelector("#unity-warning");
+
+    function unityShowBanner(msg, type) {}
+
+    var buildUrl = "https://cdn.jsdelivr.net/gh/greeniYT/stickywicky@main/Build";
+    var loaderUrl = buildUrl + "/YTPlayables.loader.js";
+    var config = {
+      dataUrl: buildUrl + "/YTPlayables.data.gz",
+      frameworkUrl: buildUrl + "/YTPlayables.framework.js.gz",
+      codeUrl: buildUrl + "/YTPlayables.wasm.gz",
+      streamingAssetsUrl: "https://cdn.jsdelivr.net/gh/greeniYT/stickywicky@9f5aa0e5dc4708a05d72ef330699421a58f841eb/StreamingAssets/",
+      autoSyncPersistentDataPath: true,
+      companyName: "Neron's Brother",
+      productName: "Supreme Duelist",
+      productVersion: "1.0.16.0002",
+      showBanner: unityShowBanner,
+    };
+
+    if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      var meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+      document.getElementsByTagName('head')[0].appendChild(meta);
+      container.className = "unity-mobile";
+      canvas.className = "unity-mobile";
+    } else {
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+    }
+
+    loadingBar.style.display = "block";
+
+    loadResources = (callback) => {
+      const subZipStr = '.zip';
+      const subWASMStr = '.wasm';
+      const subJSStr = '.js';
+      var codeUrl = config.codeUrl;
+      var shouldDecompress = true;
+      if (!codeUrl.includes(subZipStr)) {
+        if (UrlExists(codeUrl + subZipStr)) {
+          codeUrl = codeUrl + subZipStr;
+        } else {
+          shouldDecompress = false;
+        }
+      }
+      if (shouldDecompress) {
+        var blobType = 'application/octet-stream';
+        if (codeUrl.includes(subWASMStr)) blobType = 'application/wasm';
+        else if (codeUrl.includes(subJSStr)) blobType = 'text/javascript';
+        DecompressFile(codeUrl, blobType, (file) => { config.codeUrl = file; callback(); });
+      } else {
+        callback();
+      }
+    }
+
+    loadZipData = (url, callback) => {
+      fetch(url).then(r => r.blob()).then(blob => callback(blob));
+    }
+
+    function UrlExists(urlToCheck) {
+      var httpReq = new XMLHttpRequest();
+      httpReq.open('HEAD', urlToCheck, false);
+      httpReq.send();
+      return httpReq.status != 404;
+    }
+
+    function DecompressFile(file, blobMimeType, callback) {
+      let decompressedFile;
+      loadZipData(file, (f) => {
+        Unarchiver.open(f).then(async function(archive) {
+          for (let entry of archive.entries) {
+            if (entry.is_file) {
+              let entryRead = await entry.read();
+              let entryData = await entryRead.arrayBuffer();
+              let dataBlob = new Blob([new Uint8Array(entryData)], { type: blobMimeType });
+              decompressedFile = window.URL.createObjectURL(dataBlob);
+            }
+          }
+          callback(decompressedFile);
+        });
+      });
+    }
+
+    var unityGameInstance = null;
+
+    function InitUnitySection() {
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          unityGameInstance = unityInstance;
+          loadingBar.style.display = "none";
+          setTimeout(() => {
+            if (window._unityAudioContext) window._unityAudioContext.resume();
+            try { if (window.ytgame && window.ytgame.system) window.ytgame.system.notifyLoadComplete(); } catch(e) {}
+          }, 1000);
+        }).catch((message) => { console.error(message); });
+      };
+      document.body.appendChild(script);
+    }
+
+    function GetGzipUrl(url) { return url + "ip"; }
+
+    function DecompressGzipFiles(callback) {
+      const wasmUrl = GetGzipUrl(config.codeUrl);
+      fetch(wasmUrl).then(r => r.blob()).then(blob => {
+        const ds = new DecompressionStream("gzip");
+        new Response(blob.stream().pipeThrough(ds)).blob().then(async unzippedBlob => {
+          unzippedBlob.type = "application/wasm";
+          config.codeUrl = window.URL.createObjectURL(unzippedBlob);
+
+          fetch(GetGzipUrl(config.dataUrl)).then(r => r.blob()).then(blob => {
+            blob.type = "application/x-gzip-compressed";
+            const ds2 = new DecompressionStream("gzip");
+            new Response(blob.stream().pipeThrough(ds2)).blob().then(async unzippedBlob => {
+              unzippedBlob.type = "application/octet-stream";
+              config.dataUrl = window.URL.createObjectURL(unzippedBlob);
+
+              fetch(GetGzipUrl(config.frameworkUrl)).then(r => r.blob()).then(blob => {
+                const ds3 = new DecompressionStream("gzip");
+                new Response(blob.stream().pipeThrough(ds3)).blob().then(async unzippedBlob => {
+                  unzippedBlob.type = "text/javascript";
+                  config.frameworkUrl = window.URL.createObjectURL(unzippedBlob);
+                  callback();
+                }).catch(err => console.error("gzip error: " + err));
+              });
+            }).catch(err => console.error("gzip error: " + err));
+          });
+        }).catch(err => console.error("gzip error: " + err));
+      });
+    }
+
+    if (config.dataUrl.includes(".gz")) {
+      DecompressGzipFiles(InitUnitySection);
+    } else {
+      InitUnitySection();
+    }
+  </script>
+</body>
+</html>
