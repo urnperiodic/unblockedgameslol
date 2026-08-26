@@ -1,5 +1,5 @@
-@import "tailwindcss";
-
+@import "tailwindcss" source(none);
+@source "../src";
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
