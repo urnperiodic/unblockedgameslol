@@ -4975,8 +4975,13 @@ export default function App() {
                           });
 
                       loadGameHtml
-                        .then((srcDoc) => {
-                          if (!win.closed) frame.srcdoc = srcDoc;
+                        .then((frameContent) => {
+                          if (win.closed) return;
+                          if (frameContent.startsWith('<')) {
+                            frame.srcdoc = frameContent;
+                          } else {
+                            frame.src = frameContent;
+                          }
                         })
                         .catch(() => {
                           if (!win.closed) frame.srcdoc = createGameLoadErrorDocument(selectedGame.url).srcDoc;
