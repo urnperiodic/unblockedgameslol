@@ -154,6 +154,7 @@ const isLocalGame = (url) => {
 
 const decoyOptions = [
   { value: 'classroom', label: 'Classroom', labelLong: 'Google Classroom', icon: 'https://ssl.gstatic.com/classroom/favicon.png' },
+  { value: 'canva', label: 'Canva', labelLong: 'Canva | Visual Suite', icon: 'https://static.canva.com/domain-assets/canva/static/images/favicon-1.ico' },
   { value: 'clever', label: 'Clever', labelLong: 'Clever Login', icon: 'https://www.google.com/s2/favicons?sz=64&domain=clever.com' },
   { value: 'campus', label: 'Campus', labelLong: 'Infinite Campus', icon: 'https://jerseycitynj.infinitecampus.org/campus/favicon-32x32.png' },
   { value: 'docs', label: 'Docs', labelLong: 'Google Docs', icon: 'https://ssl.gstatic.com/docs/documents/images/docs-favicon-2026-v2.ico' },
@@ -568,17 +569,17 @@ export default function App() {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlDecoyType = params.get('decoyType');
-      if (urlDecoyType && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoyType)) {
+      if (urlDecoyType && ['classroom', 'canva', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoyType)) {
         return urlDecoyType;
       }
       const urlDecoy = params.get('decoy');
       if (urlDecoy === 'true') return 'classroom';
       if (urlDecoy === 'false') return 'classroom';
-      if (urlDecoy && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoy)) {
+      if (urlDecoy && ['classroom', 'canva', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(urlDecoy)) {
         return urlDecoy;
       }
       const cached = localStorage.getItem('study-tools-decoy-type');
-      if (cached && ['classroom', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(cached)) {
+      if (cached && ['classroom', 'canva', 'clever', 'campus', 'docs', 'gmail', 'duolingo', 'ixl'].includes(cached)) {
         return cached;
       }
     }
@@ -703,7 +704,6 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [selectedGame, setSelectedGame] = useState(null);
   const [gameFrame, setGameFrame] = useState(null);
-  const [pointerLockActive, setPointerLockActive] = useState(false);
   const restoredSavedGame = useRef(false);
 
   useEffect(() => {
@@ -728,7 +728,6 @@ export default function App() {
   useEffect(() => {
     if (!selectedGame) {
       setGameFrame(null);
-      setPointerLockActive(false);
       return undefined;
     }
 
@@ -753,29 +752,10 @@ export default function App() {
     return () => controller.abort();
   }, [selectedGame]);
 
-  useEffect(() => {
-    setPointerLockActive(false);
-    if (!selectedGame?.pointerLock) return undefined;
-
-    const updatePointerLockState = () => {
-      const gameFrameElement = document.getElementById('game-frame');
-      setPointerLockActive(document.pointerLockElement === gameFrameElement);
-    };
-
-    document.addEventListener('pointerlockchange', updatePointerLockState);
-    document.addEventListener('pointerlockerror', updatePointerLockState);
-    updatePointerLockState();
-
-    return () => {
-      document.removeEventListener('pointerlockchange', updatePointerLockState);
-      document.removeEventListener('pointerlockerror', updatePointerLockState);
-    };
-  }, [selectedGame, gameFrame]);
-
   const [gameHeaderHidden, setGameHeaderHidden] = useState(false);
   const [autoHideHeader, setAutoHideHeader] = useState(() => {
     const saved = safeStorage.getItem('unblocked-auto-hide-header');
-    return saved !== 'false'; // Defaults to true
+    return saved === 'true'; // Defaults to false
   });
   const [altBarOpen, setAltBarOpen] = useState(true);
   const [headerOpen, setHeaderOpen] = useState(false);
@@ -786,55 +766,6 @@ export default function App() {
   const compactLeftRef = useRef(null);
   const compactRightRef = useRef(null);
   const compactCenterRef = useRef(null);
-  const [centerOffsetLeft, setCenterOffsetLeft] = useState(null);
-
-  useEffect(() => {
-    const updateCenter = () => {
-      if (!compactHeaderRef.current || !compactCenterRef.current) return;
-      const headerRect = compactHeaderRef.current.getBoundingClientRect();
-      const leftRect = compactLeftRef.current ? compactLeftRef.current.getBoundingClientRect() : null;
-      const rightRect = compactRightRef.current ? compactRightRef.current.getBoundingClientRect() : null;
-      const centerRect = compactCenterRef.current.getBoundingClientRect();
-
-      const headerW = headerRect.width;
-      if (headerW === 0 || centerRect.width === 0) return;
-
-      const leftEdge = leftRect ? (leftRect.right - headerRect.left) : 150;
-      const rightEdge = rightRect ? (rightRect.left - headerRect.left) : (headerW - 300);
-      const centerW = centerRect.width;
-
-      const GAP = 20;
-      const minLeft = leftEdge + GAP;
-      const maxLeft = rightEdge - centerW - GAP;
-      const trueCenterLeft = (headerW - centerW) / 2;
-
-      if (minLeft > maxLeft) {
-        setCenterOffsetLeft(null);
-        return;
-      }
-
-      const target = Math.max(minLeft, Math.min(trueCenterLeft, maxLeft));
-      setCenterOffsetLeft(target);
-    };
-
-    updateCenter();
-    const timer = setTimeout(updateCenter, 50);
-
-    let ro;
-    if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(updateCenter);
-      if (compactHeaderRef.current) ro.observe(compactHeaderRef.current);
-      if (compactRightRef.current) ro.observe(compactRightRef.current);
-      if (compactLeftRef.current) ro.observe(compactLeftRef.current);
-      if (compactCenterRef.current) ro.observe(compactCenterRef.current);
-    }
-    window.addEventListener('resize', updateCenter);
-    return () => {
-      clearTimeout(timer);
-      if (ro) ro.disconnect();
-      window.removeEventListener('resize', updateCenter);
-    };
-  }, [headerOpen, searchQuery, searchExpanded, filter]);
 
   useEffect(() => {
     safeStorage.setItem('unblocked-last-filter', filter);
@@ -1414,7 +1345,6 @@ export default function App() {
   useEffect(() => {
     if (!selectedGame) return;
     const handleBeforeUnload = (e) => {
-      safeStorage.removeItem('unblocked-last-game');
       e.preventDefault();
       e.returnValue = ''; // Required for most browsers to show prompt
       return ''; 
@@ -1513,6 +1443,9 @@ export default function App() {
       if (decoyType === 'classroom') {
         setBothTitles("Home - Classroom");
         updateFavicon(classroomFavicon);
+      } else if (decoyType === 'canva') {
+        setBothTitles("Home - Canva");
+        updateFavicon("https://static.canva.com/domain-assets/canva/static/images/favicon-1.ico");
       } else if (decoyType === 'clever') {
         setBothTitles("Clever | Log in with Clever");
         updateFavicon("https://www.google.com/s2/favicons?sz=64&domain=clever.com");
@@ -2883,6 +2816,9 @@ export default function App() {
                 if (decoyType === 'classroom') {
                   parentTitle = "Home - Classroom";
                   parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                } else if (decoyType === 'canva') {
+                  parentTitle = "Home - Canva";
+                  parentFavicon = "https://static.canva.com/domain-assets/canva/static/images/favicon-1.ico";
                 } else if (decoyType === 'clever') {
                   parentTitle = "Clever | Log in with Clever";
                   parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
@@ -3000,37 +2936,59 @@ export default function App() {
           className="relative py-1.5 px-3 md:px-4 flex flex-wrap md:flex-nowrap items-center justify-between gap-2.5 md:gap-3 w-full transition-colors duration-300 min-h-[42px]"
         >
           
-          {/* Left: Logo & Title */}
-          <div 
-            ref={compactLeftRef}
-            onClick={() => { setFilter('all'); setSelectedGame(null); setSearchQuery(''); }}
-            className="flex items-center gap-2 cursor-pointer select-none group shrink-0 justify-start z-10"
-            title="Go to homepage"
-          >
-            <div className="p-1 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-md border border-[var(--card-border)] shadow-sm group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center shrink-0">
-              <School className="w-3.5 h-3.5" />
+          {/* Left: Logo & Title + Search Bar */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 z-10">
+            <div 
+              ref={compactLeftRef}
+              onClick={() => { setFilter('all'); setSelectedGame(null); setSearchQuery(''); }}
+              className="flex items-center gap-2 cursor-pointer select-none group shrink-0 justify-start"
+              title="Go to homepage"
+            >
+              <div className="p-1 bg-[var(--accent-color)] text-[var(--bg-color)] rounded-md border border-[var(--card-border)] shadow-sm group-hover:rotate-12 transition-all duration-300 transform flex items-center justify-center shrink-0">
+                <School className="w-3.5 h-3.5" />
+              </div>
+              <div className="flex flex-col items-start gap-0.5">
+                <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
+                  Urnperiodic&Grandplat2 hub
+                </h1>
+                <span className="text-[8px] leading-none text-gray-400 whitespace-nowrap">
+                  Lead creator: Urnperiodic&nbsp;&nbsp;Cocreator: Grandplat2
+                </span>
+              </div>
             </div>
-            <div className="flex flex-col items-start gap-0.5">
-              <h1 className="font-extrabold tracking-tight text-[var(--text-primary)] leading-none group-hover:text-[var(--accent-color)] transition-colors text-left" style={{ fontSize: '12px', textAlign: 'left' }}>
-                Urnperiodic&Grandplat2 hub
-              </h1>
-              <span className="text-[8px] leading-none text-gray-400 whitespace-nowrap">
-                Lead creator: Urnperiodic&nbsp;&nbsp;Cocreator: Grandplat2
-              </span>
+
+            {/* Compact Search Bar next to Name */}
+            <div className="relative flex items-center w-24 sm:w-28 md:w-32 shrink-0 transition-all duration-200">
+              <Search className="absolute left-2 w-3 h-3 text-[var(--accent-color)] pointer-events-none shrink-0" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setSearchQuery('');
+                  }
+                }}
+                className="w-full bg-[var(--card-bg)] border border-[var(--card-border)] hover:border-[var(--accent-color)]/50 focus:border-[var(--accent-color)] text-[var(--text-primary)] text-[11px] rounded-lg pl-6 pr-6 py-0.5 outline-none shadow-sm transition-all duration-200 placeholder:text-[var(--text-muted)]/60 min-w-0"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-1.5 p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
+                  title="Clear search"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              )}
             </div>
           </div>
 
-          {/* Center: Quick Sections & Navigation (perfect true center, dynamically moves left if right side needs space) */}
+          {/* Center: Quick Sections & Navigation (perfect true center with CSS) */}
           <div 
             ref={compactCenterRef}
-            style={{
-              position: centerOffsetLeft !== null ? 'absolute' : 'relative',
-              left: centerOffsetLeft !== null ? `${centerOffsetLeft}px` : 'auto',
-              top: centerOffsetLeft !== null ? '50%' : 'auto',
-              transform: centerOffsetLeft !== null ? 'translateY(-50%)' : 'none',
-              zIndex: 20
-            }}
-            className="flex items-center justify-center min-w-0 pointer-events-auto transition-[left] duration-200 ease-out"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20 flex items-center justify-center min-w-0 pointer-events-auto"
           >
             {/* Quick Sections with backgrounds for mobile/tablet wrapped cleanly */}
             <div className="flex md:hidden items-center gap-1 bg-[var(--bg-secondary)] border border-[var(--card-border)]/50 p-0.5 rounded-lg shadow-sm shrink-0">
@@ -3103,6 +3061,9 @@ export default function App() {
                   if (decoyType === 'classroom') {
                     parentTitle = "Home - Classroom";
                     parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                  } else if (decoyType === 'canva') {
+                    parentTitle = "Home - Canva";
+                    parentFavicon = "https://static.canva.com/domain-assets/canva/static/images/favicon-1.ico";
                   } else if (decoyType === 'clever') {
                     parentTitle = "Clever | Log in with Clever";
                     parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
@@ -3299,6 +3260,9 @@ export default function App() {
                     if (decoyType === 'classroom') {
                       parentTitle = "Home - Classroom";
                       parentFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                    } else if (decoyType === 'canva') {
+                      parentTitle = "Home - Canva";
+                      parentFavicon = "https://static.canva.com/domain-assets/canva/static/images/favicon-1.ico";
                     } else if (decoyType === 'clever') {
                       parentTitle = "Clever | Log in with Clever";
                       parentFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
@@ -3550,59 +3514,8 @@ export default function App() {
             </div>
           </div>
 
-          {/* Top Right: Search Bar, Clear History, Theme Slider & Settings */}
+          {/* Top Right: Clear History, Theme Slider & Settings */}
           <div ref={compactRightRef} className="flex items-center gap-2 justify-end shrink-0 min-w-0 ml-auto z-10">
-
-            {/* Header Search Bar (collapsible icon / expandable input) */}
-            <div className="relative flex items-center shrink-0">
-              {searchExpanded || searchQuery ? (
-                <div className="relative flex items-center w-28 sm:w-36 md:w-44 lg:w-52 transition-all duration-300">
-                  <Search className="absolute left-2.5 w-3.5 h-3.5 text-[var(--accent-color)] pointer-events-none shrink-0" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    autoFocus
-                    placeholder="Search games..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onBlur={() => {
-                      if (!searchQuery) {
-                        setSearchExpanded(false);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Escape') {
-                        setSearchQuery('');
-                        setSearchExpanded(false);
-                      }
-                    }}
-                    className="w-full bg-[var(--card-bg)] border border-[var(--accent-color)]/60 text-[var(--text-primary)] text-xs rounded-lg pl-7 pr-6 py-1 outline-none shadow-sm transition-all duration-200 placeholder:text-[var(--text-muted)]/60 min-w-0"
-                  />
-                  <button
-                    onClick={() => {
-                      setSearchQuery('');
-                      setSearchExpanded(false);
-                    }}
-                    className="absolute right-2 p-0.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors cursor-pointer shrink-0"
-                    title="Close search"
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setSearchExpanded(true);
-                    setTimeout(() => searchInputRef.current?.focus(), 50);
-                  }}
-                  className="p-1.5 rounded-lg border border-[var(--card-border)] bg-[var(--bg-secondary)] hover:border-[var(--accent-color)] text-[var(--accent-color)] hover:bg-[var(--card-bg)] transition-all duration-200 cursor-pointer shadow-sm flex items-center justify-center shrink-0 group"
-                  title="Search games"
-                  aria-label="Search games"
-                >
-                  <Search className="w-3.5 h-3.5 group-hover:scale-110 transition-transform duration-200" />
-                </button>
-              )}
-            </div>
 
             {/* Clear History Button in Header */}
             <button
@@ -4261,7 +4174,7 @@ export default function App() {
 
 
       {/* MAIN CONTAINER: SIDEBAR + GAMES */}
-      <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto transition-all duration-300 relative select-none games-no-select ${windowFullscreen ? 'z-[99999]' : 'z-10'} ${
+      <div className={`flex-1 flex flex-col md:flex-row w-full mx-auto relative select-none games-no-select ${windowFullscreen ? 'z-[99999]' : 'z-10'} ${
         (filter === 'chat' || filter === 'movies' || filter === 'lobbychat' || filter === 'youtube' || filter === 'download' || selectedGame)
           ? 'max-w-none p-0 gap-0 border-t-0 lg:bg-[#07090e]' 
           : 'max-w-8xl p-4 md:p-6 gap-6 self-center'
@@ -4534,7 +4447,7 @@ export default function App() {
                   className="flex flex-col gap-6"
                 >
               
-              <div className="flex flex-col sm:flex-row justify-start items-start sm:items-center border-l-4 border-[var(--accent-color)] pl-3 gap-4 sm:gap-10">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-l-4 border-[var(--accent-color)] pl-3 gap-4">
                 <div>
                   <h2 className="text-lg font-black uppercase tracking-wider text-[var(--text-primary)]">
                     {filter === 'all' && 'All Portals'}
@@ -4547,28 +4460,6 @@ export default function App() {
                   <p className="text-xs text-[var(--text-muted)] mt-0.5">
                     Showing {filteredGames.length} unblocked resources · Page {safeGamePage} of {totalGamePages}
                   </p>
-                </div>
-
-                {/* Library Search Bar */}
-                <div className="relative w-full max-w-xs">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--text-muted)]">
-                    <Search className="h-4 w-4 text-[var(--accent-color)]" />
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search unblocked resources..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-xs rounded-xl py-2 pl-9 pr-8 border border-[var(--card-border)] bg-[var(--bg-secondary)] text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent-color)] focus:ring-1 focus:ring-[var(--accent-color)]/30 placeholder:opacity-50 transition-all duration-300 shadow-sm"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery('')}
-                      className="absolute inset-y-0 right-0 pr-2.5 flex items-center text-[var(--text-muted)] hover:text-[var(--text-primary)] cursor-pointer"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
                 </div>
               </div>
 
@@ -4585,10 +4476,10 @@ export default function App() {
                     return (
                       <motion.div 
                         key={game.id}
-                        layout
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -15 }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.15 }}
                         whileHover={{ scale: 1.03, y: -4, transition: { duration: 0.2 } }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => { setSelectedGame(game); setZoom(1); }}
@@ -4696,8 +4587,8 @@ export default function App() {
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   const link = document.createElement('a');
-                                  link.href = game.url;
-                                  link.download = game.url.split('/').pop();
+                                  link.href = '/' + game.url;
+                                  link.download = game.url;
                                   document.body.appendChild(link);
                                   link.click();
                                   document.body.removeChild(link);
@@ -4835,8 +4726,8 @@ export default function App() {
                       <button
                         onClick={() => {
                           const link = document.createElement('a');
-                          link.href = selectedGame.url;
-                          link.download = selectedGame.url.split('/').pop();
+                          link.href = '/' + selectedGame.url;
+                          link.download = selectedGame.url;
                           document.body.appendChild(link);
                           link.click();
                           document.body.removeChild(link);
@@ -4885,7 +4776,7 @@ export default function App() {
                     </button>
 
                   {/* Open in New Tab button */}
-                  {!selectedGame.pointerLock && <button
+                  <button
                     onClick={() => {
                       const win = window.open("about:blank", "_blank");
                       if (!win) {
@@ -4898,6 +4789,9 @@ export default function App() {
                       if (decoyType === 'classroom') {
                         tabTitle = "Home - Classroom";
                         tabFavicon = "https://ssl.gstatic.com/classroom/favicon.png";
+                      } else if (decoyType === 'canva') {
+                        tabTitle = "Home - Canva";
+                        tabFavicon = "https://static.canva.com/domain-assets/canva/static/images/favicon-1.ico";
                       } else if (decoyType === 'clever') {
                         tabTitle = "Clever | Log in with Clever";
                         tabFavicon = "https://www.google.com/s2/favicons?sz=64&domain=clever.com";
@@ -4975,13 +4869,8 @@ export default function App() {
                           });
 
                       loadGameHtml
-                        .then((frameContent) => {
-                          if (win.closed) return;
-                          if (frameContent.startsWith('<')) {
-                            frame.srcdoc = frameContent;
-                          } else {
-                            frame.src = frameContent;
-                          }
+                        .then((srcDoc) => {
+                          if (!win.closed) frame.srcdoc = srcDoc;
                         })
                         .catch(() => {
                           if (!win.closed) frame.srcdoc = createGameLoadErrorDocument(selectedGame.url).srcDoc;
@@ -4992,7 +4881,7 @@ export default function App() {
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span className="hidden sm:inline text-[10px] font-bold">OPEN IN ABOUT:BLANK</span>
-                  </button>}
+                  </button>
 
                   {/* Lobby Chat Toggle Button */}
                   <button
@@ -5069,18 +4958,9 @@ export default function App() {
                         className="w-full h-full flex-1 border-none block m-0 p-0"
                         title={selectedGame.title}
                         allowFullScreen
-                        allow={selectedGame.pointerLock ? 'fullscreen; pointer-lock' : undefined}
                         referrerPolicy="no-referrer"
                         sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                       />
-                    )}
-                    {selectedGame.pointerLock && pointerLockActive && (
-                      <div
-                        className="pointer-events-none absolute top-3 left-1/2 z-20 -translate-x-1/2 rounded-md bg-black/70 px-3 py-1.5 text-center text-[11px] font-medium text-white/90 shadow-lg"
-                        aria-hidden="true"
-                      >
-                        To show your cursor, press Esc
-                      </div>
                     )}
                   </div>
                 </div>
